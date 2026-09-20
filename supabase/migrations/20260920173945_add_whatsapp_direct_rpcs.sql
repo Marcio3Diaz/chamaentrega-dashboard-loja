@@ -1,3 +1,46 @@
+grant insert,delete on public.whatsapp_connection_credentials to authenticated;
+revoke select,update on public.whatsapp_connection_credentials from authenticated;
+
+drop policy if exists "whatsapp_credentials_insert_owner_admin"
+on public.whatsapp_connection_credentials;
+create policy "whatsapp_credentials_insert_owner_admin"
+on public.whatsapp_connection_credentials
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.stores s
+    where s.id=whatsapp_connection_credentials.store_id
+      and (
+        s.owner_id=(select auth.uid())
+        or exists (
+          select 1 from public.profiles p
+          where p.id=(select auth.uid()) and p.role='admin'
+        )
+      )
+  )
+);
+
+drop policy if exists "whatsapp_credentials_delete_owner_admin"
+on public.whatsapp_connection_credentials;
+create policy "whatsapp_credentials_delete_owner_admin"
+on public.whatsapp_connection_credentials
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.stores s
+    where s.id=whatsapp_connection_credentials.store_id
+      and (
+        s.owner_id=(select auth.uid())
+        or exists (
+          select 1 from public.profiles p
+          where p.id=(select auth.uid()) and p.role='admin'
+        )
+      )
+  )
+);
+
 create or replace function public.complete_whatsapp_embedded_signup(
   p_store_id uuid,
   p_waba_id text,
@@ -10,7 +53,7 @@ create or replace function public.complete_whatsapp_embedded_signup(
 )
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path=''
 as $$
 declare
@@ -40,6 +83,9 @@ begin
     raise exception 'invalid whatsapp credentials' using errcode='22023';
   end if;
 
+  delete from public.whatsapp_connection_credentials
+  where store_id=p_store_id;
+
   insert into public.whatsapp_connection_credentials(
     store_id,waba_id,phone_number_id,display_phone_number,verified_name,
     access_token,token_type,token_expires_at,connected_at
@@ -50,16 +96,7 @@ begin
     nullif(trim(p_verified_name),''),
     p_access_token,nullif(trim(p_token_type),''),
     p_token_expires_at,now()
-  )
-  on conflict (store_id) do update set
-    waba_id=excluded.waba_id,
-    phone_number_id=excluded.phone_number_id,
-    display_phone_number=excluded.display_phone_number,
-    verified_name=excluded.verified_name,
-    access_token=excluded.access_token,
-    token_type=excluded.token_type,
-    token_expires_at=excluded.token_expires_at,
-    connected_at=now();
+  );
 
   select coalesce(si.public_config,'{}'::jsonb)
   into v_config
@@ -100,7 +137,7 @@ grant execute on function public.complete_whatsapp_embedded_signup(
 create or replace function public.disconnect_whatsapp_embedded_signup(p_store_id uuid)
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path=''
 as $$
 begin
