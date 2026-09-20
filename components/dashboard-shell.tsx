@@ -11,6 +11,7 @@ const nav = [
   ['/entregas', 'Entregas', 'box'],
   ['/entregadores', 'Entregadores', 'user'],
   ['/mapa', 'Mapa ao vivo', 'map'],
+  ['/chat', 'Chat', 'chat'],
   ['/financeiro', 'Financeiro', 'chart'],
   ['/integracoes', 'Integrações', 'link'],
   ['/configuracoes', 'Configurações', 'gear'],
