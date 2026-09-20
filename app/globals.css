@@ -9897,3 +9897,74 @@ html[data-theme="light"] .quick-grid small,
 html[data-theme="light"] .courier-copy small {
   color: var(--light-muted) !important;
 }
+
+
+/* =================================================================
+   MAPA — marcadores sempre perfeitamente circulares
+   ================================================================= */
+.ce-store-marker-wrap {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.ce-store-marker-dot {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  aspect-ratio: 1 / 1 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  flex: 0 0 18px !important;
+  padding: 0 !important;
+  border: 3px solid #ffb800 !important;
+  border-radius: 50% !important;
+  background: #10151a !important;
+  box-shadow:
+    0 0 0 3px rgba(255,184,0,.12),
+    0 6px 16px rgba(0,0,0,.34) !important;
+}
+
+.ce-fallback-avatar-ring,
+.live-courier-avatar {
+  aspect-ratio: 1 / 1 !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.ce-fallback-avatar-ring > i {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  aspect-ratio: 1 / 1 !important;
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+}
+
+.live-courier-avatar > i {
+  width: 11px !important;
+  height: 11px !important;
+  min-width: 11px !important;
+  min-height: 11px !important;
+  max-width: 11px !important;
+  max-height: 11px !important;
+  aspect-ratio: 1 / 1 !important;
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+}
