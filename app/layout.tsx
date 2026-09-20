@@ -11,6 +11,15 @@ export const metadata: Metadata = {
   },
 }
 
+const themeBootstrap = `(function(){try{var saved=localStorage.getItem('chamaentrega-theme');var theme=saved==='light'?'light':'dark';document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;}catch(e){document.documentElement.dataset.theme='dark';document.documentElement.style.colorScheme='dark';}})();`
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body>{children}</body></html>
+  return (
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
 }
