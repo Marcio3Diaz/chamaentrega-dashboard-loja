@@ -7907,3 +7907,62 @@ body { background: #07090c; }
     border-bottom:1px solid rgba(255,255,255,.06);
   }
 }
+
+
+/* =================================================================
+   IDENTIDADE OFICIAL CHAMAENTREGA — Chamou, Chegou
+   ================================================================= */
+.official-brand-link {
+  display: block !important;
+  padding: 0 10px 18px !important;
+  line-height: 0;
+}
+
+.official-brand-logo {
+  display: block;
+  width: min(205px,100%);
+  height: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.official-login-brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 24px;
+}
+
+.official-login-logo {
+  display: block;
+  width: min(330px,100%);
+  height: auto;
+  object-fit: contain;
+}
+
+.brand-mark {
+  overflow: hidden !important;
+  color: transparent !important;
+  text-indent: -9999px !important;
+  background:
+    url('/brand/chamaentrega-flame-official.webp')
+    center / contain no-repeat !important;
+  box-shadow: none !important;
+}
+
+@media (min-width:1200px) {
+  .official-brand-link {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .official-brand-logo {
+    width: 220px;
+  }
+}
+
+@media (max-width:760px) {
+  .official-login-logo {
+    width: min(290px,100%);
+  }
+}
