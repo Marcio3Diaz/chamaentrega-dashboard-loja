@@ -344,13 +344,23 @@ export function LiveCourierMap({
   }), [couriers, deliveryByCourier])
 
   const refreshNetwork = useCallback(async () => {
-    const { data: courierRows } = await supabase
-      .from('couriers')
-      .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
-      .order('is_online', { ascending: false })
+    const { data: networkRows } = await supabase
+      .from('courier_store_networks')
+      .select('courier_id')
+      .eq('store_id', storeId)
+      .eq('status', 'connected')
+
+    const ids = (networkRows ?? []).map(item => item.courier_id)
+
+    const { data: courierRows } = ids.length
+      ? await supabase
+          .from('couriers')
+          .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
+          .in('id', ids)
+          .order('is_online', { ascending: false })
+      : { data: [] as any[] }
 
     const rows = courierRows ?? []
-    const ids = rows.map(item => item.id)
     const { data: profileRows } = ids.length
       ? await supabase.from('profiles').select('id,full_name,avatar_url').in('id', ids)
       : { data: [] as any[] }
