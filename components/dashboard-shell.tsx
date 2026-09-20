@@ -7,6 +7,7 @@ import { StoreLogoUpload } from '@/components/store-logo-upload'
 
 const nav = [
   ['/', 'Visão Geral', 'home'],
+  ['/pedidos', 'Pedidos', 'box'],
   ['/entregas/nova', 'Criar entrega', 'plus'],
   ['/entregas', 'Entregas', 'box'],
   ['/entregadores', 'Entregadores', 'user'],
@@ -103,7 +104,7 @@ export function DashboardShell({
 
       <nav className="mobile-nav">
         <Link href="/"><Icon name="home" size={18}/>Início</Link>
-        <Link href="/entregas/nova"><Icon name="plus" size={18}/>Criar</Link>
+        <Link href="/pedidos"><Icon name="box" size={18}/>Pedidos</Link>
         <Link href="/entregas"><Icon name="box" size={18}/>Entregas</Link>
         <Link href="/mapa"><Icon name="map" size={18}/>Mapa</Link>
         <Link href="/financeiro"><Icon name="chart" size={18}/>Financeiro</Link>
