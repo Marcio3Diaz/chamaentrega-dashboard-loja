@@ -46,12 +46,20 @@ export default async function OverviewPage() {
   ]
 
   return <>
-    <section className="dashboard-banner" aria-label="ChamaEntrega Entregador">
-      <img
-        src="/images/chamaentrega-dashboard-banner.webp"
-        alt="Banner ChamaEntrega Entregador"
-        className="dashboard-banner-image"
-      />
+    <section className="dashboard-hero target-hero">
+      <div className="hero-content">
+        <div className="eyebrow">OPERAÇÃO EM TEMPO REAL</div>
+        <h1>Olá, <span>{store.name}.</span></h1>
+        <p>Acompanhe suas entregas, clientes e resultados em tempo real.</p>
+      </div>
+
+      <div className="hero-visual target-hero-visual" aria-hidden="true">
+        <div className="hero-quote">Mais<br/>distâncias.<br/>Mais sabores.<br/>Mais histórias.<i /></div>
+      </div>
+
+      <Link href="/entregas/nova" className="button hero-cta">
+        <Icon name="plus" size={20}/>NOVA ENTREGA
+      </Link>
     </section>
 
     <section className="premium-metrics">
