@@ -87,6 +87,10 @@ export function StoreSettingsPanel({ initialData }: Props) {
   const [neighborhood,setNeighborhood] = useState(initialData.neighborhood)
   const [city,setCity] = useState(initialData.city)
   const [state,setState] = useState(initialData.state)
+  const [latitude,setLatitude] = useState<number | null>(initialData.latitude)
+  const [longitude,setLongitude] = useState<number | null>(initialData.longitude)
+  const [findingCep,setFindingCep] = useState(false)
+  const [locating,setLocating] = useState(false)
 
   const [adminName,setAdminName] = useState(initialData.adminName)
   const [adminPhone,setAdminPhone] = useState(initialData.adminPhone)
@@ -143,6 +147,67 @@ export function StoreSettingsPanel({ initialData }: Props) {
     router.refresh()
   }
 
+  async function lookupCep() {
+    const clean = zipCode.replace(/\D/g,'')
+    if (clean.length !== 8) {
+      notify('Informe um CEP com 8 dígitos.', 'error')
+      return
+    }
+
+    setFindingCep(true)
+
+    try {
+      const response = await fetch('https://viacep.com.br/ws/' + clean + '/json/')
+      const data = await response.json() as {
+        erro?: boolean
+        logradouro?: string
+        bairro?: string
+        localidade?: string
+        uf?: string
+      }
+
+      if (!response.ok || data.erro) throw new Error('CEP não encontrado')
+
+      if (data.logradouro) setStreet(data.logradouro)
+      if (data.bairro) setNeighborhood(data.bairro)
+      if (data.localidade) setCity(data.localidade)
+      if (data.uf) setState(data.uf.toUpperCase().slice(0,2))
+
+      notify('Endereço preenchido a partir do CEP.')
+    } catch {
+      notify('Não foi possível consultar esse CEP.', 'error')
+    } finally {
+      setFindingCep(false)
+    }
+  }
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      notify('Seu navegador não oferece localização.', 'error')
+      return
+    }
+
+    setLocating(true)
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        setLatitude(position.coords.latitude)
+        setLongitude(position.coords.longitude)
+        setLocating(false)
+        notify('Localização GPS atualizada.')
+      },
+      () => {
+        setLocating(false)
+        notify('Não foi possível obter sua localização. Verifique a permissão do navegador.', 'error')
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 30000,
+      },
+    )
+  }
+
   async function saveAddress(event: FormEvent) {
     event.preventDefault()
 
@@ -164,6 +229,8 @@ export function StoreSettingsPanel({ initialData }: Props) {
         city: city.trim() || null,
         state: state.trim().toUpperCase().slice(0,2) || null,
         address: computedAddress,
+        latitude,
+        longitude,
       })
       .eq('id', initialData.storeId)
       .eq('owner_id', initialData.userId)
@@ -301,6 +368,17 @@ export function StoreSettingsPanel({ initialData }: Props) {
                 </div>
               </div>
 
+              <div className="settings-location-tools">
+                <button type="button" className="settings-secondary-action" onClick={useMyLocation} disabled={locating}>
+                  <Icon name="pin" size={15}/> {locating ? 'Obtendo localização...' : 'Usar minha localização'}
+                </button>
+                <span>
+                  {latitude != null && longitude != null
+                    ? 'Coordenadas prontas para o ponto de retirada.'
+                    : 'Adicione o GPS da loja para melhorar mapa e cálculo de proximidade.'}
+                </span>
+              </div>
+
               <div className="settings-actions">
                 <button type="submit" className="settings-save" disabled={saving}>
                   {saving ? 'Salvando...' : 'Salvar alterações'}
@@ -325,8 +403,8 @@ export function StoreSettingsPanel({ initialData }: Props) {
                 <div>
                   <small>Endereço usado atualmente</small>
                   <strong>{computedAddress}</strong>
-                  {initialData.latitude != null && initialData.longitude != null ? (
-                    <span>GPS cadastrado: {initialData.latitude.toFixed(5)}, {initialData.longitude.toFixed(5)}</span>
+                  {latitude != null && longitude != null ? (
+                    <span>GPS cadastrado: {latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
                   ) : (
                     <span>Sem coordenadas GPS cadastradas.</span>
                   )}
@@ -336,7 +414,12 @@ export function StoreSettingsPanel({ initialData }: Props) {
               <div className="settings-form-grid address">
                 <label className="settings-field">
                   <span>CEP</span>
-                  <input value={zipCode} onChange={event => setZipCode(normalizeZip(event.target.value))} placeholder="00000-000" />
+                  <div className="settings-inline-field">
+                    <input value={zipCode} onChange={event => setZipCode(normalizeZip(event.target.value))} placeholder="00000-000" />
+                    <button type="button" onClick={() => void lookupCep()} disabled={findingCep}>
+                      {findingCep ? 'Buscando...' : 'Buscar CEP'}
+                    </button>
+                  </div>
                 </label>
 
                 <label className="settings-field span-2">
