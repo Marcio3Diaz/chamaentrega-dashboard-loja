@@ -504,8 +504,8 @@ export function StoreIntegrationsPanel({
 
               <label className="integration-switch-row">
                 <span>
-                  <strong>Identificar pedidos do WhatsApp</strong>
-                  <small>Salva a preferência para o fluxo de pedidos recebidos por conversa.</small>
+                  <strong>Importar pedidos automaticamente</strong>
+                  <small>Quando a integração oficial estiver conectada, os pedidos identificados entrarão automaticamente na Central de Pedidos.</small>
                 </span>
                 <button
                   type="button"
@@ -516,7 +516,7 @@ export function StoreIntegrationsPanel({
 
               <div className="integration-note">
                 <Icon name="chat" size={17}/>
-                <span>Esta etapa configura o canal comercial e o atalho de atendimento. Automação oficial via WhatsApp Business API exigirá credenciais próprias do provedor.</span>
+                <span>Esta etapa configura o canal comercial. Quando a API oficial do WhatsApp estiver conectada, os pedidos serão enviados para a página Pedidos Integrados.</span>
               </div>
 
               <div className="integration-actions">
