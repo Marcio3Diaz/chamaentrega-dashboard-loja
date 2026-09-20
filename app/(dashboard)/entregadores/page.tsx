@@ -92,6 +92,8 @@ export default async function CouriersPage() {
   return (
     <StoreCouriersPanel
       storeId={store.id}
+      storeLatitude={store.latitude == null ? null : Number(store.latitude)}
+      storeLongitude={store.longitude == null ? null : Number(store.longitude)}
       initialCouriers={couriers}
     />
   )
