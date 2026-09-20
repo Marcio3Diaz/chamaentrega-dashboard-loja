@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOutAction } from '@/app/actions'
 import { Icon } from '@/components/icon'
+import { StoreLogoUpload } from '@/components/store-logo-upload'
 
 const nav = [
   ['/', 'Visão Geral', 'home'],
@@ -14,8 +15,25 @@ const nav = [
   ['/configuracoes', 'Configurações', 'gear'],
 ]
 
-export function DashboardShell({ storeName, storeActive, children }: { storeName: string; storeActive: boolean; children: React.ReactNode }) {
+type Props = {
+  storeId: string
+  userId: string
+  storeName: string
+  storeActive: boolean
+  storeLogoUrl: string | null
+  children: React.ReactNode
+}
+
+export function DashboardShell({
+  storeId,
+  userId,
+  storeName,
+  storeActive,
+  storeLogoUrl,
+  children,
+}: Props) {
   const pathname = usePathname()
+
   return (
     <div className="shell premium-shell">
       <aside className="sidebar premium-sidebar">
@@ -24,11 +42,17 @@ export function DashboardShell({ storeName, storeActive, children }: { storeName
           <small>ENTREGADOR</small>
         </Link>
 
-        <button type="button" className="store-chip premium-store-chip">
-          <span className="store-icon"><Icon name="store" size={18}/></span>
+        <div className="store-chip premium-store-chip">
+          <StoreLogoUpload
+            storeId={storeId}
+            userId={userId}
+            storeName={storeName}
+            logoUrl={storeLogoUrl}
+            variant="sidebar"
+          />
           <span className="store-copy"><strong>{storeName}</strong><small><i />{storeActive ? 'Loja ativa' : 'Loja inativa'}</small></span>
           <span className="store-chevron">⌄</span>
-        </button>
+        </div>
 
         <nav className="nav premium-nav">
           {nav.map(([href,label,icon]) => (
@@ -59,7 +83,17 @@ export function DashboardShell({ storeName, storeActive, children }: { storeName
             <span className="topbar-divider" />
             <div className="online-pill"><span className="online-dot" />Sistema online</div>
             <span className="topbar-divider" />
-            <div className="topbar-profile"><span className="account-avatar small">{storeName.slice(0,1).toUpperCase()}</span><span><strong>{storeName}</strong><small>Administrador</small></span><span>⌄</span></div>
+            <div className="topbar-profile">
+              <StoreLogoUpload
+                storeId={storeId}
+                userId={userId}
+                storeName={storeName}
+                logoUrl={storeLogoUrl}
+                variant="topbar"
+              />
+              <span><strong>{storeName}</strong><small>Administrador</small></span>
+              <span>⌄</span>
+            </div>
           </div>
         </header>
         <div className="content premium-content">{children}</div>
