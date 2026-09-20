@@ -43,6 +43,7 @@ type Props = {
 }
 
 type Filter = 'all' | 'online' | 'route'
+type MapProvider = 'loading' | 'google' | 'fallback'
 
 const activeStatuses = new Set([
   'accepted',
@@ -61,28 +62,21 @@ const statusLabels: Record<string,string> = {
 }
 
 let googleMapsPromise: Promise<any> | null = null
+let leafletPromise: Promise<any> | null = null
 
-function loadGoogleMaps(apiKey: string) {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('Google Maps indisponível no servidor.'))
-  }
-
+function loadGoogleMaps(apiKey: string, onAuthFailure: () => void) {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Google Maps indisponível.'))
   const w = window as any
+  w.gm_authFailure = onAuthFailure
+
   if (w.google?.maps) return Promise.resolve(w.google)
   if (googleMapsPromise) return googleMapsPromise
 
   googleMapsPromise = new Promise((resolve, reject) => {
     const callbackName = '__chamaEntregaGoogleMapsReady'
-    const existing = document.querySelector('script[data-ce-google-maps]') as HTMLScriptElement | null
-
     w[callbackName] = () => {
       resolve(w.google)
       try { delete w[callbackName] } catch {}
-    }
-
-    if (existing) {
-      existing.addEventListener('error', () => reject(new Error('Não foi possível carregar o Google Maps.')), { once: true })
-      return
     }
 
     const script = document.createElement('script')
@@ -99,11 +93,39 @@ function loadGoogleMaps(apiKey: string) {
     script.async = true
     script.defer = true
     script.setAttribute('data-ce-google-maps', 'true')
-    script.onerror = () => reject(new Error('Não foi possível carregar o Google Maps.'))
+    script.onerror = () => reject(new Error('Google Maps não carregou.'))
     document.head.appendChild(script)
   })
 
   return googleMapsPromise
+}
+
+function loadLeaflet() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Mapa indisponível.'))
+  const w = window as any
+  if (w.L) return Promise.resolve(w.L)
+  if (leafletPromise) return leafletPromise
+
+  leafletPromise = new Promise((resolve, reject) => {
+    if (!document.querySelector('link[data-ce-leaflet]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      link.setAttribute('data-ce-leaflet', 'true')
+      document.head.appendChild(link)
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.async = true
+    script.defer = true
+    script.setAttribute('data-ce-leaflet', 'true')
+    script.onload = () => resolve((window as any).L)
+    script.onerror = () => reject(new Error('Mapa alternativo não carregou.'))
+    document.head.appendChild(script)
+  })
+
+  return leafletPromise
 }
 
 function gpsAge(value: string | null, now: number) {
@@ -129,7 +151,33 @@ function money(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 
-function buildAvatarOverlay(
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  }[char] ?? char))
+}
+
+function avatarMarkerHtml(courier: LiveCourier, selected: boolean, inRoute: boolean) {
+  const classes = [
+    'ce-fallback-courier-marker',
+    selected ? 'selected' : '',
+    inRoute ? 'route' : '',
+    courier.isOnline && courier.isAvailable ? 'available' : '',
+    !courier.isOnline ? 'offline' : '',
+  ].filter(Boolean).join(' ')
+
+  const avatar = courier.avatarUrl
+    ? `<img src="${escapeHtml(courier.avatarUrl)}" alt="" referrerpolicy="no-referrer"/>`
+    : '<span class="ce-fallback-avatar">👤</span>'
+
+  return `<div class="${classes}"><span class="ce-fallback-avatar-ring">${avatar}<i></i></span></div>`
+}
+
+function buildGoogleAvatarOverlay(
   google: any,
   map: any,
   courier: LiveCourier,
@@ -137,7 +185,7 @@ function buildAvatarOverlay(
   inRoute: boolean,
   onClick: () => void,
 ) {
-  class CourierAvatarOverlay extends google.maps.OverlayView {
+  class CourierOverlay extends google.maps.OverlayView {
     position: any
     courier: LiveCourier
     selected: boolean
@@ -157,11 +205,11 @@ function buildAvatarOverlay(
       div.type = 'button'
       div.className = 'ce-google-courier-marker'
       div.title = this.courier.fullName
-      div.addEventListener('click', event => {
+      div.onclick = event => {
         event.preventDefault()
         event.stopPropagation()
         onClick()
-      })
+      }
       this.div = div
       this.render()
       this.getPanes()?.overlayMouseTarget.appendChild(div)
@@ -182,18 +230,16 @@ function buildAvatarOverlay(
 
     render() {
       if (!this.div) return
-      const online = this.courier.isOnline
-      const available = online && this.courier.isAvailable
+      const available = this.courier.isOnline && this.courier.isAvailable
       this.div.className = [
         'ce-google-courier-marker',
         this.selected ? 'selected' : '',
         this.inRoute ? 'route' : '',
         available ? 'available' : '',
-        !online ? 'offline' : '',
+        !this.courier.isOnline ? 'offline' : '',
       ].filter(Boolean).join(' ')
 
-      this.div.replaceChildren()
-
+      this.div.innerHTML = ''
       const ring = document.createElement('span')
       ring.className = 'ce-google-avatar-ring'
 
@@ -213,21 +259,20 @@ function buildAvatarOverlay(
       const dot = document.createElement('i')
       dot.className = 'ce-google-marker-dot'
       ring.appendChild(dot)
-
       this.div.appendChild(ring)
     }
 
-    update(nextCourier: LiveCourier, nextSelected: boolean, nextInRoute: boolean) {
-      this.courier = nextCourier
+    update(next: LiveCourier, nextSelected: boolean, nextRoute: boolean) {
+      this.courier = next
       this.selected = nextSelected
-      this.inRoute = nextInRoute
-      this.position = new google.maps.LatLng(nextCourier.currentLatitude, nextCourier.currentLongitude)
+      this.inRoute = nextRoute
+      this.position = new google.maps.LatLng(next.currentLatitude, next.currentLongitude)
       this.render()
       this.draw()
     }
   }
 
-  const overlay = new CourierAvatarOverlay()
+  const overlay = new CourierOverlay()
   overlay.setMap(map)
   return overlay
 }
@@ -243,12 +288,19 @@ export function LiveCourierMap({
   const supabase = useMemo(() => createClient(), [])
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 
-  const mapElementRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<any>(null)
+  const googleElementRef = useRef<HTMLDivElement | null>(null)
+  const fallbackElementRef = useRef<HTMLDivElement | null>(null)
+  const googleMapRef = useRef<any>(null)
+  const fallbackMapRef = useRef<any>(null)
   const googleRef = useRef<any>(null)
-  const courierMarkersRef = useRef<Map<string,any>>(new Map())
+  const leafletRef = useRef<any>(null)
+  const googleMarkersRef = useRef<Map<string,any>>(new Map())
+  const fallbackMarkersRef = useRef<Map<string,any>>(new Map())
   const firstFitRef = useRef(false)
+  const fallbackStartingRef = useRef(false)
 
+  const [provider, setProvider] = useState<MapProvider>('loading')
+  const [mapMessage, setMapMessage] = useState('')
   const [couriers, setCouriers] = useState(initialCouriers)
   const [deliveries, setDeliveries] = useState(initialDeliveries)
   const [selectedCourierId, setSelectedCourierId] = useState<string | null>(
@@ -258,8 +310,6 @@ export function LiveCourierMap({
     null
   )
   const [filter, setFilter] = useState<Filter>('all')
-  const [mapReady, setMapReady] = useState(false)
-  const [mapError, setMapError] = useState('')
   const [liveState, setLiveState] = useState('CONECTANDO')
   const [now, setNow] = useState(Date.now())
 
@@ -342,59 +392,91 @@ export function LiveCourierMap({
     })))
   }, [storeId, supabase])
 
+  const startFallback = useCallback(async (message = '') => {
+    if (fallbackStartingRef.current || fallbackMapRef.current) {
+      setProvider('fallback')
+      if (message) setMapMessage(message)
+      return
+    }
+
+    fallbackStartingRef.current = true
+    setMapMessage(message || 'Modo alternativo ativado automaticamente.')
+
+    try {
+      const L = await loadLeaflet()
+      leafletRef.current = L
+      if (!fallbackElementRef.current) return
+
+      const center: [number,number] =
+        storeLatitude != null && storeLongitude != null
+          ? [storeLatitude, storeLongitude]
+          : [-22.9068, -43.1729]
+
+      const map = L.map(fallbackElementRef.current, {
+        zoomControl: false,
+        attributionControl: true,
+        scrollWheelZoom: true,
+      }).setView(center, 12)
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map)
+
+      fallbackMapRef.current = map
+      setProvider('fallback')
+      setTimeout(() => map.invalidateSize(), 80)
+    } catch {
+      setMapMessage('Não foi possível carregar nenhum provedor de mapa.')
+    } finally {
+      fallbackStartingRef.current = false
+    }
+  }, [storeLatitude, storeLongitude])
+
   const fitVisible = useCallback(() => {
-    const map = mapRef.current
-    const google = googleRef.current
-    if (!map || !google) return
+    const points = couriers
+      .filter(item => item.currentLatitude != null && item.currentLongitude != null)
+      .map(item => [item.currentLatitude!, item.currentLongitude!] as [number,number])
 
-    const bounds = new google.maps.LatLngBounds()
-    let count = 0
-
-    couriers.forEach(item => {
-      if (item.currentLatitude != null && item.currentLongitude != null) {
-        bounds.extend({ lat: item.currentLatitude, lng: item.currentLongitude })
-        count += 1
+    if (provider === 'google' && googleMapRef.current && googleRef.current) {
+      const google = googleRef.current
+      const bounds = new google.maps.LatLngBounds()
+      points.forEach(([lat,lng]) => bounds.extend({ lat, lng }))
+      if (storeLatitude != null && storeLongitude != null) bounds.extend({ lat: storeLatitude, lng: storeLongitude })
+      if (!points.length && (storeLatitude == null || storeLongitude == null)) {
+        googleMapRef.current.setCenter({ lat: -22.9068, lng: -43.1729 })
+        googleMapRef.current.setZoom(11)
+      } else {
+        googleMapRef.current.fitBounds(bounds, 70)
       }
-    })
-
-    if (storeLatitude != null && storeLongitude != null) {
-      bounds.extend({ lat: storeLatitude, lng: storeLongitude })
-      count += 1
-    }
-
-    deliveries.forEach(item => {
-      if (item.deliveryLatitude != null && item.deliveryLongitude != null) {
-        bounds.extend({ lat: item.deliveryLatitude, lng: item.deliveryLongitude })
-        count += 1
-      }
-    })
-
-    if (!count) {
-      map.setCenter({ lat: -22.9068, lng: -43.1729 })
-      map.setZoom(11)
       return
     }
 
-    if (count === 1) {
-      map.setCenter(bounds.getCenter())
-      map.setZoom(15)
-      return
+    if (provider === 'fallback' && fallbackMapRef.current && leafletRef.current) {
+      const L = leafletRef.current
+      if (storeLatitude != null && storeLongitude != null) points.push([storeLatitude,storeLongitude])
+      if (!points.length) {
+        fallbackMapRef.current.setView([-22.9068,-43.1729],11)
+      } else if (points.length === 1) {
+        fallbackMapRef.current.setView(points[0],15)
+      } else {
+        fallbackMapRef.current.fitBounds(L.latLngBounds(points), { padding:[50,50], maxZoom:15 })
+      }
     }
-
-    map.fitBounds(bounds, 70)
-    const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
-      if ((map.getZoom() ?? 0) > 15) map.setZoom(15)
-    })
-    return () => google.maps.event.removeListener(listener)
-  }, [couriers, deliveries, storeLatitude, storeLongitude])
+  }, [couriers, provider, storeLatitude, storeLongitude])
 
   const focusCourier = useCallback((courier: LiveCourier) => {
     setSelectedCourierId(courier.id)
-    if (courier.currentLatitude != null && courier.currentLongitude != null && mapRef.current) {
-      mapRef.current.panTo({ lat: courier.currentLatitude, lng: courier.currentLongitude })
-      mapRef.current.setZoom(16)
+    if (courier.currentLatitude == null || courier.currentLongitude == null) return
+
+    if (provider === 'google' && googleMapRef.current) {
+      googleMapRef.current.panTo({ lat: courier.currentLatitude, lng: courier.currentLongitude })
+      googleMapRef.current.setZoom(16)
+    } else if (provider === 'fallback' && fallbackMapRef.current) {
+      fallbackMapRef.current.flyTo([courier.currentLatitude,courier.currentLongitude],16,{ duration:.7 })
     }
-  }, [])
+  }, [provider])
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000)
@@ -402,25 +484,26 @@ export function LiveCourierMap({
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+
     if (!apiKey) {
-      setMapError('Google Maps ainda não configurado. Adicione NEXT_PUBLIC_GOOGLE_MAPS_API_KEY no arquivo .env.local.')
+      void startFallback('Google Maps sem chave válida. Mapa alternativo ativado automaticamente.')
       return
     }
 
-    let cancelled = false
-
-    loadGoogleMaps(apiKey)
+    loadGoogleMaps(apiKey, () => {
+      if (!cancelled) void startFallback('Google Maps recusou a chave. Mapa alternativo ativado automaticamente.')
+    })
       .then(google => {
-        if (cancelled || !mapElementRef.current || mapRef.current) return
+        if (cancelled || !googleElementRef.current || googleMapRef.current || fallbackMapRef.current) return
 
         googleRef.current = google
-
         const center =
           storeLatitude != null && storeLongitude != null
             ? { lat: storeLatitude, lng: storeLongitude }
             : { lat: -22.9068, lng: -43.1729 }
 
-        mapRef.current = new google.maps.Map(mapElementRef.current, {
+        googleMapRef.current = new google.maps.Map(googleElementRef.current, {
           center,
           zoom: 12,
           mapTypeId: 'roadmap',
@@ -432,47 +515,34 @@ export function LiveCourierMap({
           clickableIcons: false,
         })
 
-        setMapReady(true)
+        setProvider('google')
+        setMapMessage('')
       })
-      .catch(error => {
-        if (!cancelled) {
-          setMapError(error instanceof Error ? error.message : 'Erro ao carregar o Google Maps.')
-        }
+      .catch(() => {
+        if (!cancelled) void startFallback('Google Maps não carregou. Mapa alternativo ativado automaticamente.')
       })
 
     return () => {
       cancelled = true
-      courierMarkersRef.current.forEach(marker => marker.setMap(null))
-      courierMarkersRef.current.clear()
-      mapRef.current = null
-      googleRef.current = null
     }
-  }, [apiKey, storeLatitude, storeLongitude])
+  }, [apiKey, startFallback, storeLatitude, storeLongitude])
 
   useEffect(() => {
     const courierChannel = supabase
       .channel(`store-live-couriers-${storeId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'couriers' }, payload => {
         const row = payload.new as any
-        let found = false
-
-        setCouriers(current => current.map(item => {
-          if (item.id !== row.id) return item
-          found = true
-          return {
-            ...item,
-            vehicleType: row.vehicle_type ?? item.vehicleType,
-            isOnline: Boolean(row.is_online),
-            isAvailable: Boolean(row.is_available),
-            rating: Number(row.rating ?? item.rating),
-            totalDeliveries: Number(row.total_deliveries ?? item.totalDeliveries),
-            currentLatitude: row.current_latitude == null ? null : Number(row.current_latitude),
-            currentLongitude: row.current_longitude == null ? null : Number(row.current_longitude),
-            lastLocationAt: row.last_location_at ?? item.lastLocationAt,
-          }
+        setCouriers(current => current.map(item => item.id !== row.id ? item : {
+          ...item,
+          vehicleType: row.vehicle_type ?? item.vehicleType,
+          isOnline: Boolean(row.is_online),
+          isAvailable: Boolean(row.is_available),
+          rating: Number(row.rating ?? item.rating),
+          totalDeliveries: Number(row.total_deliveries ?? item.totalDeliveries),
+          currentLatitude: row.current_latitude == null ? null : Number(row.current_latitude),
+          currentLongitude: row.current_longitude == null ? null : Number(row.current_longitude),
+          lastLocationAt: row.last_location_at ?? item.lastLocationAt,
         }))
-
-        if (!found) void refreshNetwork()
       })
       .subscribe(status => {
         if (status === 'SUBSCRIBED') setLiveState('AO VIVO')
@@ -499,46 +569,85 @@ export function LiveCourierMap({
   }, [refreshNetwork, storeId, supabase])
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !googleRef.current) return
-
-    const google = googleRef.current
+    if (provider !== 'google' || !googleMapRef.current || !googleRef.current) return
     const activeIds = new Set<string>()
 
     couriers.forEach(courier => {
       if (courier.currentLatitude == null || courier.currentLongitude == null) return
       activeIds.add(courier.id)
-
-      const inRoute = deliveryByCourier.has(courier.id)
+      const existing = googleMarkersRef.current.get(courier.id)
       const selected = courier.id === selectedCourierId
-      const existing = courierMarkersRef.current.get(courier.id)
+      const inRoute = deliveryByCourier.has(courier.id)
 
-      if (existing) {
-        existing.update(courier, selected, inRoute)
-      } else {
-        const overlay = buildAvatarOverlay(
-          google,
-          mapRef.current,
-          courier,
-          selected,
-          inRoute,
-          () => setSelectedCourierId(courier.id),
+      if (existing) existing.update(courier,selected,inRoute)
+      else {
+        googleMarkersRef.current.set(
+          courier.id,
+          buildGoogleAvatarOverlay(
+            googleRef.current,
+            googleMapRef.current,
+            courier,
+            selected,
+            inRoute,
+            () => setSelectedCourierId(courier.id),
+          ),
         )
-        courierMarkersRef.current.set(courier.id, overlay)
       }
     })
 
-    courierMarkersRef.current.forEach((marker,id) => {
+    googleMarkersRef.current.forEach((marker,id) => {
       if (!activeIds.has(id)) {
         marker.setMap(null)
-        courierMarkersRef.current.delete(id)
+        googleMarkersRef.current.delete(id)
       }
     })
 
     if (!firstFitRef.current) {
       firstFitRef.current = true
-      window.setTimeout(() => fitVisible(), 140)
+      setTimeout(() => fitVisible(),120)
     }
-  }, [couriers, deliveryByCourier, fitVisible, mapReady, selectedCourierId])
+  }, [couriers,deliveryByCourier,fitVisible,provider,selectedCourierId])
+
+  useEffect(() => {
+    if (provider !== 'fallback' || !fallbackMapRef.current || !leafletRef.current) return
+    const L = leafletRef.current
+    const activeIds = new Set<string>()
+
+    couriers.forEach(courier => {
+      if (courier.currentLatitude == null || courier.currentLongitude == null) return
+      activeIds.add(courier.id)
+      const selected = courier.id === selectedCourierId
+      const inRoute = deliveryByCourier.has(courier.id)
+      const icon = L.divIcon({
+        className:'ce-fallback-marker-wrap',
+        html:avatarMarkerHtml(courier,selected,inRoute),
+        iconSize:[58,58],
+        iconAnchor:[29,29],
+      })
+
+      const existing = fallbackMarkersRef.current.get(courier.id)
+      if (existing) {
+        existing.setLatLng([courier.currentLatitude,courier.currentLongitude])
+        existing.setIcon(icon)
+      } else {
+        const marker = L.marker([courier.currentLatitude,courier.currentLongitude],{ icon }).addTo(fallbackMapRef.current)
+        marker.on('click',() => setSelectedCourierId(courier.id))
+        fallbackMarkersRef.current.set(courier.id,marker)
+      }
+    })
+
+    fallbackMarkersRef.current.forEach((marker,id) => {
+      if (!activeIds.has(id)) {
+        marker.remove()
+        fallbackMarkersRef.current.delete(id)
+      }
+    })
+
+    if (!firstFitRef.current) {
+      firstFitRef.current = true
+      setTimeout(() => fitVisible(),120)
+    }
+  }, [couriers,deliveryByCourier,fitVisible,provider,selectedCourierId])
 
   return (
     <div className="live-map-page">
@@ -550,9 +659,7 @@ export function LiveCourierMap({
         </div>
         <div className="live-map-header-actions">
           <span className={`live-map-signal ${liveState === 'AO VIVO' ? 'online' : ''}`}><i />{liveState}</span>
-          <button type="button" className="outline-link" onClick={() => void refreshNetwork()}>
-            Atualizar
-          </button>
+          <button type="button" className="outline-link" onClick={() => void refreshNetwork()}>Atualizar</button>
         </div>
       </section>
 
@@ -568,35 +675,31 @@ export function LiveCourierMap({
           <div className="live-map-toolbar">
             <div>
               <strong>Mapa operacional</strong>
-              <span>Google Maps · atualização automática</span>
+              <span>{provider === 'google' ? 'Google Maps' : provider === 'fallback' ? 'Mapa alternativo' : 'Carregando mapa'} · atualização automática</span>
             </div>
-            <button type="button" onClick={fitVisible}>
-              <Icon name="map" size={16}/> Enquadrar todos
-            </button>
+            <button type="button" onClick={fitVisible}><Icon name="map" size={16}/> Enquadrar todos</button>
           </div>
 
           <div className="live-map-stage">
-            <div ref={mapElementRef} className="live-map-canvas live-google-map" />
+            <div
+              ref={googleElementRef}
+              className={`live-map-canvas live-google-map ${provider === 'fallback' ? 'provider-hidden' : ''}`}
+            />
+            <div
+              ref={fallbackElementRef}
+              className={`live-map-canvas live-fallback-map ${provider !== 'fallback' ? 'provider-hidden' : ''}`}
+            />
 
-            {mapError ? (
-              <div className="live-map-error live-google-map-error">
-                <div>
-                  <strong>Google Maps precisa ser configurado</strong>
-                  <span>{mapError}</span>
-                </div>
-              </div>
-            ) : null}
+            {provider === 'loading' ? <div className="live-map-loading">Carregando mapa...</div> : null}
 
-            {!mapError && !mapReady ? (
-              <div className="live-map-loading">Carregando Google Maps...</div>
+            {provider === 'fallback' && mapMessage ? (
+              <div className="live-map-provider-note">{mapMessage}</div>
             ) : null}
 
             {selectedCourier ? (
               <div className="map-selected-card">
                 <div className="map-selected-avatar">
-                  {selectedCourier.avatarUrl
-                    ? <img src={selectedCourier.avatarUrl} alt="" />
-                    : <span>👤</span>}
+                  {selectedCourier.avatarUrl ? <img src={selectedCourier.avatarUrl} alt="" /> : <span>👤</span>}
                 </div>
                 <div className="map-selected-copy">
                   <strong>{selectedCourier.fullName}</strong>
@@ -618,10 +721,7 @@ export function LiveCourierMap({
 
         <aside className="live-courier-panel">
           <div className="live-courier-panel-head">
-            <div>
-              <h2>Entregadores</h2>
-              <p>{filteredCouriers.length} exibido{filteredCouriers.length === 1 ? '' : 's'}</p>
-            </div>
+            <div><h2>Entregadores</h2><p>{filteredCouriers.length} exibido{filteredCouriers.length === 1 ? '' : 's'}</p></div>
           </div>
 
           <div className="live-courier-filters">
@@ -644,23 +744,15 @@ export function LiveCourierMap({
                   onClick={() => focusCourier(courier)}
                 >
                   <span className="live-courier-avatar">
-                    {courier.avatarUrl
-                      ? <img src={courier.avatarUrl} alt="" />
-                      : <span>👤</span>}
+                    {courier.avatarUrl ? <img src={courier.avatarUrl} alt="" /> : <span>👤</span>}
                     <i className={courier.isOnline ? 'online' : ''} />
                   </span>
-
                   <span className="live-courier-info">
                     <strong>{courier.fullName}</strong>
                     <small>{vehicleLabel(courier.vehicleType)} · ★ {courier.rating.toFixed(1)}</small>
                     <span className={`gps-age ${gps.stale ? 'stale' : ''}`}>{gps.text}</span>
-                    {delivery ? (
-                      <span className="courier-route-label">
-                        {statusLabels[delivery.status] ?? delivery.status}
-                      </span>
-                    ) : null}
+                    {delivery ? <span className="courier-route-label">{statusLabels[delivery.status] ?? delivery.status}</span> : null}
                   </span>
-
                   <span className="live-courier-chevron">›</span>
                 </button>
               )
