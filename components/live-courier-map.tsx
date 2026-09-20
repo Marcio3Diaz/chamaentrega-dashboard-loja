@@ -351,13 +351,17 @@ export function LiveCourierMap({
         }).addTo(map)
 
         if (storeLatitude != null && storeLongitude != null) {
-          storeMarkerRef.current = L.circleMarker([storeLatitude,storeLongitude], {
-            radius: 8,
-            color: '#ffb800',
-            weight: 3,
-            fillColor: '#10151a',
-            fillOpacity: 1,
+          const storeIcon = L.divIcon({
+            className: 'ce-store-marker-wrap',
+            html: '<span class="ce-store-marker-dot" aria-hidden="true"></span>',
+            iconSize: [18,18],
+            iconAnchor: [9,9],
           })
+
+          storeMarkerRef.current = L.marker(
+            [storeLatitude,storeLongitude],
+            { icon: storeIcon },
+          )
             .bindTooltip(storeName, { direction: 'top' })
             .addTo(map)
         }
