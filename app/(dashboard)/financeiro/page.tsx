@@ -58,6 +58,23 @@ export default async function FinancePage() {
   const pendingTopups = (topups ?? []).filter(item => item.status === 'pending')
   const pendingTopupAmount = pendingTopups.reduce((sum, item) => sum + Number(item.amount ?? 0), 0)
 
+  const deliveryDebits = recentTransactions
+    .filter((tx: any) => tx.direction === 'debit' && tx.transaction_type === 'delivery_payment')
+    .map((tx: any) => Number(tx.amount ?? 0))
+    .filter((value: number) => Number.isFinite(value) && value > 0)
+
+  const averageDeliveryFee = deliveryDebits.length
+    ? deliveryDebits.reduce((sum: number, value: number) => sum + value, 0) / deliveryDebits.length
+    : 0
+
+  const estimatedDeliveries = averageDeliveryFee > 0
+    ? Math.floor(available / averageDeliveryFee)
+    : 0
+
+  const lowBalance = averageDeliveryFee > 0
+    ? available < averageDeliveryFee * 3
+    : available < 30
+
   return (
     <div className="wallet-page">
       <section className="wallet-page-hero">
@@ -92,6 +109,24 @@ export default async function FinancePage() {
         </article>
       </section>
 
+      <section className="wallet-health-strip">
+        <article className={lowBalance ? 'warning' : 'healthy'}>
+          <span>Saúde da carteira</span>
+          <strong>{lowBalance ? 'Saldo baixo' : 'Saldo saudável'}</strong>
+          <small>{lowBalance ? 'Recarregue para evitar bloqueio na publicação de novas corridas.' : 'Sua operação tem saldo disponível para continuar publicando entregas.'}</small>
+        </article>
+        <article>
+          <span>Taxa média recente</span>
+          <strong>{averageDeliveryFee > 0 ? currency(averageDeliveryFee) : '—'}</strong>
+          <small>Baseada nas últimas entregas debitadas da carteira.</small>
+        </article>
+        <article>
+          <span>Autonomia estimada</span>
+          <strong>{averageDeliveryFee > 0 ? estimatedDeliveries + ' entrega' + (estimatedDeliveries === 1 ? '' : 's') : '—'}</strong>
+          <small>Estimativa com o saldo disponível atual.</small>
+        </article>
+      </section>
+
       <section className="wallet-main-grid">
         <WalletTopup storeId={store.id} />
 
@@ -112,6 +147,46 @@ export default async function FinancePage() {
             Sem saldo disponível suficiente, o ChamaEntrega não publica uma nova corrida.
           </div>
         </article>
+      </section>
+
+      <section className="wallet-topups-history">
+        <div className="wallet-section-head">
+          <div>
+            <span className="eyebrow">Recargas</span>
+            <h2>Recargas recentes</h2>
+          </div>
+          <span className="wallet-history-count">{(topups ?? []).length} registros</span>
+        </div>
+
+        {(topups ?? []).length ? (
+          <div className="wallet-topup-list">
+            {(topups ?? []).map((item: any) => {
+              const status = String(item.status ?? 'pending')
+              const label = status === 'paid'
+                ? 'Pago'
+                : status === 'expired'
+                  ? 'Expirado'
+                  : status === 'cancelled'
+                    ? 'Cancelado'
+                    : 'Aguardando Pix'
+
+              return (
+                <article key={item.id} className="wallet-topup-row">
+                  <span className={'wallet-topup-status ' + status}>{label}</span>
+                  <div>
+                    <strong>{currency(Number(item.amount ?? 0))}</strong>
+                    <small>Criado em {dateTime(item.created_at)}</small>
+                  </div>
+                  <div className="wallet-topup-meta">
+                    <span>{item.paid_at ? 'Pago em ' + dateTime(item.paid_at) : item.expires_at ? 'Expira em ' + dateTime(item.expires_at) : 'Sem vencimento informado'}</span>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="premium-empty">Nenhuma recarga criada ainda.</div>
+        )}
       </section>
 
       <section className="wallet-history-card">
