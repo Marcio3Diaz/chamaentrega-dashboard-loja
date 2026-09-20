@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
+import { WhatsAppDirectConnect } from '@/components/whatsapp-direct-connect'
 
 export type IntegrationProvider = 'whatsapp' | 'ifood' | '99food' | 'goomer' | 'own_menu'
 export type IntegrationStatus = 'not_configured' | 'configured' | 'pending' | 'connected' | 'error'
@@ -49,10 +50,10 @@ const providers: Array<{
     name: 'WhatsApp',
     short: 'WA',
     logoUrl: '/integrations/whatsapp.svg',
-    description: 'Centralize o contato da loja e abra conversas de pedidos pelo número comercial.',
+    description: 'Conecte o WhatsApp Business da loja diretamente ao ChamaEntrega e receba pedidos no painel.',
     category: 'Mensageria',
     color: 'green',
-    capabilities: ['Número comercial', 'Atalho de atendimento', 'Pedidos por conversa'],
+    capabilities: ['Conexão oficial', 'Pedidos automáticos', 'Meta Embedded Signup'],
   },
   {
     key: 'ifood',
@@ -525,113 +526,18 @@ export function StoreIntegrationsPanel({
           </div>
 
           {selected === 'whatsapp' ? (
-            <div className="integration-form">
-              <label>
-                <span>Número comercial</span>
-                <input
-                  value={selectedDraft.phone ?? ''}
-                  onChange={event => updateDraft('whatsapp',{ phone:normalizePhone(event.target.value) })}
-                  placeholder="+5521999999999"
-                />
-                <small>Use o número com DDI e DDD.</small>
-              </label>
-
-              <label>
-                <span>Phone Number ID da Meta</span>
-                <input
-                  value={selectedDraft.phoneNumberId ?? ''}
-                  onChange={event => updateDraft('whatsapp',{ phoneNumberId:event.target.value.replace(/\D/g,'').slice(0,40) })}
-                  placeholder="Ex.: 123456789012345"
-                />
-                <small>Opcional por enquanto, mas recomendado para identificar a loja de forma exata no webhook.</small>
-              </label>
-
-              <div className="whatsapp-setup-guide">
-                <div className="whatsapp-setup-title">
-                  <span>CONFIGURAÇÃO EM 3 PASSOS</span>
-                  <strong>Onde colocar cada informação</strong>
-                </div>
-
-                <div className="whatsapp-setup-step">
-                  <b>1</b>
-                  <div>
-                    <strong>Aqui no ChamaEntrega</strong>
-                    <p>Preencha apenas <em>Número comercial</em> e <em>Phone Number ID da Meta</em>.</p>
-                  </div>
-                </div>
-
-                <div className="whatsapp-setup-step">
-                  <b>2</b>
-                  <div>
-                    <strong>No Supabase → Edge Functions → Secrets</strong>
-                    <p>Crie os secrets <code>WHATSAPP_VERIFY_TOKEN</code> e <code>WHATSAPP_APP_SECRET</code>. Eles <u>não devem ser colados nesta página</u>.</p>
-                  </div>
-                </div>
-
-                <div className="whatsapp-setup-step">
-                  <b>3</b>
-                  <div>
-                    <strong>Na Meta → WhatsApp → Webhooks</strong>
-                    <p>Use o Callback URL abaixo e, no campo Verify Token da Meta, informe exatamente o mesmo valor salvo como <code>WHATSAPP_VERIFY_TOKEN</code> no Supabase.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="whatsapp-webhook-box">
-                <div className="whatsapp-webhook-head">
-                  <span>
-                    <strong>Webhook ChamaEntrega</strong>
-                    <small>Callback oficial para configurar na Meta.</small>
-                  </span>
-                  <b className={`whatsapp-backend-status ${whatsappBackend}`}>
-                    {whatsappBackend === 'ready' ? 'Backend pronto' :
-                     whatsappBackend === 'missing' ? 'Faltam secrets da Meta' :
-                     whatsappBackend === 'error' ? 'Indisponível' : 'Verificando'}
-                  </b>
-                </div>
-                <div className="whatsapp-webhook-url">
-                  <code>{whatsappCallbackUrl}</code>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(whatsappCallbackUrl)
-                      notify('Callback URL copiado.')
-                    }}
-                  >Copiar</button>
-                </div>
-                <p className="whatsapp-secret-warning">
-                  <strong>Importante:</strong> não cole App Secret nem Verify Token nos campos acima.
-                  Esses dois valores ficam somente nos Secrets da Edge Function no Supabase.
-                </p>
-              </div>
-
-              <label className="integration-switch-row">
-                <span>
-                  <strong>Importar pedidos automaticamente</strong>
-                  <small>Quando a integração oficial estiver conectada, os pedidos identificados entrarão automaticamente na Central de Pedidos.</small>
-                </span>
-                <button
-                  type="button"
-                  className={`integration-switch ${selectedDraft.autoImport ? 'on' : ''}`}
-                  onClick={() => updateDraft('whatsapp',{ autoImport:!selectedDraft.autoImport })}
-                ><i /></button>
-              </label>
-
-              <div className="integration-note">
-                <Icon name="chat" size={17}/>
-                <span>Esta etapa configura o canal comercial. Quando a API oficial do WhatsApp estiver conectada, os pedidos serão enviados para a página Pedidos Integrados.</span>
-              </div>
-
-              <div className="integration-actions">
-                {selectedRow && selectedRow.status !== 'not_configured' ? (
-                  <button type="button" className="integration-danger" onClick={() => void disconnect('whatsapp')} disabled={saving}>Desativar</button>
-                ) : null}
-                <button type="button" className="integration-secondary" onClick={openWhatsApp}>Testar WhatsApp</button>
-                <button type="button" className="integration-primary" onClick={() => void save('whatsapp')} disabled={saving}>
-                  {saving ? 'Salvando...' : 'Salvar configuração'}
-                </button>
-              </div>
-            </div>
+            <WhatsAppDirectConnect
+              storeId={storeId}
+              storeName={storeName}
+              integration={selectedRow ? {
+                status:selectedRow.status,
+                isEnabled:selectedRow.isEnabled,
+                publicConfig:selectedRow.publicConfig,
+                lastError:selectedRow.lastError,
+                lastSyncedAt:selectedRow.lastSyncedAt,
+              } : null}
+              onNotice={notify}
+            />
           ) : null}
 
           {selected === 'own_menu' ? (
