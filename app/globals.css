@@ -446,3 +446,94 @@ body { background: #07090c; }
     max-width: none;
   }
 }
+
+
+/* ===== Refinamento visual final do dashboard ===== */
+@media (min-width: 1200px) {
+  .premium-topbar {
+    min-height: 78px;
+  }
+
+  .dashboard-hero {
+    min-height: 176px;
+    padding-top: 27px;
+    padding-bottom: 27px;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 46px;
+    line-height: 1.02;
+  }
+
+  .hero-visual {
+    inset: 0 220px 0 44%;
+    background-position: left center;
+  }
+
+  .hero-quote {
+    right: 8px;
+    top: 34px;
+    font-size: 19px;
+  }
+
+  .hero-cta {
+    min-width: 184px;
+    height: 54px;
+    right: 24px;
+  }
+
+  .premium-metrics {
+    gap: 13px;
+    padding-top: 14px;
+  }
+
+  .premium-metric {
+    min-height: 132px;
+    padding: 17px 15px;
+  }
+
+  .premium-metric .metric-value {
+    font-size: 29px;
+  }
+
+  .main-row {
+    grid-template-columns: minmax(0, 1.7fr) minmax(390px, .95fr);
+  }
+
+  .deliveries-card,
+  .quick-card {
+    min-height: 235px;
+  }
+
+  .premium-card-head {
+    min-height: 72px;
+  }
+
+  .premium-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .premium-table td {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .bottom-row {
+    grid-template-columns: 1.08fr 1.02fr 1.1fr;
+  }
+
+  .courier-card,
+  .finance-card,
+  .activity-card {
+    min-height: 225px;
+  }
+
+  .courier-line {
+    min-height: 72px;
+  }
+
+  .fake-map {
+    min-height: 170px;
+  }
+}
