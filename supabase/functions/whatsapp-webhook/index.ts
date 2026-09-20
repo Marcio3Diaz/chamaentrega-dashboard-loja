@@ -6,10 +6,17 @@ type SupabaseAdmin = ReturnType<typeof createClient>;
 
 const FUNCTION_NAME = "whatsapp-webhook";
 
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-headers": "content-type,x-hub-signature-256",
+};
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
+      ...CORS_HEADERS,
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
     },
@@ -545,6 +552,17 @@ async function processMessage(
   });
 
   if (saved.duplicate) return { duplicate: true };
+
+  await admin
+    .from("store_integrations")
+    .update({
+      status: "connected",
+      last_synced_at: receivedAt,
+      last_error: null,
+    })
+    .eq("store_id", storeId)
+    .eq("provider", "whatsapp");
+
   if (!autoImport) return { saved: true, imported: false };
 
   let orderId: string | null = null;
@@ -608,6 +626,10 @@ async function handleWebhookPayload(admin: SupabaseAdmin, payload: any) {
 
 Deno.serve(async (request: Request) => {
   try {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
     const url = new URL(request.url);
 
     if (request.method === "GET") {
@@ -629,7 +651,10 @@ Deno.serve(async (request: Request) => {
       if (mode === "subscribe" && safeEqual(token, verifyToken)) {
         return new Response(challenge, {
           status: 200,
-          headers: { "content-type": "text/plain; charset=utf-8" },
+          headers: {
+            ...CORS_HEADERS,
+            "content-type": "text/plain; charset=utf-8",
+          },
         });
       }
 
