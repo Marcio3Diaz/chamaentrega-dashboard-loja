@@ -160,12 +160,9 @@ Deno.serve(async (req: Request) => {
   try {
     await ensureWalletWebhook(supabaseUrl, wooviAppId);
   } catch (error) {
-    console.error("wallet webhook setup failed", error);
-    return json({
-      error: error instanceof Error
-        ? error.message
-        : "Não foi possível preparar a confirmação automática do Pix.",
-    }, 503);
+    // A criação do Pix não deve ficar bloqueada por uma falha temporária
+    // no cadastro/consulta do webhook. Registramos o erro e seguimos.
+    console.warn("wallet webhook setup warning", error);
   }
 
   const correlationId = `wallet-topup:${storeId}:${crypto.randomUUID()}`;
