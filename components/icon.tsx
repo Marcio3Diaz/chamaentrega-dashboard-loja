@@ -19,6 +19,7 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
     pin: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
     arrow: <path d="M5 12h14M14 7l5 5-5 5"/>,
     store: <><path d="M4 10v10h16V10"/><path d="M3 10 5 4h14l2 6"/><path d="M8 20v-6h8v6"/></>,
+    chat: <><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"/><path d="M8 9h8M8 13h5"/></>,
   }
   return <svg {...common} aria-hidden="true">{paths[name] ?? paths.box}</svg>
 }
