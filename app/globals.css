@@ -2407,3 +2407,148 @@ body { background: #07090c; }
     grid-column: 1/-1;
   }
 }
+
+
+/* =================================================================
+   GOOGLE MAPS — marcadores por avatar
+   ================================================================= */
+.live-google-map {
+  background: #e5e3df !important;
+}
+
+.live-map-canvas .gm-style {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.live-google-map-error {
+  padding: 24px;
+  text-align: center;
+}
+
+.live-google-map-error > div {
+  max-width: 520px;
+  padding: 20px;
+  border: 1px solid rgba(255,184,0,.18);
+  border-radius: 14px;
+  background: #11161b;
+}
+
+.live-google-map-error strong,
+.live-google-map-error span {
+  display: block;
+}
+
+.live-google-map-error strong {
+  color: #ffc01a;
+  font-size: 13px;
+}
+
+.live-google-map-error span {
+  margin-top: 7px;
+  color: #9aa4ae;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.ce-google-courier-marker {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%,-50%);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.ce-google-avatar-ring {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #ffb800;
+  border-radius: 50%;
+  overflow: visible;
+  background: #11161b;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.40),
+    0 0 0 4px rgba(255,184,0,.14);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.ce-google-courier-marker:hover .ce-google-avatar-ring,
+.ce-google-courier-marker.selected .ce-google-avatar-ring {
+  transform: scale(1.09);
+  box-shadow:
+    0 12px 34px rgba(0,0,0,.48),
+    0 0 0 6px rgba(255,184,0,.19);
+}
+
+.ce-google-courier-marker.available .ce-google-avatar-ring {
+  border-color: #20d27a;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.40),
+    0 0 0 4px rgba(32,210,122,.15);
+}
+
+.ce-google-courier-marker.route .ce-google-avatar-ring {
+  border-color: #ffb800;
+}
+
+.ce-google-courier-marker.offline .ce-google-avatar-ring {
+  opacity: .62;
+  filter: grayscale(.5);
+  border-color: #727c86;
+  box-shadow: 0 8px 20px rgba(0,0,0,.32);
+}
+
+.ce-google-avatar-ring > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #11161b;
+}
+
+.ce-google-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 23px;
+  background: linear-gradient(145deg,#242b31,#151a1f);
+}
+
+.ce-google-marker-dot {
+  position: absolute;
+  right: -2px;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  border: 3px solid #11161b;
+  border-radius: 50%;
+  background: #7b858f;
+}
+
+.ce-google-courier-marker.available .ce-google-marker-dot {
+  background: #20d27a;
+  box-shadow: 0 0 9px rgba(32,210,122,.8);
+}
+
+.ce-google-courier-marker.route .ce-google-marker-dot {
+  background: #4eb7ff;
+  box-shadow: 0 0 9px rgba(78,183,255,.7);
+}
+
+.ce-google-courier-marker.selected {
+  z-index: 3;
+}
+
+/* Estilos antigos do Leaflet deixam de participar do mapa Google. */
+.live-google-map .leaflet-pane,
+.live-google-map .leaflet-control-container {
+  display: none !important;
+}
