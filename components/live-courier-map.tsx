@@ -288,6 +288,7 @@ export function LiveCourierMap({
   const supabase = useMemo(() => createClient(), [])
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 
+  const mapCardRef = useRef<HTMLDivElement | null>(null)
   const googleElementRef = useRef<HTMLDivElement | null>(null)
   const fallbackElementRef = useRef<HTMLDivElement | null>(null)
   const googleMapRef = useRef<any>(null)
@@ -310,6 +311,7 @@ export function LiveCourierMap({
     null
   )
   const [filter, setFilter] = useState<Filter>('all')
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [liveState, setLiveState] = useState('CONECTANDO')
   const [now, setNow] = useState(Date.now())
 
@@ -466,6 +468,21 @@ export function LiveCourierMap({
     }
   }, [couriers, provider, storeLatitude, storeLongitude])
 
+  const toggleFullscreen = useCallback(async () => {
+    const element = mapCardRef.current
+    if (!element) return
+
+    try {
+      if (!document.fullscreenElement) {
+        await element.requestFullscreen()
+      } else {
+        await document.exitFullscreen()
+      }
+    } catch {
+      // O navegador pode bloquear fullscreen fora de uma ação direta do usuário.
+    }
+  }, [])
+
   const focusCourier = useCallback((courier: LiveCourier) => {
     setSelectedCourierId(courier.id)
     if (courier.currentLatitude == null || courier.currentLongitude == null) return
@@ -482,6 +499,25 @@ export function LiveCourierMap({
     const timer = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      const active = document.fullscreenElement === mapCardRef.current
+      setIsFullscreen(active)
+
+      window.setTimeout(() => {
+        if (provider === 'google' && googleMapRef.current && googleRef.current) {
+          googleRef.current.maps.event.trigger(googleMapRef.current, 'resize')
+        }
+        if (provider === 'fallback' && fallbackMapRef.current) {
+          fallbackMapRef.current.invalidateSize()
+        }
+      }, 120)
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [provider])
 
   useEffect(() => {
     let cancelled = false
@@ -671,13 +707,19 @@ export function LiveCourierMap({
       </section>
 
       <section className="live-map-layout">
-        <div className="live-map-card">
+        <div ref={mapCardRef} className="live-map-card">
           <div className="live-map-toolbar">
             <div>
               <strong>Mapa operacional</strong>
               <span>{provider === 'google' ? 'Google Maps' : provider === 'fallback' ? 'Mapa alternativo' : 'Carregando mapa'} · atualização automática</span>
             </div>
-            <button type="button" onClick={fitVisible}><Icon name="map" size={16}/> Enquadrar todos</button>
+            <div className="live-map-toolbar-actions">
+              <button type="button" onClick={fitVisible}><Icon name="map" size={16}/> Enquadrar todos</button>
+              <button type="button" onClick={toggleFullscreen} className="map-fullscreen-button">
+                <span className="map-fullscreen-icon" aria-hidden="true">{isFullscreen ? '↙' : '⛶'}</span>
+                {isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+              </button>
+            </div>
           </div>
 
           <div className="live-map-stage">
