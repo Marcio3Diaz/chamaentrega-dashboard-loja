@@ -7647,3 +7647,263 @@ body { background: #07090c; }
     height: 46px;
   }
 }
+
+
+/* =================================================================
+   RODADA OPERACIONAL — Financeiro, Configurações e Entregadores
+   ================================================================= */
+.wallet-health-strip {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+}
+
+.wallet-health-strip article {
+  min-height: 104px;
+  display: grid;
+  align-content: center;
+  padding: 16px 17px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: linear-gradient(145deg,#151a20,#101419);
+}
+
+.wallet-health-strip article.healthy {
+  border-color: rgba(32,210,122,.18);
+  background:
+    radial-gradient(circle at 92% 10%,rgba(32,210,122,.08),transparent 32%),
+    linear-gradient(145deg,#151a20,#101419);
+}
+
+.wallet-health-strip article.warning {
+  border-color: rgba(255,184,0,.22);
+  background:
+    radial-gradient(circle at 92% 10%,rgba(255,184,0,.09),transparent 32%),
+    linear-gradient(145deg,#17191a,#101419);
+}
+
+.wallet-health-strip span,
+.wallet-health-strip strong,
+.wallet-health-strip small {
+  display:block;
+}
+
+.wallet-health-strip span {
+  color:#8e99a4;
+  font-size:9px;
+  font-weight:800;
+}
+
+.wallet-health-strip strong {
+  margin-top:7px;
+  color:#eef2f5;
+  font-size:19px;
+  letter-spacing:-.02em;
+}
+
+.wallet-health-strip article.healthy strong {
+  color:#50df94;
+}
+
+.wallet-health-strip article.warning strong {
+  color:#ffc43d;
+}
+
+.wallet-health-strip small {
+  margin-top:6px;
+  color:#75808b;
+  font-size:8px;
+  line-height:1.45;
+}
+
+.wallet-topups-history {
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:17px;
+  background:linear-gradient(145deg,#151a20,#0f1318);
+  overflow:hidden;
+}
+
+.wallet-topups-history > .wallet-section-head {
+  padding:17px 18px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.wallet-topup-list {
+  display:grid;
+}
+
+.wallet-topup-row {
+  min-height:62px;
+  display:grid;
+  grid-template-columns:110px minmax(0,1fr) minmax(180px,.7fr);
+  gap:14px;
+  align-items:center;
+  padding:11px 18px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+
+.wallet-topup-row:last-child {
+  border-bottom:0;
+}
+
+.wallet-topup-status {
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 9px;
+  width:max-content;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;
+  color:#9ea8b1;
+  background:#12171c;
+  font-size:7px;
+  font-weight:900;
+}
+
+.wallet-topup-status.paid {
+  color:#50df94;
+  border-color:rgba(32,210,122,.2);
+  background:rgba(32,210,122,.065);
+}
+
+.wallet-topup-status.pending {
+  color:#ffc642;
+  border-color:rgba(255,184,0,.2);
+  background:rgba(255,184,0,.06);
+}
+
+.wallet-topup-status.expired,
+.wallet-topup-status.cancelled {
+  color:#ff8c94;
+  border-color:rgba(255,90,100,.16);
+  background:rgba(255,90,100,.05);
+}
+
+.wallet-topup-row > div strong,
+.wallet-topup-row > div small,
+.wallet-topup-meta span {
+  display:block;
+}
+
+.wallet-topup-row > div strong {
+  color:#eef2f5;
+  font-size:11px;
+}
+
+.wallet-topup-row > div small,
+.wallet-topup-meta span {
+  margin-top:3px;
+  color:#74808a;
+  font-size:7px;
+}
+
+.wallet-topup-meta {
+  text-align:right;
+}
+
+.pix-charge-title span.paid {
+  color:#50df94;
+}
+
+.settings-inline-field {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+}
+
+.settings-inline-field button {
+  min-width:88px;
+  height:42px;
+  border:1px solid rgba(255,184,0,.22);
+  border-radius:10px;
+  color:#ffc53d;
+  background:rgba(255,184,0,.055);
+  font-size:8px;
+  font-weight:900;
+}
+
+.settings-inline-field button:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.settings-location-tools {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  padding:11px 12px;
+  border:1px solid rgba(58,174,255,.12);
+  border-radius:11px;
+  background:rgba(58,174,255,.025);
+}
+
+.settings-location-tools > span {
+  color:#74808a;
+  font-size:7.5px;
+  line-height:1.4;
+  text-align:right;
+}
+
+.courier-card-metrics {
+  grid-template-columns: .72fr .9fr 1fr 1.25fr !important;
+}
+
+@media (max-width:1100px) {
+  .wallet-health-strip {
+    grid-template-columns:1fr;
+  }
+
+  .wallet-topup-row {
+    grid-template-columns:100px minmax(0,1fr);
+  }
+
+  .wallet-topup-meta {
+    grid-column:1/-1;
+    text-align:left;
+    padding-left:114px;
+    margin-top:-5px;
+  }
+}
+
+@media (max-width:760px) {
+  .wallet-topup-row {
+    grid-template-columns:1fr;
+  }
+
+  .wallet-topup-meta {
+    grid-column:auto;
+    padding-left:0;
+  }
+
+  .settings-inline-field {
+    grid-template-columns:1fr;
+  }
+
+  .settings-inline-field button {
+    width:100%;
+  }
+
+  .settings-location-tools {
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .settings-location-tools > span {
+    text-align:left;
+  }
+
+  .courier-card-metrics {
+    grid-template-columns:1fr 1fr !important;
+  }
+
+  .courier-card-metrics > div:nth-child(2) {
+    border-right:0;
+  }
+
+  .courier-card-metrics > div:nth-child(-n+2) {
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+}
