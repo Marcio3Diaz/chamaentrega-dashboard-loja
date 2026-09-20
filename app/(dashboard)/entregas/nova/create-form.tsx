@@ -1,11 +1,38 @@
 'use client'
-import { useActionState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import { createDeliveryAction, type CreateState } from './actions'
 const initial: CreateState = {}
 
-export function CreateDeliveryForm() {
+export function CreateDeliveryForm({
+  availableBalance,
+  reservedBalance,
+}: {
+  availableBalance: number
+  reservedBalance: number
+}) {
   const [state, action, pending] = useActionState(createDeliveryAction, initial)
+  const [fee, setFee] = useState('')
+  const feeValue = useMemo(() => {
+    const value = Number(fee.replace(',', '.'))
+    return Number.isFinite(value) ? value : 0
+  }, [fee])
+  const insufficient = feeValue > availableBalance
+
   return <form action={action} className="form">
+    <section className="wallet-create-summary">
+      <div>
+        <span>Saldo disponível</span>
+        <strong>R$ {availableBalance.toFixed(2).replace('.', ',')}</strong>
+      </div>
+      <div>
+        <span>Saldo reservado</span>
+        <strong>R$ {reservedBalance.toFixed(2).replace('.', ',')}</strong>
+      </div>
+      <p>
+        Ao publicar, a taxa do entregador fica reservada na carteira até a conclusão ou cancelamento.
+      </p>
+    </section>
+
     <section className="form-section"><h2>Cliente e destino</h2><div className="form-grid">
       <div className="field"><label>Nome do cliente</label><input name="customer_name" required placeholder="Ex.: João Silva" /></div>
       <div className="field"><label>Telefone</label><input name="customer_phone" placeholder="(21) 99999-9999" /></div>
@@ -15,7 +42,7 @@ export function CreateDeliveryForm() {
       <div className="field full"><label>Observações</label><textarea name="customer_note" placeholder="Portaria, referência, instruções..." /></div>
     </div></section>
     <section className="form-section"><h2>Pedido e pagamento</h2><div className="form-grid">
-      <div className="field"><label>Taxa do entregador (R$)</label><input name="delivery_fee" required inputMode="decimal" placeholder="12,50" /></div>
+      <div className="field"><label>Taxa do entregador (R$)</label><input name="delivery_fee" required inputMode="decimal" placeholder="12,50" value={fee} onChange={e => setFee(e.target.value)} /></div>
       <div className="field"><label>Total do pedido (R$)</label><input name="order_total" inputMode="decimal" placeholder="79,90" /></div>
       <div className="field"><label>Forma de pagamento</label><select name="payment_method" defaultValue="already_paid"><option value="already_paid">Já pago</option><option value="pix">Pix na entrega</option><option value="cash">Dinheiro</option><option value="card_on_delivery">Cartão na entrega</option></select></div>
       <div className="field"><label>Quantidade de itens</label><input name="item_count" type="number" min="1" defaultValue="1" /></div>
@@ -25,7 +52,13 @@ export function CreateDeliveryForm() {
       <div className="field"><label>Retirada → cliente (km)</label><input name="delivery_distance_km" inputMode="decimal" placeholder="3,5" /></div>
     </div></section>
     <div className="notice">Nesta primeira versão, latitude/longitude e distâncias podem ser preenchidas manualmente. A próxima etapa é conectar autocomplete/geocodificação para calcular tudo automaticamente.</div>
+    {insufficient ? <div className="error">Saldo insuficiente para publicar esta entrega. Adicione saldo no Financeiro.</div> : null}
     {state.error ? <div className="error">{state.error}</div> : null}
-    <div className="form-actions"><button className="button button-dark" name="intent" value="draft" disabled={pending}>SALVAR RASCUNHO</button><button className="button button-gold" name="intent" value="publish" disabled={pending}>{pending ? 'PUBLICANDO...' : 'PEDIDO PRONTO — BUSCAR ENTREGADOR'}</button></div>
+    <div className="form-actions">
+      <button className="button button-dark" name="intent" value="draft" disabled={pending}>SALVAR RASCUNHO</button>
+      <button className="button button-gold" name="intent" value="publish" disabled={pending || insufficient || feeValue <= 0}>
+        {pending ? 'PUBLICANDO...' : 'PEDIDO PRONTO — BUSCAR ENTREGADOR'}
+      </button>
+    </div>
   </form>
 }
