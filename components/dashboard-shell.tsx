@@ -40,9 +40,12 @@ export function DashboardShell({
   return (
     <div className="shell premium-shell">
       <aside className="sidebar premium-sidebar">
-        <Link href="/" className="brand premium-brand">
-          <span className="brand-word">Chama<span>Entrega</span></span>
-          <small>ENTREGADOR</small>
+        <Link href="/" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
+          <img
+            src="/brand/chamaentrega-logo-official.webp"
+            alt="ChamaEntrega — Chamou, Chegou"
+            className="official-brand-logo"
+          />
         </Link>
 
         <div className="store-chip premium-store-chip">
