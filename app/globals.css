@@ -6948,3 +6948,62 @@ body { background: #07090c; }
   .orders-hub-progress { display:none; }
   .orders-detail-actions { grid-template-columns:1fr; }
 }
+
+
+/* =================================================================
+   LOGOS DAS INTEGRAÇÕES — preencher 100% dos ícones
+   ================================================================= */
+.integration-logo-brand {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.integration-logo-brand > img {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  background: transparent !important;
+}
+
+.integration-logo-brand.large > img {
+  padding: 0 !important;
+}
+
+.order-source-mark {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.order-source-mark img,
+.orders-filter-row .order-source-mark img {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  background: transparent !important;
+}
+
+.integration-logo-brand.gold {
+  background: linear-gradient(145deg,#11161b,#080b0e) !important;
+}
