@@ -1,9 +1,13 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { currency, dateTime, shortId } from '@/lib/format'
+import { currency, shortId } from '@/lib/format'
 import type { Delivery } from '@/lib/types'
 import { StatusBadge } from './status-badge'
+
+function onlyTime(value: string) {
+  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+}
 
 export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId: string; initialDeliveries: Delivery[]; limit?: number }) {
   const [deliveries, setDeliveries] = useState(initialDeliveries)
@@ -24,16 +28,18 @@ export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId:
     return () => { void supabase.removeChannel(channel) }
   }, [storeId])
 
-  if (!shown.length) return <div className="empty">Nenhuma entrega encontrada.</div>
+  if (!shown.length) return <div className="empty premium-empty">Nenhuma entrega encontrada.</div>
 
-  return <div className="table-wrap"><table className="table">
-    <thead><tr><th>Entrega</th><th>Cliente</th><th>Status</th><th>Taxa</th><th>Atualização</th></tr></thead>
+  return <div className="table-wrap"><table className="table premium-table">
+    <thead><tr><th>#</th><th>Cliente</th><th>Endereço</th><th>Status</th><th>Taxa</th><th>Horário</th><th>Ações</th></tr></thead>
     <tbody>{shown.map(delivery => <tr key={delivery.id}>
       <td><strong>#{shortId(delivery.id)}</strong></td>
-      <td><div>{delivery.customer_name ?? 'Cliente'}</div><div className="subtle">{delivery.delivery_address}</div></td>
+      <td><div className="table-main">{delivery.customer_name ?? 'Cliente'}</div><div className="table-sub">{delivery.customer_phone ?? '—'}</div></td>
+      <td><div className="table-address">{delivery.delivery_address}</div></td>
       <td><StatusBadge status={delivery.status} /></td>
       <td><strong>{currency(Number(delivery.delivery_fee))}</strong></td>
-      <td>{dateTime(delivery.updated_at)}</td>
+      <td>{onlyTime(delivery.updated_at)}</td>
+      <td><button className="table-more" aria-label="Mais ações">⋮</button></td>
     </tr>)}</tbody>
   </table></div>
 }
