@@ -242,7 +242,7 @@ export function StoreIntegrationsPanel({
     }))
   }
 
-  function buildConfig(provider: IntegrationProvider) {
+  function buildConfig(provider: IntegrationProvider): Record<string,unknown> {
     const draft = drafts[provider]
 
     if (provider === 'whatsapp') {
