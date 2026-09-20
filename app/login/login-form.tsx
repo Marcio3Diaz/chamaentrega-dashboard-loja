@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 import { loginAction, type LoginState } from './actions'
 
@@ -17,6 +18,11 @@ export function LoginForm() {
       <div className="field">
         <label htmlFor="password">Senha</label>
         <input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -4 }}>
+        <Link href="/forgot-password" className="subtle" style={{ color: 'var(--gold)', fontWeight: 800 }}>
+          Esqueci minha senha
+        </Link>
       </div>
       <button className="button button-gold" disabled={pending}>
         {pending ? 'ENTRANDO...' : 'ENTRAR NO PAINEL'}
