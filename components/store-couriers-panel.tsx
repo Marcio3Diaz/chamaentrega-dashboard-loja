@@ -33,6 +33,8 @@ export type StoreCourier = {
 
 type Props = {
   storeId: string
+  storeLatitude: number | null
+  storeLongitude: number | null
   initialCouriers: StoreCourier[]
 }
 
@@ -96,7 +98,32 @@ function shortId(value: string) {
   return value.replaceAll('-', '').slice(0,7).toUpperCase()
 }
 
-export function StoreCouriersPanel({ storeId, initialCouriers }: Props) {
+function distanceKm(
+  lat1: number | null,
+  lng1: number | null,
+  lat2: number | null,
+  lng2: number | null,
+) {
+  if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null
+
+  const toRad = (value: number) => value * Math.PI / 180
+  const earth = 6371
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) ** 2
+
+  return earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+export function StoreCouriersPanel({
+  storeId,
+  storeLatitude,
+  storeLongitude,
+  initialCouriers,
+}: Props) {
   const supabase = useMemo(() => createClient(), [])
   const [couriers, setCouriers] = useState(initialCouriers)
   const [filter, setFilter] = useState<Filter>('all')
@@ -262,9 +289,17 @@ export function StoreCouriersPanel({ storeId, initialCouriers }: Props) {
       .sort((a,b) => {
         if (Boolean(a.activeDelivery) !== Boolean(b.activeDelivery)) return a.activeDelivery ? -1 : 1
         if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1
+
+        const distanceA = distanceKm(storeLatitude,storeLongitude,a.currentLatitude,a.currentLongitude)
+        const distanceB = distanceKm(storeLatitude,storeLongitude,b.currentLatitude,b.currentLongitude)
+
+        if (distanceA != null && distanceB != null && Math.abs(distanceA - distanceB) > 0.05) {
+          return distanceA - distanceB
+        }
+
         return a.fullName.localeCompare(b.fullName, 'pt-BR')
       })
-  }, [couriers, filter, search])
+  }, [couriers, filter, search, storeLatitude, storeLongitude])
 
   return (
     <div className="couriers-page">
@@ -326,6 +361,12 @@ export function StoreCouriersPanel({ storeId, initialCouriers }: Props) {
           {shown.length ? shown.map(courier => {
             const gps = gpsAge(courier.lastLocationAt, now)
             const delivery = courier.activeDelivery
+            const distance = distanceKm(
+              storeLatitude,
+              storeLongitude,
+              courier.currentLatitude,
+              courier.currentLongitude,
+            )
             const availabilityLabel = delivery
               ? statusLabels[delivery.status] ?? 'Em rota'
               : courier.isOnline
@@ -357,6 +398,10 @@ export function StoreCouriersPanel({ storeId, initialCouriers }: Props) {
                 <div className="courier-card-metrics">
                   <div><small>Entregas</small><strong>{courier.totalDeliveries}</strong></div>
                   <div><small>Avaliação</small><strong>★ {courier.rating.toFixed(1)}</strong></div>
+                  <div>
+                    <small>Distância da loja</small>
+                    <strong>{distance == null ? '—' : distance < 1 ? Math.round(distance * 1000) + ' m' : distance.toFixed(1).replace('.', ',') + ' km'}</strong>
+                  </div>
                   <div>
                     <small>Localização</small>
                     <strong className={gps.stale ? 'stale' : ''}>{gps.label}</strong>
