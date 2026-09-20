@@ -92,7 +92,7 @@ export function StoreLogoUpload({
   }
 
   return (
-    <div className={`store-logo-upload ${variant} ${uploading ? 'is-uploading' : ''}`}>
+    <div className={`store-logo-upload variant-${variant} ${uploading ? 'is-uploading' : ''}`}>
       <button
         type="button"
         className="store-logo-button"
