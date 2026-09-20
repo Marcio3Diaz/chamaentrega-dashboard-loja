@@ -85,7 +85,8 @@ const providers: Array<{
   {
     key: 'own_menu',
     name: 'Cardápio próprio',
-    short: 'CE',
+    short: 'Chama',
+    logoUrl: '/brand/chamaentrega-flame-official.webp',
     description: 'Vincule o seu cardápio digital próprio e use o ChamaEntrega como camada de entrega.',
     category: 'Canal próprio',
     color: 'gold',
