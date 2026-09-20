@@ -10,6 +10,7 @@ const nav = [
   ['/entregas/nova', 'Criar entrega', 'plus'],
   ['/entregas', 'Entregas', 'box'],
   ['/entregadores', 'Entregadores', 'user'],
+  ['/mapa', 'Mapa ao vivo', 'map'],
   ['/financeiro', 'Financeiro', 'chart'],
   ['/integracoes', 'Integrações', 'link'],
   ['/configuracoes', 'Configurações', 'gear'],
@@ -103,6 +104,7 @@ export function DashboardShell({
         <Link href="/"><Icon name="home" size={18}/>Início</Link>
         <Link href="/entregas/nova"><Icon name="plus" size={18}/>Criar</Link>
         <Link href="/entregas"><Icon name="box" size={18}/>Entregas</Link>
+        <Link href="/mapa"><Icon name="map" size={18}/>Mapa</Link>
         <Link href="/financeiro"><Icon name="chart" size={18}/>Financeiro</Link>
       </nav>
     </div>
