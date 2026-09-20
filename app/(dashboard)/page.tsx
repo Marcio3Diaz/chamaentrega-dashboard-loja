@@ -89,7 +89,7 @@ export default async function OverviewPage() {
         <div className="premium-card-head compact"><div className="head-title"><span className="section-icon lightning"><Icon name="lightning" size={22}/></span><div><h2>Ações rápidas</h2><p>Facilite sua operação do dia a dia</p></div></div></div>
         <div className="quick-grid">
           <Link href="/entregas/nova"><span className="quick-icon">+</span><span><strong>Pedido pronto</strong><small>Crie e publique uma entrega</small></span><b>›</b></Link>
-          <Link href="/entregas"><span className="quick-icon"><Icon name="map" size={20}/></span><span><strong>Acompanhar corridas</strong><small>Veja cada etapa em tempo real</small></span><b>›</b></Link>
+          <Link href="/mapa"><span className="quick-icon"><Icon name="map" size={20}/></span><span><strong>Acompanhar corridas</strong><small>Veja entregadores e rotas no mapa</small></span><b>›</b></Link>
           <Link href="/entregadores"><span className="quick-icon"><Icon name="user" size={20}/></span><span><strong>Entregadores disponíveis</strong><small>{couriers.length} disponível na sua região</small></span><b>›</b></Link>
           <Link href="/financeiro"><span className="quick-icon"><Icon name="chart" size={20}/></span><span><strong>Financeiro</strong><small>Controle pagamentos das entregas</small></span><b>›</b></Link>
         </div>
@@ -115,7 +115,7 @@ export default async function OverviewPage() {
       </article>
 
       <article className="premium-card activity-card">
-        <div className="premium-card-head compact"><div className="head-title"><span className="section-icon"><Icon name="pin" size={22}/></span><div><h2>Atividade em tempo real</h2><p>Acompanhe suas entregas no mapa</p></div></div></div>
+        <div className="premium-card-head compact"><div className="head-title"><span className="section-icon"><Icon name="pin" size={22}/></span><div><h2>Atividade em tempo real</h2><p>Acompanhe suas entregas no mapa</p></div></div><Link href="/mapa" className="outline-link">Abrir mapa</Link></div>
         <div className="fake-map">
           <svg viewBox="0 0 360 140" preserveAspectRatio="none" aria-hidden="true">
             <path className="map-street" d="M0 30 75 55 130 28 195 62 255 35 360 65M0 100 70 75 145 112 220 82 300 118 360 92M45 0 75 140M155 0 180 140M285 0 255 140"/>
