@@ -439,7 +439,10 @@ export function StoreIntegrationsPanel({
               >
                 <span className={`integration-logo integration-logo-brand ${provider.color}`}>
                   {provider.logoUrl ? (
-                    <img src={provider.logoUrl} alt={`Logo ${provider.name}`} loading="lazy" />
+                    <>
+                      <span className="integration-logo-fallback">{provider.short}</span>
+                      <img src={provider.logoUrl} alt={`Logo ${provider.name}`} loading="lazy" />
+                    </>
                   ) : (
                     <span className="integration-own-brand"><b>Chama</b><strong>Entrega</strong></span>
                   )}
@@ -465,7 +468,10 @@ export function StoreIntegrationsPanel({
           <div className="integration-detail-head">
             <span className={`integration-logo integration-logo-brand large ${selectedProvider.color}`}>
               {selectedProvider.logoUrl ? (
-                <img src={selectedProvider.logoUrl} alt={`Logo ${selectedProvider.name}`} />
+                <>
+                  <span className="integration-logo-fallback">{selectedProvider.short}</span>
+                  <img src={selectedProvider.logoUrl} alt={`Logo ${selectedProvider.name}`} />
+                </>
               ) : (
                 <span className="integration-own-brand"><b>Chama</b><strong>Entrega</strong></span>
               )}
