@@ -283,3 +283,43 @@ body { background: #07090c; }
   .online-tag,.call-button { grid-column:auto; }
   .topbar-actions .online-pill { display:none; }
 }
+
+
+/* ===== Ajuste fino para igualar o mockup ===== */
+.premium-content {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+.dashboard-hero {
+  background:
+    linear-gradient(90deg,#07090c 0%,#07090c 35%,rgba(7,9,12,.78) 55%,rgba(7,9,12,.94) 100%);
+}
+.hero-visual {
+  position:absolute;
+  inset:0 180px 0 43%;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(7,9,12,1) 0%,rgba(7,9,12,.18) 25%,rgba(7,9,12,.05) 64%,rgba(7,9,12,.72) 100%),
+    url('/images/dashboard-hero-courier.webp') center center / cover no-repeat;
+}
+.hero-visual:after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.18));
+  pointer-events:none;
+}
+.hero-quote {
+  z-index:2;
+  right:12px;
+  top:30px;
+}
+.hero-rider,.rider-head,.rider-body { display:none !important; }
+
+@media (min-width: 1400px) {
+  .premium-content { padding-left:28px; padding-right:28px; }
+  .dashboard-hero { min-height:168px; }
+  .premium-metric { min-height:126px; }
+  .premium-card h2 { font-size:18px; }
+}
