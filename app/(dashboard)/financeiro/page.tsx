@@ -53,10 +53,10 @@ export default async function FinancePage() {
   const balance = Number(wallet.balance ?? 0)
   const reserved = Number(wallet.reserved_balance ?? 0)
   const available = Number(wallet.available_balance ?? Math.max(balance - reserved, 0))
-  const pendingCredits = Number(wallet.pending_credits ?? 0)
   const activeReservations = reservations ?? []
   const recentTransactions = transactions ?? []
   const pendingTopups = (topups ?? []).filter(item => item.status === 'pending')
+  const pendingTopupAmount = pendingTopups.reduce((sum, item) => sum + Number(item.amount ?? 0), 0)
 
   return (
     <div className="wallet-page">
@@ -87,7 +87,7 @@ export default async function FinancePage() {
         </article>
         <article className="wallet-balance-card">
           <span>Recargas pendentes</span>
-          <strong>{currency(pendingCredits)}</strong>
+          <strong>{currency(pendingTopupAmount)}</strong>
           <small>{pendingTopups.length} Pix aguardando confirmação</small>
         </article>
       </section>
