@@ -27,7 +27,11 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
   const pathname = request.nextUrl.pathname
-  const publicRoute = pathname.startsWith('/login') || pathname.startsWith('/auth')
+  const publicRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password')
 
   if (!user && !publicRoute) {
     const url = request.nextUrl.clone()
