@@ -28,7 +28,6 @@ export default async function IntegrationsPage() {
     <StoreIntegrationsPanel
       storeId={store.id}
       storeName={store.name}
-      storePhone={store.phone}
       initialRows={integrations}
     />
   )
