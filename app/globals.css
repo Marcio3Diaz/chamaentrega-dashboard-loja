@@ -9414,3 +9414,486 @@ html[data-theme="light"] .live-fallback-map .leaflet-control-attribution {
 html[data-theme="light"] .premium-sidebar {
   background:linear-gradient(180deg,#0b0f13 0%,#0a0d10 100%) !important;
 }
+
+
+/* =================================================================
+   TEMA CLARO V2 — PALETA COESA E CONTRASTE
+   Corrige o efeito "branco chapado" e remove blocos escuros residuais.
+   Sidebar permanece escura; topbar e conteúdo ficam claros.
+   ================================================================= */
+html[data-theme="light"] {
+  --light-page: #eef1f4;
+  --light-surface: #ffffff;
+  --light-soft: #f6f8fa;
+  --light-soft-2: #edf1f4;
+  --light-text: #17202a;
+  --light-muted: #66737f;
+  --light-line: #dce2e7;
+  --light-line-strong: #cfd7de;
+  --light-gold: #e7a800;
+  --light-gold-soft: #fff6da;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .premium-shell,
+html[data-theme="light"] .premium-main,
+html[data-theme="light"] .premium-content {
+  background: var(--light-page) !important;
+  color: var(--light-text) !important;
+}
+
+/* Topbar realmente claro no tema claro. */
+html[data-theme="light"] .premium-topbar {
+  background: rgba(255,255,255,.97) !important;
+  border-bottom: 1px solid var(--light-line) !important;
+  box-shadow: 0 3px 16px rgba(17,27,37,.055) !important;
+}
+html[data-theme="light"] .premium-topbar .topbar-title,
+html[data-theme="light"] .premium-topbar .topbar-profile,
+html[data-theme="light"] .premium-topbar .topbar-profile strong {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .premium-topbar .topbar-subtitle,
+html[data-theme="light"] .premium-topbar .topbar-profile small {
+  color: var(--light-muted) !important;
+}
+html[data-theme="light"] .premium-topbar .icon-button {
+  color: #51606c !important;
+}
+html[data-theme="light"] .premium-topbar .topbar-divider {
+  background: var(--light-line) !important;
+}
+html[data-theme="light"] .premium-topbar .account-avatar {
+  color: #151b20 !important;
+  background: #ffbd12 !important;
+  border-color: rgba(20,29,38,.10) !important;
+}
+
+/* Sidebar continua escura para preservar a marca. */
+html[data-theme="light"] .premium-sidebar {
+  background: linear-gradient(180deg,#0b0f13 0%,#080b0e 100%) !important;
+  border-right-color: rgba(255,255,255,.09) !important;
+}
+
+/* Superfícies gerais com separação visual, sem branco chapado. */
+html[data-theme="light"] :is(
+  .premium-card,
+  .card,
+  .form-section,
+  .orders-hub-metrics article,
+  .orders-hub-filters,
+  .orders-hub-table-card,
+  .orders-hub-detail,
+  .couriers-page-head,
+  .couriers-stats article,
+  .couriers-list-card,
+  .courier-card,
+  .live-map-header,
+  .live-map-stats article,
+  .live-map-card,
+  .live-courier-panel,
+  .store-chat-page-head,
+  .store-chat-shell,
+  .integrations-hero,
+  .integrations-stats article,
+  .integration-card,
+  .integration-detail,
+  .settings-hero,
+  .settings-tabs,
+  .settings-panel,
+  .wallet-page-hero,
+  .wallet-balance-card,
+  .wallet-topup-card,
+  .wallet-rules-card,
+  .wallet-history-card,
+  .wallet-topups-history,
+  .wallet-health-strip article
+) {
+  background: var(--light-surface) !important;
+  border-color: var(--light-line) !important;
+  color: var(--light-text) !important;
+  box-shadow: 0 8px 24px rgba(18,28,38,.045) !important;
+}
+
+/* Heroes internos também claros; somente a home mantém o banner escuro. */
+html[data-theme="light"] :is(
+  .orders-hub-hero,
+  .couriers-page-head,
+  .live-map-header,
+  .store-chat-page-head,
+  .integrations-hero,
+  .settings-hero,
+  .wallet-page-hero
+) {
+  background:
+    radial-gradient(circle at 83% 18%,rgba(255,184,0,.13),transparent 29%),
+    linear-gradient(145deg,#ffffff,#f7f8fa) !important;
+  border-color: var(--light-line) !important;
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .orders-hub-hero h1,
+html[data-theme="light"] .orders-hub-hero h1 span,
+html[data-theme="light"] :is(
+  .couriers-page-head h1,
+  .live-map-header h1,
+  .store-chat-page-head h1,
+  .integrations-hero h1,
+  .settings-hero h1,
+  .wallet-page-hero h1
+) {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .orders-hub-hero h1 span {
+  color: #d99300 !important;
+}
+html[data-theme="light"] .orders-hub-hero p,
+html[data-theme="light"] .orders-hub-hero-side > span,
+html[data-theme="light"] :is(
+  .couriers-page-head p,
+  .live-map-header p,
+  .store-chat-page-head p,
+  .integrations-hero p,
+  .settings-hero p,
+  .wallet-page-hero p
+) {
+  color: var(--light-muted) !important;
+}
+
+/* Métricas e títulos: contraste firme. */
+html[data-theme="light"] :is(
+  .premium-metric .metric-value,
+  .orders-hub-metrics strong,
+  .couriers-stats strong,
+  .live-map-stats strong,
+  .integrations-stats strong,
+  .wallet-balance-card strong,
+  .wallet-health-strip strong,
+  .premium-card h2,
+  .settings-panel h2,
+  .integration-detail h2
+) {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] :is(
+  .metric-label,
+  .metric-note,
+  .orders-hub-metrics small,
+  .orders-hub-metrics article div > span,
+  .couriers-stats small,
+  .couriers-stats article > div > span,
+  .live-map-stats span,
+  .live-map-stats small,
+  .integrations-stats span,
+  .integrations-stats small,
+  .wallet-balance-card span,
+  .wallet-balance-card small
+) {
+  color: var(--light-muted) !important;
+}
+
+/* Pedidos — remove barra de busca preta e reforça tabela. */
+html[data-theme="light"] .orders-hub-filters,
+html[data-theme="light"] .orders-hub-table-search {
+  background: var(--light-surface) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .orders-hub-table-search label {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line-strong) !important;
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .orders-hub-table-search input {
+  color: var(--light-text) !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .orders-hub-table-search input::placeholder {
+  color: #8a97a2 !important;
+}
+html[data-theme="light"] .orders-filter-row > strong {
+  color: #4d5a65 !important;
+}
+html[data-theme="light"] .orders-filter-row button {
+  color: #52616d !important;
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .orders-filter-row button:hover {
+  color: var(--light-text) !important;
+  background: #eef2f5 !important;
+}
+html[data-theme="light"] .orders-filter-row button.active {
+  color: #171109 !important;
+  background: linear-gradient(135deg,#ffad00,#ffd23a) !important;
+  border-color: transparent !important;
+}
+html[data-theme="light"] .orders-filter-row button b {
+  color: #52616d !important;
+  background: #e6ebef !important;
+}
+html[data-theme="light"] .orders-filter-row button.active b {
+  color: #171109 !important;
+  background: rgba(0,0,0,.10) !important;
+}
+html[data-theme="light"] .orders-hub-table th {
+  color: #63717d !important;
+  border-bottom-color: var(--light-line) !important;
+}
+html[data-theme="light"] .orders-hub-table td {
+  color: #43515d !important;
+  border-bottom-color: #e6ebef !important;
+}
+html[data-theme="light"] .orders-hub-table td > strong,
+html[data-theme="light"] .orders-hub-table td > b {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .orders-hub-table td > span,
+html[data-theme="light"] .order-items-preview span,
+html[data-theme="light"] .order-items-preview small {
+  color: var(--light-muted) !important;
+}
+html[data-theme="light"] .orders-hub-table tbody tr:hover {
+  background: #f7f9fa !important;
+}
+html[data-theme="light"] .orders-hub-table tbody tr.selected {
+  background: linear-gradient(90deg,#fff7df,#fffdf8) !important;
+}
+html[data-theme="light"] .orders-detail-empty {
+  color: #73808b !important;
+}
+html[data-theme="light"] .orders-detail-empty strong {
+  color: #35424d !important;
+}
+html[data-theme="light"] .orders-detail-section,
+html[data-theme="light"] .orders-detail-items,
+html[data-theme="light"] .orders-detail-note,
+html[data-theme="light"] .orders-detail-payment,
+html[data-theme="light"] .orders-detail-delivery {
+  background: #fbfcfd !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .orders-detail-icon {
+  color: #62707c !important;
+  background: #eef2f5 !important;
+}
+
+/* Entregadores */
+html[data-theme="light"] .couriers-toolbar,
+html[data-theme="light"] .live-map-toolbar,
+html[data-theme="light"] .live-courier-panel-head {
+  background: #fbfcfd !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .couriers-search,
+html[data-theme="light"] .couriers-filters,
+html[data-theme="light"] .courier-card-metrics,
+html[data-theme="light"] .courier-active-delivery,
+html[data-theme="light"] .courier-no-route {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .couriers-search input {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .courier-card-name strong,
+html[data-theme="light"] .couriers-toolbar > div:first-child strong,
+html[data-theme="light"] .courier-card-metrics strong {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .courier-card-name small,
+html[data-theme="light"] .courier-card-name > span,
+html[data-theme="light"] .couriers-toolbar > div:first-child span,
+html[data-theme="light"] .courier-card-metrics small {
+  color: var(--light-muted) !important;
+}
+
+/* Mapa */
+html[data-theme="light"] .live-map-signal {
+  color: #4f5d68 !important;
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .live-courier-filters,
+html[data-theme="light"] .live-courier-item,
+html[data-theme="light"] .live-delivery-detail,
+html[data-theme="light"] .map-selected-card {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .live-courier-info strong,
+html[data-theme="light"] .live-map-toolbar strong,
+html[data-theme="light"] .live-courier-panel-head strong {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .live-courier-info small,
+html[data-theme="light"] .live-map-toolbar span,
+html[data-theme="light"] .live-courier-panel-head span {
+  color: var(--light-muted) !important;
+}
+html[data-theme="light"] .live-map-stage,
+html[data-theme="light"] .live-map-canvas {
+  background: #dfe5e9 !important;
+}
+html[data-theme="light"] .live-map-canvas .leaflet-tile-pane,
+html[data-theme="light"] .live-fallback-map .leaflet-tile-pane {
+  filter: brightness(.97) saturate(.92) contrast(1.03) !important;
+}
+
+/* Chat */
+html[data-theme="light"] .store-chat-conversations {
+  background: #f7f9fa !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .store-chat-search {
+  background: var(--light-surface) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .store-chat-search input {
+  color: var(--light-text) !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .store-chat-conversation {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .store-chat-conversation:hover {
+  background: #edf2f5 !important;
+}
+html[data-theme="light"] .store-chat-conversation.selected {
+  background: #fff7df !important;
+  border-color: #efd68b !important;
+}
+html[data-theme="light"] .store-chat-panel,
+html[data-theme="light"] .store-chat-messages,
+html[data-theme="light"] .store-chat-panel-head,
+html[data-theme="light"] .store-chat-composer {
+  background: var(--light-surface) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .store-chat-bubble {
+  color: #27343e !important;
+  background: #eef2f5 !important;
+  border-color: var(--light-line) !important;
+}
+
+/* Integrações */
+html[data-theme="light"] .integration-card:hover {
+  background: #f9fbfc !important;
+}
+html[data-theme="light"] .integration-card.selected {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,184,0,.08),transparent 34%),
+    #fffdf7 !important;
+  border-color: #e9d087 !important;
+  box-shadow: inset 3px 0 0 #ffbd12,0 8px 24px rgba(18,28,38,.04) !important;
+}
+html[data-theme="light"] .integration-card-head strong,
+html[data-theme="light"] .integration-detail-head h2,
+html[data-theme="light"] .integration-switch-row strong {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .integration-card-copy > span:not(.integration-card-head):not(.integration-capabilities),
+html[data-theme="light"] .integration-detail-head p,
+html[data-theme="light"] .integration-switch-row small {
+  color: var(--light-muted) !important;
+}
+html[data-theme="light"] .integration-capabilities i,
+html[data-theme="light"] .integration-detail-status,
+html[data-theme="light"] .integration-switch-row,
+html[data-theme="light"] .integration-note,
+html[data-theme="light"] .integration-provider-warning {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .integration-form input {
+  color: var(--light-text) !important;
+  background: var(--light-surface) !important;
+  border-color: var(--light-line-strong) !important;
+}
+
+/* Configurações */
+html[data-theme="light"] .settings-tabs button {
+  color: #42505c !important;
+}
+html[data-theme="light"] .settings-tabs button > span {
+  color: #65727e !important;
+  background: #edf1f4 !important;
+}
+html[data-theme="light"] .settings-tabs button.active {
+  background: #fff6db !important;
+  border-color: #efd58a !important;
+}
+html[data-theme="light"] .settings-tabs button.active strong {
+  color: #a66e00 !important;
+}
+html[data-theme="light"] .settings-logo-row,
+html[data-theme="light"] .settings-current-address,
+html[data-theme="light"] .settings-account-card,
+html[data-theme="light"] .settings-pix-card,
+html[data-theme="light"] .settings-payment-flow > div,
+html[data-theme="light"] .settings-location-tools,
+html[data-theme="light"] .appearance-note,
+html[data-theme="light"] .appearance-current {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .settings-field input,
+html[data-theme="light"] .settings-toggle {
+  color: var(--light-text) !important;
+  background: var(--light-surface) !important;
+  border-color: var(--light-line-strong) !important;
+}
+
+/* Financeiro */
+html[data-theme="light"] .wallet-presets button,
+html[data-theme="light"] .wallet-custom-amount,
+html[data-theme="light"] .wallet-rule-list > div,
+html[data-theme="light"] .wallet-topup-row {
+  color: #33414c !important;
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .wallet-presets button.active {
+  color: #171109 !important;
+  background: linear-gradient(135deg,#ffad00,#ffd239) !important;
+  border-color: #ffbd12 !important;
+}
+html[data-theme="light"] .wallet-custom-amount input {
+  color: var(--light-text) !important;
+  background: transparent !important;
+}
+
+/* Criar entrega */
+html[data-theme="light"] .wallet-create-summary {
+  background:
+    radial-gradient(circle at 92% 20%,rgba(255,184,0,.10),transparent 30%),
+    #ffffff !important;
+  border-color: #ead79f !important;
+}
+html[data-theme="light"] .wallet-create-summary > div {
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .form-actions {
+  background: rgba(255,255,255,.97) !important;
+  border-color: var(--light-line) !important;
+}
+
+/* Home clara: cartões com fundo levemente acinzentado ao redor, sem perder profundidade. */
+html[data-theme="light"] .premium-metrics,
+html[data-theme="light"] .dashboard-row {
+  background: transparent !important;
+}
+html[data-theme="light"] .quick-grid a,
+html[data-theme="light"] .courier-line,
+html[data-theme="light"] .outline-link {
+  color: #33414c !important;
+  background: var(--light-soft) !important;
+  border-color: var(--light-line) !important;
+}
+html[data-theme="light"] .quick-grid strong,
+html[data-theme="light"] .courier-copy strong {
+  color: var(--light-text) !important;
+}
+html[data-theme="light"] .quick-grid small,
+html[data-theme="light"] .courier-copy small {
+  color: var(--light-muted) !important;
+}
