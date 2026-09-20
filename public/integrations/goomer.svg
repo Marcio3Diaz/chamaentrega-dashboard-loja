@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-label="Goomer">
-  <rect width="240" height="64" rx="16" fill="#fff"/>
-  <g transform="translate(10 8)">
-    <circle cx="24" cy="24" r="22" fill="#00A2B3"/>
-    <path d="M15 17v18M21 17v18M27 17v18M33 17v18M15 27h18M11 35c5 4 22 4 27-2" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
-    <path d="M38 34l7 7-8-1z" fill="#00A2B3"/>
-    <text x="54" y="36" font-family="Arial Rounded MT Bold, Arial, Helvetica, sans-serif" font-size="34" font-weight="900" fill="#00A2B3" letter-spacing="-2">goomer</text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Goomer">
+  <rect width="64" height="64" rx="14" fill="#00A2B3"/>
+  <circle cx="32" cy="27" r="16" fill="#fff"/>
+  <circle cx="32" cy="27" r="9" fill="#00A2B3"/>
+  <circle cx="36" cy="23" r="4.2" fill="#fff"/>
+  <path d="M17 48c7-4.6 23-4.6 30 0" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+  <text x="32" y="58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8.5" font-weight="900" fill="#fff">goomer</text>
 </svg>
