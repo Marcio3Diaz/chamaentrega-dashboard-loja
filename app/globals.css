@@ -5683,3 +5683,308 @@ body { background: #07090c; }
     transform: rotate(90deg);
   }
 }
+
+
+/* =================================================================
+   INTEGRAÇÕES V2 — logos de marca + layout premium
+   ================================================================= */
+.integrations-page {
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.integrations-hero {
+  min-height: 102px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 78% 18%,rgba(255,184,0,.10),transparent 25%),
+    linear-gradient(145deg,#151a1f,#0d1115);
+}
+
+.integrations-hero h1 {
+  margin: 4px 0 6px;
+  font-size: 30px;
+  letter-spacing: -.035em;
+}
+
+.integrations-hero p {
+  color: #9aa4ad;
+  font-size: 10px;
+}
+
+.integrations-stats {
+  gap: 8px;
+}
+
+.integrations-stats article {
+  min-height: 76px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(145deg,#151a1f,#10151a);
+}
+
+.integrations-stats span {
+  font-size: 7px;
+}
+
+.integrations-stats strong {
+  margin-top: 4px;
+  font-size: 21px;
+}
+
+.integrations-stats small {
+  margin-top: 3px;
+  font-size: 6.5px;
+}
+
+.integrations-layout {
+  grid-template-columns: minmax(0,1fr) 395px;
+  gap: 10px;
+}
+
+.integrations-grid {
+  gap: 7px;
+}
+
+.integration-card {
+  min-height: 94px;
+  grid-template-columns: 58px minmax(0,1fr) 16px;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+.integration-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,184,0,.20);
+  box-shadow: 0 8px 22px rgba(0,0,0,.14);
+}
+
+.integration-card.selected {
+  border-color: rgba(255,184,0,.30);
+  box-shadow:
+    inset 3px 0 0 #ffbd12,
+    0 10px 25px rgba(0,0,0,.14);
+}
+
+.integration-logo-brand {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: #fff !important;
+  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+}
+
+.integration-logo-brand.large {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+  border-radius: 16px;
+}
+
+.integration-logo-brand > img {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: block;
+  padding: 7px;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+}
+
+.integration-logo-brand.large > img {
+  padding: 8px;
+}
+
+.integration-logo-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: #111;
+  font-size: 11px;
+  font-weight: 1000;
+  background: #fff;
+}
+
+.integration-logo-brand.gold {
+  background: linear-gradient(145deg,#11161b,#080b0e) !important;
+  border-color: rgba(255,184,0,.22);
+}
+
+.integration-own-brand {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0;
+  padding: 0 5px;
+  color: #fff;
+  font-size: 8px;
+  letter-spacing: -.05em;
+  line-height: 1;
+}
+
+.integration-own-brand b,
+.integration-own-brand strong {
+  font-weight: 900;
+}
+
+.integration-own-brand strong {
+  color: #ffb800;
+}
+
+.integration-logo-brand.large .integration-own-brand {
+  font-size: 10px;
+}
+
+.integration-card-head {
+  gap: 10px;
+}
+
+.integration-card-head strong {
+  font-size: 11px;
+  letter-spacing: -.01em;
+}
+
+.integration-card-copy > small {
+  margin-top: 2px;
+  font-size: 6.5px;
+}
+
+.integration-card-copy > span:not(.integration-card-head):not(.integration-capabilities) {
+  margin-top: 4px;
+  max-width: 90%;
+  color: #8c97a0;
+  font-size: 7.5px;
+  line-height: 1.35;
+}
+
+.integration-capabilities {
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.integration-capabilities i {
+  padding: 3px 6px;
+  color: #9ba5ad;
+  font-size: 5.8px;
+  background: #0c1115;
+}
+
+.integration-status {
+  min-height: 23px;
+  padding: 0 8px;
+  font-size: 6.4px;
+}
+
+.integration-card-chevron {
+  font-size: 19px;
+}
+
+.integration-detail {
+  top: 86px;
+  padding: 14px;
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,184,0,.055),transparent 31%),
+    linear-gradient(155deg,#12181d,#0e1317);
+  box-shadow: 0 12px 32px rgba(0,0,0,.16);
+}
+
+.integration-detail-head {
+  gap: 13px;
+  padding-bottom: 12px;
+}
+
+.integration-detail-head h2 {
+  margin: 3px 0 4px;
+  font-size: 21px;
+  letter-spacing: -.025em;
+}
+
+.integration-detail-head p {
+  max-width: 270px;
+  color: #8d98a1;
+  font-size: 7.5px;
+  line-height: 1.45;
+}
+
+.integration-detail-status {
+  min-height: 44px;
+  margin-top: 10px;
+  border-radius: 9px;
+}
+
+.integration-form {
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.integration-form input {
+  height: 40px;
+  font-size: 8px;
+}
+
+.integration-switch-row {
+  min-height: 56px;
+}
+
+.integration-note,
+.integration-provider-warning {
+  padding: 9px 10px;
+}
+
+.integration-actions {
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.integration-actions button {
+  min-height: 35px;
+  padding: 0 11px;
+}
+
+.integrations-flow {
+  min-height: 88px;
+  padding: 11px;
+  border-radius: 13px;
+}
+
+.integrations-flow > div {
+  min-height: 58px;
+}
+
+.integration-flow-icon {
+  width: 33px;
+  height: 33px;
+}
+
+@media (max-width: 1180px) {
+  .integrations-layout {
+    grid-template-columns: minmax(0,1fr) 360px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .integrations-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .integration-detail {
+    position: static;
+  }
+}
