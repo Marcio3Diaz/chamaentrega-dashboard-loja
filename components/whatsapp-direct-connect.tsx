@@ -166,7 +166,7 @@ function waitForEmbeddedSignup() {
     window.addEventListener('message',handler)
   })
 
-  return { promise,cancel:cleanup }
+  return { promise,cancel:() => cleanup() }
 }
 
 export function WhatsAppDirectConnect({
