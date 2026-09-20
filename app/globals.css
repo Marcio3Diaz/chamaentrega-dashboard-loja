@@ -746,3 +746,33 @@ body { background: #07090c; }
     object-position: 62% center;
   }
 }
+
+
+/* ===== Banner sem cortes: proporção original 3:1 ===== */
+.dashboard-banner {
+  background: #000 !important;
+  line-height: 0;
+}
+.dashboard-banner-image {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 3 / 1;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+@media (max-width: 1199px) {
+  .dashboard-banner-image {
+    height: auto !important;
+    aspect-ratio: 3 / 1;
+    object-fit: contain !important;
+  }
+}
+@media (max-width: 700px) {
+  .dashboard-banner-image {
+    height: auto !important;
+    aspect-ratio: 3 / 1;
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+}
