@@ -9147,3 +9147,270 @@ html[data-theme="light"] .map-delivery small,
 html[data-theme="light"] .map-city {
   color: #687681;
 }
+
+
+/* =================================================================
+   TEMA CLARO — CORREÇÃO FINAL DE ESPECIFICIDADE
+   O bloco "HOME FINAL" usa !important no desktop. Estas regras ficam
+   por último e têm precedência explícita quando data-theme="light".
+   ================================================================= */
+@media (min-width:1200px) {
+  html[data-theme="light"] .premium-shell {
+    background:#f3f5f7 !important;
+  }
+
+  html[data-theme="light"] .premium-main {
+    background:#f3f5f7 !important;
+  }
+
+  html[data-theme="light"] .premium-content {
+    background:#f3f5f7 !important;
+  }
+
+  html[data-theme="light"] .premium-topbar {
+    background:linear-gradient(180deg,#11161b,#0b0f13) !important;
+    border-bottom-color:rgba(255,255,255,.09) !important;
+  }
+
+  html[data-theme="light"] .premium-topbar .topbar-title,
+  html[data-theme="light"] .premium-topbar .topbar-profile strong {
+    color:#eef2f6 !important;
+  }
+
+  html[data-theme="light"] .premium-topbar .topbar-subtitle,
+  html[data-theme="light"] .premium-topbar .topbar-profile small {
+    color:#8e99a5 !important;
+  }
+}
+
+/* Superfícies principais claras */
+html[data-theme="light"] .orders-hub-metrics article,
+html[data-theme="light"] .orders-hub-filters,
+html[data-theme="light"] .orders-hub-table-card,
+html[data-theme="light"] .orders-hub-detail,
+html[data-theme="light"] .couriers-stats article,
+html[data-theme="light"] .couriers-list-card,
+html[data-theme="light"] .courier-card,
+html[data-theme="light"] .live-map-header,
+html[data-theme="light"] .live-map-stats article,
+html[data-theme="light"] .live-map-card,
+html[data-theme="light"] .live-courier-panel,
+html[data-theme="light"] .store-chat-page-head,
+html[data-theme="light"] .store-chat-shell,
+html[data-theme="light"] .integrations-hero,
+html[data-theme="light"] .integrations-stats article,
+html[data-theme="light"] .integration-card,
+html[data-theme="light"] .integration-detail,
+html[data-theme="light"] .integrations-flow,
+html[data-theme="light"] .settings-hero,
+html[data-theme="light"] .settings-tabs,
+html[data-theme="light"] .settings-panel,
+html[data-theme="light"] .wallet-page-hero,
+html[data-theme="light"] .wallet-balance-card,
+html[data-theme="light"] .wallet-topup-card,
+html[data-theme="light"] .wallet-rules-card,
+html[data-theme="light"] .wallet-history-card,
+html[data-theme="light"] .wallet-topups-history,
+html[data-theme="light"] .wallet-health-strip article,
+html[data-theme="light"] .form-section,
+html[data-theme="light"] .card,
+html[data-theme="light"] .premium-card {
+  background:#ffffff !important;
+  border-color:rgba(20,29,38,.10) !important;
+  color:#20272e !important;
+}
+
+/* Variações suaves, ainda claras */
+html[data-theme="light"] .courier-card.in-route,
+html[data-theme="light"] .wallet-balance-card.primary,
+html[data-theme="light"] .wallet-health-strip article.warning {
+  background:
+    radial-gradient(circle at 92% 10%,rgba(255,184,0,.10),transparent 34%),
+    #ffffff !important;
+}
+
+html[data-theme="light"] .wallet-health-strip article.healthy {
+  background:
+    radial-gradient(circle at 92% 10%,rgba(32,210,122,.09),transparent 34%),
+    #ffffff !important;
+}
+
+/* Cabeçalhos premium claros, exceto hero principal da home. */
+html[data-theme="light"] .couriers-page-head,
+html[data-theme="light"] .live-map-header,
+html[data-theme="light"] .store-chat-page-head,
+html[data-theme="light"] .integrations-hero,
+html[data-theme="light"] .settings-hero,
+html[data-theme="light"] .wallet-page-hero {
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,184,0,.09),transparent 27%),
+    #ffffff !important;
+  color:#20272e !important;
+}
+
+/* Hero de Pedidos permanece escuro por escolha visual, mas o restante fica claro. */
+html[data-theme="light"] .orders-hub-hero {
+  background:
+    linear-gradient(90deg,rgba(13,17,21,.97) 0%,rgba(13,17,21,.89) 48%,rgba(13,17,21,.64) 70%,rgba(13,17,21,.94) 100%),
+    radial-gradient(circle at 72% 40%,rgba(255,184,0,.20),transparent 28%),
+    linear-gradient(145deg,#13191e,#080b0e) !important;
+  color:#f4f6f8 !important;
+}
+html[data-theme="light"] .orders-hub-hero h1 {
+  color:#f4f6f8 !important;
+}
+
+/* Controles internos */
+html[data-theme="light"] .orders-filter-row button,
+html[data-theme="light"] .orders-hub-table-search input,
+html[data-theme="light"] .couriers-search,
+html[data-theme="light"] .couriers-filters,
+html[data-theme="light"] .courier-card-metrics,
+html[data-theme="light"] .courier-active-delivery,
+html[data-theme="light"] .courier-no-route,
+html[data-theme="light"] .live-map-toolbar,
+html[data-theme="light"] .live-courier-panel-head,
+html[data-theme="light"] .live-courier-filters,
+html[data-theme="light"] .live-courier-item,
+html[data-theme="light"] .live-delivery-detail,
+html[data-theme="light"] .map-selected-card,
+html[data-theme="light"] .store-chat-conversations,
+html[data-theme="light"] .store-chat-conversations-head,
+html[data-theme="light"] .store-chat-panel-head,
+html[data-theme="light"] .store-chat-composer,
+html[data-theme="light"] .store-chat-search,
+html[data-theme="light"] .integration-capabilities i,
+html[data-theme="light"] .integration-switch-row,
+html[data-theme="light"] .integration-note,
+html[data-theme="light"] .integration-provider-warning,
+html[data-theme="light"] .settings-secondary-action,
+html[data-theme="light"] .settings-logo-row,
+html[data-theme="light"] .settings-current-address,
+html[data-theme="light"] .settings-account-card,
+html[data-theme="light"] .settings-pix-card,
+html[data-theme="light"] .settings-payment-flow > div,
+html[data-theme="light"] .settings-location-tools,
+html[data-theme="light"] .appearance-current,
+html[data-theme="light"] .appearance-note,
+html[data-theme="light"] .wallet-presets button,
+html[data-theme="light"] .wallet-custom-amount,
+html[data-theme="light"] .wallet-rule-list > div,
+html[data-theme="light"] .wallet-topup-row {
+  background:#f7f9fa !important;
+  border-color:rgba(20,29,38,.10) !important;
+  color:#26313a !important;
+}
+
+/* Chat precisa trocar também o corpo da conversa. */
+html[data-theme="light"] .store-chat-panel,
+html[data-theme="light"] .store-chat-messages {
+  background:#ffffff !important;
+  color:#20272e !important;
+}
+html[data-theme="light"] .store-chat-bubble {
+  background:#eef2f5 !important;
+  border-color:rgba(20,29,38,.09) !important;
+  color:#26313a !important;
+}
+html[data-theme="light"] .store-chat-message-row.mine .store-chat-bubble {
+  background:#fff3cc !important;
+  border-color:rgba(214,146,0,.24) !important;
+  color:#332400 !important;
+}
+
+/* Formulários */
+html[data-theme="light"] .field input,
+html[data-theme="light"] .field textarea,
+html[data-theme="light"] .field select,
+html[data-theme="light"] .settings-field input,
+html[data-theme="light"] .integration-form input,
+html[data-theme="light"] .couriers-search input,
+html[data-theme="light"] .store-chat-search input,
+html[data-theme="light"] .store-chat-composer input,
+html[data-theme="light"] .store-chat-composer textarea,
+html[data-theme="light"] .wallet-custom-amount input {
+  background:#ffffff !important;
+  border-color:rgba(20,29,38,.13) !important;
+  color:#20272e !important;
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color:#9aa4ad !important;
+}
+
+/* Textos que antes eram forçados para branco. */
+html[data-theme="light"] .orders-hub-metrics strong,
+html[data-theme="light"] .couriers-stats strong,
+html[data-theme="light"] .couriers-toolbar > div:first-child strong,
+html[data-theme="light"] .courier-card-name strong,
+html[data-theme="light"] .live-map-header h1,
+html[data-theme="light"] .live-map-stats strong,
+html[data-theme="light"] .live-map-toolbar strong,
+html[data-theme="light"] .live-courier-panel-head strong,
+html[data-theme="light"] .live-courier-info strong,
+html[data-theme="light"] .store-chat-page-head h1,
+html[data-theme="light"] .store-chat-conversation-line strong,
+html[data-theme="light"] .store-chat-panel-person strong,
+html[data-theme="light"] .integrations-hero h1,
+html[data-theme="light"] .integrations-stats strong,
+html[data-theme="light"] .integration-card-head strong,
+html[data-theme="light"] .integration-detail h2,
+html[data-theme="light"] .settings-panel h2,
+html[data-theme="light"] .wallet-section-head h2,
+html[data-theme="light"] .wallet-balance-card strong,
+html[data-theme="light"] .wallet-health-strip strong,
+html[data-theme="light"] .table-main {
+  color:#20272e !important;
+}
+
+/* Textos secundários. */
+html[data-theme="light"] .orders-hub-metrics small,
+html[data-theme="light"] .orders-hub-metrics article div > span,
+html[data-theme="light"] .couriers-stats small,
+html[data-theme="light"] .couriers-stats article > div > span,
+html[data-theme="light"] .couriers-toolbar > div:first-child span,
+html[data-theme="light"] .courier-card-name small,
+html[data-theme="light"] .courier-card-name > span,
+html[data-theme="light"] .live-map-header p,
+html[data-theme="light"] .live-map-stats span,
+html[data-theme="light"] .live-map-stats small,
+html[data-theme="light"] .live-map-toolbar span,
+html[data-theme="light"] .store-chat-page-head p,
+html[data-theme="light"] .store-chat-preview,
+html[data-theme="light"] .integrations-hero p,
+html[data-theme="light"] .integrations-stats span,
+html[data-theme="light"] .integrations-stats small,
+html[data-theme="light"] .settings-panel-head p,
+html[data-theme="light"] .wallet-section-head p,
+html[data-theme="light"] .wallet-balance-card span,
+html[data-theme="light"] .wallet-balance-card small,
+html[data-theme="light"] .table-sub,
+html[data-theme="light"] .table-address {
+  color:#6f7c87 !important;
+}
+
+/* Mapa: controles claros e mapa sem filtro escuro. */
+html[data-theme="light"] .live-map-stage,
+html[data-theme="light"] .live-map-canvas {
+  background:#dfe6ea !important;
+}
+html[data-theme="light"] .live-map-canvas .leaflet-tile-pane,
+html[data-theme="light"] .live-fallback-map .leaflet-tile-pane {
+  filter:brightness(.98) saturate(.92) contrast(1.02) !important;
+}
+html[data-theme="light"] .live-map-canvas .leaflet-control-zoom a,
+html[data-theme="light"] .live-fallback-map .leaflet-control-zoom a {
+  background:#ffffff !important;
+  color:#27313a !important;
+  border-color:rgba(20,29,38,.12) !important;
+}
+html[data-theme="light"] .live-map-canvas .leaflet-control-attribution,
+html[data-theme="light"] .live-fallback-map .leaflet-control-attribution {
+  background:rgba(255,255,255,.84) !important;
+  color:#687681 !important;
+}
+
+/* A sidebar continua escura nos dois temas. */
+html[data-theme="light"] .premium-sidebar {
+  background:linear-gradient(180deg,#0b0f13 0%,#0a0d10 100%) !important;
+}
