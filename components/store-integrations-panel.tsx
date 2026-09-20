@@ -546,6 +546,37 @@ export function StoreIntegrationsPanel({
                 <small>Opcional por enquanto, mas recomendado para identificar a loja de forma exata no webhook.</small>
               </label>
 
+              <div className="whatsapp-setup-guide">
+                <div className="whatsapp-setup-title">
+                  <span>CONFIGURAÇÃO EM 3 PASSOS</span>
+                  <strong>Onde colocar cada informação</strong>
+                </div>
+
+                <div className="whatsapp-setup-step">
+                  <b>1</b>
+                  <div>
+                    <strong>Aqui no ChamaEntrega</strong>
+                    <p>Preencha apenas <em>Número comercial</em> e <em>Phone Number ID da Meta</em>.</p>
+                  </div>
+                </div>
+
+                <div className="whatsapp-setup-step">
+                  <b>2</b>
+                  <div>
+                    <strong>No Supabase → Edge Functions → Secrets</strong>
+                    <p>Crie os secrets <code>WHATSAPP_VERIFY_TOKEN</code> e <code>WHATSAPP_APP_SECRET</code>. Eles <u>não devem ser colados nesta página</u>.</p>
+                  </div>
+                </div>
+
+                <div className="whatsapp-setup-step">
+                  <b>3</b>
+                  <div>
+                    <strong>Na Meta → WhatsApp → Webhooks</strong>
+                    <p>Use o Callback URL abaixo e, no campo Verify Token da Meta, informe exatamente o mesmo valor salvo como <code>WHATSAPP_VERIFY_TOKEN</code> no Supabase.</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="whatsapp-webhook-box">
                 <div className="whatsapp-webhook-head">
                   <span>
@@ -568,9 +599,9 @@ export function StoreIntegrationsPanel({
                     }}
                   >Copiar</button>
                 </div>
-                <p>
-                  Para receber mensagens reais, o Supabase ainda precisa dos secrets
-                  <strong> WHATSAPP_VERIFY_TOKEN</strong> e <strong>WHATSAPP_APP_SECRET</strong>.
+                <p className="whatsapp-secret-warning">
+                  <strong>Importante:</strong> não cole App Secret nem Verify Token nos campos acima.
+                  Esses dois valores ficam somente nos Secrets da Edge Function no Supabase.
                 </p>
               </div>
 
