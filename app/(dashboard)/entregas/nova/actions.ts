@@ -84,7 +84,7 @@ export async function createDeliveryAction(_: CreateState, formData: FormData): 
   if (error || !delivery) return { error: error?.message ?? 'Não foi possível criar a entrega.' }
 
   if (storeOrderId) {
-    const { error:linkError } = await supabase
+    const { data:linkedOrder,error:linkError } = await supabase
       .from('store_orders')
       .update({
         delivery_id: delivery.id,
@@ -93,8 +93,10 @@ export async function createDeliveryAction(_: CreateState, formData: FormData): 
       .eq('id',storeOrderId)
       .eq('store_id',store.id)
       .is('delivery_id',null)
+      .select('id')
+      .maybeSingle()
 
-    if (linkError) {
+    if (linkError || !linkedOrder) {
       await supabase.from('deliveries').delete().eq('id',delivery.id).eq('store_id',store.id)
       return { error:'A entrega foi revertida porque não foi possível vinculá-la ao pedido integrado.' }
     }
