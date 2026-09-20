@@ -1,0 +1,27 @@
+'use client'
+
+import { useActionState } from 'react'
+import { loginAction, type LoginState } from './actions'
+
+const initialState: LoginState = {}
+
+export function LoginForm() {
+  const [state, action, pending] = useActionState(loginAction, initialState)
+
+  return (
+    <form action={action}>
+      <div className="field">
+        <label htmlFor="email">E-mail</label>
+        <input id="email" name="email" type="email" autoComplete="email" placeholder="loja@exemplo.com" required />
+      </div>
+      <div className="field">
+        <label htmlFor="password">Senha</label>
+        <input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+      </div>
+      <button className="button button-gold" disabled={pending}>
+        {pending ? 'ENTRANDO...' : 'ENTRAR NO PAINEL'}
+      </button>
+      {state.error ? <div className="error">{state.error}</div> : null}
+    </form>
+  )
+}
