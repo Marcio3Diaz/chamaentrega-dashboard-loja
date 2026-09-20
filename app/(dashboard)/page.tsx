@@ -23,6 +23,12 @@ export default async function OverviewPage() {
   const gross = billed.reduce((sum,d) => sum + Number(d.delivery_fee ?? 0), 0)
   const activeDelivery = deliveries.find(d => activeStatuses.includes(d.status)) ?? deliveries[0] ?? null
 
+  const { data: walletRows } = await supabase.rpc('get_my_store_wallet', { p_store_id: store.id })
+  const wallet = walletRows?.[0]
+  const walletBalance = Number(wallet?.balance ?? 0)
+  const walletReserved = Number(wallet?.reserved_balance ?? 0)
+  const walletAvailable = Number(wallet?.available_balance ?? Math.max(walletBalance - walletReserved, 0))
+
   const { data: couriersData } = await supabase
     .from('couriers')
     .select('id,rating,total_deliveries,is_online,is_available')
@@ -103,9 +109,9 @@ export default async function OverviewPage() {
       </article>
 
       <article className="premium-card finance-card">
-        <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="money" size={22}/></span><div><h2>Resumo financeiro</h2><p>Suas movimentações de hoje</p></div></div><Link href="/financeiro" className="outline-link">Ver detalhes</Link></div>
-        <div className="finance-main"><div><strong>{currency(gross)}</strong><span>Faturamento hoje</span></div><div className="finance-separator"/><div><strong>{billed.length}</strong><span>Entregas cobradas</span></div></div>
-        <div className="finance-breakdown"><div><strong>{currency(billed.length ? gross/billed.length : 0)}</strong><span>Custo médio</span></div><div><strong>{currency(0)}</strong><span>Taxas e ajustes</span></div><div className="positive"><strong>{currency(gross)}</strong><span>Resultado</span></div></div>
+        <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="money" size={22}/></span><div><h2>Carteira pré-paga</h2><p>Saldo para pagar suas entregas</p></div></div><Link href="/financeiro" className="outline-link">Recarregar</Link></div>
+        <div className="finance-main"><div><strong>{currency(walletAvailable)}</strong><span>Saldo disponível</span></div><div className="finance-separator"/><div><strong>{currency(walletReserved)}</strong><span>Saldo reservado</span></div></div>
+        <div className="finance-breakdown"><div><strong>{currency(walletBalance)}</strong><span>Saldo total</span></div><div><strong>{currency(gross)}</strong><span>Taxas de hoje</span></div><div className="positive"><strong>{walletAvailable > 0 ? 'ATIVA' : 'SEM SALDO'}</strong><span>Carteira</span></div></div>
       </article>
 
       <article className="premium-card activity-card">
