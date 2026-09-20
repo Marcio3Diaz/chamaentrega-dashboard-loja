@@ -712,3 +712,37 @@ body { background: #07090c; }
     right: 24px !important;
   }
 }
+
+
+/* ===== Banner oficial da Home ===== */
+.dashboard-banner {
+  position: relative;
+  width: auto;
+  margin-left: -30px;
+  margin-right: -30px;
+  overflow: hidden;
+  background: #030405;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.dashboard-banner-image {
+  display: block;
+  width: 100%;
+  height: clamp(230px, 18vw, 315px);
+  object-fit: cover;
+  object-position: center 48%;
+}
+@media (max-width: 1199px) {
+  .dashboard-banner {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+  .dashboard-banner-image {
+    height: clamp(210px, 32vw, 300px);
+  }
+}
+@media (max-width: 700px) {
+  .dashboard-banner-image {
+    height: 220px;
+    object-position: 62% center;
+  }
+}
