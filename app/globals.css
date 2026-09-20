@@ -3489,3 +3489,671 @@ body { background: #07090c; }
     max-width: 82%;
   }
 }
+
+
+/* =================================================================
+   ENTREGADORES — REDE DA LOJA
+   ================================================================= */
+.couriers-page {
+  display: grid;
+  gap: 14px;
+  padding-top: 18px;
+}
+
+.couriers-page-head {
+  min-height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 22px 24px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255,184,0,.08), transparent 27%),
+    linear-gradient(145deg,#14191e,#0d1115);
+}
+
+.couriers-page-head h1 {
+  margin: 5px 0 7px;
+  font-size: 34px;
+}
+
+.couriers-page-head p {
+  margin: 0;
+  color: #8c97a1;
+  font-size: 11px;
+}
+
+.couriers-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.couriers-live-pill {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  color: #87919b;
+  background: #10151a;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.couriers-live-pill i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #717b84;
+}
+
+.couriers-live-pill.online {
+  color: #5fe29a;
+  border-color: rgba(32,210,122,.22);
+  background: rgba(32,210,122,.07);
+}
+
+.couriers-live-pill.online i {
+  background: #20d27a;
+  box-shadow: 0 0 9px rgba(32,210,122,.72);
+}
+
+.couriers-map-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid rgba(255,184,0,.24);
+  border-radius: 10px;
+  color: #171109;
+  background: linear-gradient(135deg,#ffad00,#ffd23a);
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.couriers-map-button:hover {
+  filter: brightness(1.04);
+}
+
+.couriers-stats {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+}
+
+.couriers-stats article {
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: linear-gradient(145deg,#151b20,#10151a);
+}
+
+.couriers-stat-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  font-weight: 950;
+}
+
+.couriers-stat-icon.gold,
+.couriers-stat-icon.amber {
+  color: #ffc01a;
+  background: rgba(255,184,0,.11);
+}
+
+.couriers-stat-icon.green {
+  color: #20d27a;
+  background: rgba(32,210,122,.11);
+  font-size: 22px;
+}
+
+.couriers-stat-icon.blue {
+  color: #3aaeff;
+  background: rgba(58,174,255,.11);
+}
+
+.couriers-stats article > div {
+  min-width: 0;
+}
+
+.couriers-stats small,
+.couriers-stats strong,
+.couriers-stats article > div > span {
+  display: block;
+}
+
+.couriers-stats small {
+  color: #84909a;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.couriers-stats strong {
+  margin-top: 3px;
+  color: #f6f8fa;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.couriers-stats article > div > span {
+  margin-top: 6px;
+  color: #66717b;
+  font-size: 7px;
+}
+
+.couriers-list-card {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 17px;
+  background: #10151a;
+}
+
+.couriers-toolbar {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.couriers-toolbar > div:first-child strong,
+.couriers-toolbar > div:first-child span {
+  display: block;
+}
+
+.couriers-toolbar > div:first-child strong {
+  color: #f3f6f8;
+  font-size: 14px;
+}
+
+.couriers-toolbar > div:first-child span {
+  margin-top: 4px;
+  color: #707b85;
+  font-size: 8px;
+}
+
+.couriers-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.couriers-search {
+  width: 205px;
+  min-height: 37px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: #0b1014;
+}
+
+.couriers-search > span {
+  color: #727d87;
+  font-size: 16px;
+}
+
+.couriers-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #edf1f4;
+  background: transparent;
+  font-size: 8px;
+}
+
+.couriers-search input::placeholder {
+  color: #606b75;
+}
+
+.couriers-filters {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  background: #0b1014;
+}
+
+.couriers-filters button {
+  min-height: 29px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  color: #78838d;
+  background: transparent;
+  font-size: 7px;
+  font-weight: 850;
+}
+
+.couriers-filters button.active {
+  color: #171109;
+  background: #ffbd12;
+}
+
+.couriers-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.courier-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,255,255,.025),transparent 30%),
+    #13191e;
+}
+
+.courier-card.in-route {
+  border-color: rgba(255,184,0,.16);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,184,0,.055),transparent 33%),
+    #13191e;
+}
+
+.courier-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.courier-card-person {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.courier-card-avatar {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 50px;
+  border: 2px solid rgba(255,184,0,.36);
+  border-radius: 50%;
+  overflow: visible;
+  color: #17110a;
+  background: linear-gradient(135deg,#ffad00,#ffd23a);
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.courier-card-avatar > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #11161b;
+}
+
+.courier-card-avatar > i {
+  position: absolute;
+  right: -1px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border: 3px solid #13191e;
+  border-radius: 50%;
+  background: #737d86;
+}
+
+.courier-card-avatar > i.online {
+  background: #20d27a;
+  box-shadow: 0 0 9px rgba(32,210,122,.75);
+}
+
+.courier-card-name {
+  min-width: 0;
+}
+
+.courier-card-name strong,
+.courier-card-name small,
+.courier-card-name > span {
+  display: block;
+}
+
+.courier-card-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f1f4f6;
+  font-size: 12px;
+}
+
+.courier-card-name small {
+  margin-top: 4px;
+  color: #a6afb7;
+  font-size: 8px;
+}
+
+.courier-card-name > span {
+  margin-top: 5px;
+  color: #66717b;
+  font-size: 7px;
+}
+
+.courier-status-pill {
+  flex: 0 0 auto;
+  min-height: 25px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  color: #89939c;
+  background: rgba(255,255,255,.03);
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.courier-status-pill.available {
+  color: #61e69c;
+  border-color: rgba(32,210,122,.24);
+  background: rgba(32,210,122,.075);
+}
+
+.courier-status-pill.route {
+  color: #48b7ff;
+  border-color: rgba(58,174,255,.24);
+  background: rgba(58,174,255,.075);
+}
+
+.courier-status-pill.online {
+  color: #ffcf52;
+  border-color: rgba(255,184,0,.22);
+  background: rgba(255,184,0,.07);
+}
+
+.courier-card-metrics {
+  display: grid;
+  grid-template-columns: .8fr 1fr 1.4fr;
+  gap: 0;
+  margin-top: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 11px;
+  background: #0e1317;
+}
+
+.courier-card-metrics > div {
+  min-width: 0;
+  padding: 10px;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+
+.courier-card-metrics > div:last-child {
+  border-right: 0;
+}
+
+.courier-card-metrics small,
+.courier-card-metrics strong {
+  display: block;
+}
+
+.courier-card-metrics small {
+  color: #66717b;
+  font-size: 7px;
+}
+
+.courier-card-metrics strong {
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dce1e6;
+  font-size: 9px;
+}
+
+.courier-card-metrics strong.stale {
+  color: #dbab42;
+}
+
+.courier-active-delivery,
+.courier-no-route {
+  margin-top: 11px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 11px;
+  background: #0d1216;
+}
+
+.courier-active-delivery {
+  padding: 10px;
+}
+
+.courier-route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.courier-route-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffbd12;
+  font-size: 7px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.courier-route-head strong {
+  color: #d7dde2;
+  font-size: 8px;
+}
+
+.courier-route-customer {
+  margin-top: 9px;
+}
+
+.courier-route-customer strong,
+.courier-route-customer span {
+  display: block;
+}
+
+.courier-route-customer strong {
+  color: #edf1f4;
+  font-size: 9px;
+}
+
+.courier-route-customer span {
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #76818b;
+  font-size: 7px;
+}
+
+.courier-route-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.courier-route-meta span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 7px;
+  color: #a9b1b8;
+  background: #151b20;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.courier-route-meta span:first-child {
+  color: #ffbd12;
+}
+
+.courier-no-route {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  color: #75808a;
+  font-size: 8px;
+}
+
+.courier-no-route svg {
+  color: #20d27a;
+}
+
+.courier-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.courier-card-actions > a,
+.courier-chat-disabled {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9px;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.courier-card-actions .secondary {
+  border: 1px solid rgba(255,255,255,.10);
+  color: #d7dde2;
+  background: #11171c;
+}
+
+.courier-card-actions .secondary:hover {
+  border-color: rgba(255,184,0,.24);
+  color: #ffbd12;
+}
+
+.courier-card-actions .primary {
+  color: #171109;
+  background: linear-gradient(135deg,#ffad00,#ffd23a);
+}
+
+.courier-chat-disabled {
+  border: 1px solid rgba(255,255,255,.06);
+  color: #5e6973;
+  background: #0f1418;
+}
+
+.couriers-empty {
+  grid-column: 1/-1;
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #6d7882;
+  text-align: center;
+}
+
+.couriers-empty-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,184,0,.18);
+  border-radius: 50%;
+  color: #ffbd12;
+  background: rgba(255,184,0,.06);
+}
+
+.couriers-empty strong {
+  color: #b8c0c7;
+  font-size: 12px;
+}
+
+.couriers-empty > span:last-child {
+  font-size: 8px;
+}
+
+@media (max-width: 1100px) {
+  .couriers-stats {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .couriers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .couriers-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .couriers-toolbar-controls {
+    width: 100%;
+  }
+
+  .couriers-search {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .couriers-page-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .couriers-page-head h1 {
+    font-size: 28px;
+  }
+
+  .couriers-head-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .couriers-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .couriers-toolbar-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .couriers-filters {
+    overflow-x: auto;
+  }
+
+  .courier-card-top {
+    flex-direction: column;
+  }
+
+  .courier-card-actions {
+    grid-template-columns: 1fr;
+  }
+}
