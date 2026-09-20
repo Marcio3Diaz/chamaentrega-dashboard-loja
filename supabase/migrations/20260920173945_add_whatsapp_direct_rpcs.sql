@@ -1,5 +1,7 @@
-grant insert,delete on public.whatsapp_connection_credentials to authenticated;
-revoke select,update on public.whatsapp_connection_credentials from authenticated;
+grant select,insert,delete on public.whatsapp_connection_credentials to authenticated;
+revoke update on public.whatsapp_connection_credentials from authenticated;
+-- Não existe policy SELECT: o privilégio técnico é necessário para DELETE/RLS,
+-- mas usuários autenticados continuam sem conseguir ler nenhuma credencial.
 
 drop policy if exists "whatsapp_credentials_insert_owner_admin"
 on public.whatsapp_connection_credentials;
