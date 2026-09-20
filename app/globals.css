@@ -4904,3 +4904,77 @@ body { background: #07090c; }
     flex-direction: column;
   }
 }
+
+
+/* ===== Correção definitiva do avatar no marcador Leaflet ===== */
+.live-fallback-map .leaflet-marker-icon.ce-fallback-marker-wrap {
+  width: 58px !important;
+  height: 58px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
+
+.live-fallback-map .ce-fallback-courier-marker {
+  position: relative !important;
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
+  max-width: 58px !important;
+  max-height: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+}
+
+.live-fallback-map .ce-fallback-avatar-ring {
+  position: relative !important;
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
+  max-width: 54px !important;
+  max-height: 54px !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+.live-fallback-map .ce-fallback-avatar-ring > img {
+  position: absolute !important;
+  inset: 4px !important;
+  width: calc(100% - 8px) !important;
+  height: calc(100% - 8px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: calc(100% - 8px) !important;
+  max-height: calc(100% - 8px) !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.live-fallback-map .ce-fallback-avatar-ring > .ce-fallback-avatar {
+  position: absolute !important;
+  inset: 4px !important;
+  width: calc(100% - 8px) !important;
+  height: calc(100% - 8px) !important;
+  border-radius: 50% !important;
+}
+
+.live-fallback-map .ce-fallback-avatar-ring > i {
+  right: 3px !important;
+  bottom: 3px !important;
+  width: 11px !important;
+  height: 11px !important;
+  border-width: 2px !important;
+  z-index: 3 !important;
+}
