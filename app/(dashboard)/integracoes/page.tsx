@@ -1,1 +1,35 @@
-export default function Page() { return <><div className="hero"><div><div className="eyebrow">Em evolução</div><h1>Integrações</h1><p className="subtle">WhatsApp, iFood, 99Food, Goomer e cardápio próprio.</p></div></div><div className="placeholder"><div><div className="brand-mark" style={{margin:'0 auto 14px'}}>CE</div><h2>Estrutura criada</h2><p className="subtle">Esta área entra na próxima rodada do dashboard.</p></div></div></> }
+import { requireStore } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
+import { StoreIntegrationsPanel, type StoreIntegrationRow } from '@/components/store-integrations-panel'
+
+export default async function IntegrationsPage() {
+  const { store } = await requireStore()
+  const supabase = await createClient()
+
+  const { data: rows } = await supabase
+    .from('store_integrations')
+    .select('id,store_id,provider,status,is_enabled,public_config,last_synced_at,last_error,updated_at')
+    .eq('store_id', store.id)
+    .order('provider')
+
+  const integrations: StoreIntegrationRow[] = (rows ?? []).map((row: any) => ({
+    id: row.id,
+    storeId: row.store_id,
+    provider: row.provider,
+    status: row.status,
+    isEnabled: Boolean(row.is_enabled),
+    publicConfig: row.public_config ?? {},
+    lastSyncedAt: row.last_synced_at,
+    lastError: row.last_error,
+    updatedAt: row.updated_at,
+  }))
+
+  return (
+    <StoreIntegrationsPanel
+      storeId={store.id}
+      storeName={store.name}
+      storePhone={store.phone}
+      initialRows={integrations}
+    />
+  )
+}
