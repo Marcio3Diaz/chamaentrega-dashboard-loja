@@ -662,3 +662,53 @@ body { background: #07090c; }
     height: 38px;
   }
 }
+
+
+/* ===== Hero ampliado: banner com mais presença visual ===== */
+@media (min-width: 1200px) {
+  .dashboard-hero {
+    min-height: 224px !important;
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .hero-content {
+    width: 50% !important;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 50px !important;
+    line-height: 1.01 !important;
+    letter-spacing: -2.1px !important;
+  }
+
+  .dashboard-hero p {
+    font-size: 16px !important;
+  }
+
+  .hero-visual {
+    inset: 0 205px 0 39% !important;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(7,9,12,1) 0%,
+        rgba(7,9,12,.12) 18%,
+        rgba(7,9,12,.03) 68%,
+        rgba(7,9,12,.58) 100%
+      ),
+      url('/images/dashboard-hero-courier.webp') center center / cover no-repeat !important;
+  }
+
+  .hero-quote {
+    right: 16px !important;
+    top: 39px !important;
+    font-size: 20px !important;
+    line-height: 1.16 !important;
+  }
+
+  .hero-cta {
+    min-width: 192px !important;
+    height: 58px !important;
+    right: 24px !important;
+  }
+}
