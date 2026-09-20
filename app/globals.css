@@ -7007,3 +7007,120 @@ body { background: #07090c; }
 .integration-logo-brand.gold {
   background: linear-gradient(145deg,#11161b,#080b0e) !important;
 }
+
+
+/* =================================================================
+   WHATSAPP WEBHOOK — status e configuração
+   ================================================================= */
+.whatsapp-webhook-box {
+  display: grid;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid rgba(37,211,102,.14);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(37,211,102,.055),transparent 38%),
+    #0d1216;
+}
+
+.whatsapp-webhook-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.whatsapp-webhook-head > span {
+  min-width:0;
+}
+
+.whatsapp-webhook-head strong,
+.whatsapp-webhook-head small {
+  display:block;
+}
+
+.whatsapp-webhook-head strong {
+  color:#e6ebee;
+  font-size:8px;
+}
+
+.whatsapp-webhook-head small {
+  margin-top:4px;
+  color:#727d86;
+  font-size:6.5px;
+}
+
+.whatsapp-backend-status {
+  min-height:22px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 8px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;
+  color:#8f99a2;
+  background:#11171c;
+  font-size:6px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.whatsapp-backend-status.ready {
+  color:#50df94;
+  border-color:rgba(37,211,102,.22);
+  background:rgba(37,211,102,.07);
+}
+
+.whatsapp-backend-status.missing {
+  color:#ffca45;
+  border-color:rgba(255,184,0,.20);
+  background:rgba(255,184,0,.06);
+}
+
+.whatsapp-backend-status.error {
+  color:#ff9096;
+  border-color:rgba(255,90,100,.18);
+  background:rgba(255,90,100,.055);
+}
+
+.whatsapp-webhook-url {
+  min-height:36px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+  align-items:center;
+  padding:5px 5px 5px 9px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:9px;
+  background:#090e12;
+}
+
+.whatsapp-webhook-url code {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#9edab8;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  font-size:6.4px;
+}
+
+.whatsapp-webhook-url button {
+  min-height:26px;
+  padding:0 8px;
+  border:1px solid rgba(37,211,102,.18);
+  border-radius:7px;
+  color:#5de29a;
+  background:rgba(37,211,102,.055);
+  font-size:6px;
+  font-weight:900;
+}
+
+.whatsapp-webhook-box > p {
+  margin:0;
+  color:#77828c;
+  font-size:6.5px;
+  line-height:1.45;
+}
+
+.whatsapp-webhook-box > p strong {
+  color:#b6c0c7;
+}
