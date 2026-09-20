@@ -96,7 +96,23 @@ export function WalletTopup({ storeId }: { storeId: string }) {
     setLoading(false)
 
     if (invokeError) {
-      setError(invokeError.message || 'Não foi possível criar a cobrança Pix.')
+      let message = invokeError.message || 'Não foi possível criar a cobrança Pix.'
+
+      const context = (invokeError as any)?.context
+      if (context instanceof Response) {
+        try {
+          const payload = await context.clone().json()
+          if (payload?.error) message = String(payload.error)
+          else if (payload?.message) message = String(payload.message)
+        } catch {
+          try {
+            const body = await context.clone().text()
+            if (body) message = body
+          } catch {}
+        }
+      }
+
+      setError(message)
       return
     }
 
