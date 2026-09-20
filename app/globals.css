@@ -422,3 +422,27 @@ body { background: #07090c; }
   .fake-map { min-height: 184px; margin: 0 14px 14px; }
   .map-city { font-size: 15px; }
 }
+
+
+/* ===== Correção de alinhamento: conteúdo colado à sidebar como no mockup ===== */
+@media (min-width: 1200px) {
+  .premium-content {
+    width: 100%;
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .dashboard-hero {
+    width: auto;
+    margin-left: -30px;
+    margin-right: -30px;
+  }
+
+  .premium-metrics,
+  .dashboard-row {
+    width: 100%;
+    max-width: none;
+  }
+}
