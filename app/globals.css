@@ -8624,3 +8624,526 @@ html[data-theme="light"] .account-box {
     height:150px;
   }
 }
+
+
+/* =================================================================
+   TEMA CLARO — COBERTURA COMPLETA DAS TELAS OPERACIONAIS
+   Ajuste visual após revisão em todas as páginas do portal.
+   ================================================================= */
+
+/* Cabeçalho superior permanece escuro junto da sidebar, com contraste correto. */
+html[data-theme="light"] .premium-topbar {
+  background: linear-gradient(180deg,#11161b,#0b0f13) !important;
+  border-bottom-color: rgba(255,255,255,.09) !important;
+  box-shadow: 0 1px 12px rgba(12,18,24,.16);
+}
+html[data-theme="light"] .premium-topbar .topbar-title,
+html[data-theme="light"] .premium-topbar .topbar-profile,
+html[data-theme="light"] .premium-topbar .topbar-profile strong {
+  color: #eef2f6 !important;
+}
+html[data-theme="light"] .premium-topbar .topbar-subtitle,
+html[data-theme="light"] .premium-topbar .topbar-profile small {
+  color: #8e99a5 !important;
+}
+html[data-theme="light"] .premium-topbar .icon-button {
+  color: #dbe1e8 !important;
+}
+html[data-theme="light"] .premium-topbar .topbar-divider {
+  background: rgba(255,255,255,.09) !important;
+}
+
+/* Cabeçalhos com imagem/identidade podem continuar escuros. */
+html[data-theme="light"] .dashboard-hero,
+html[data-theme="light"] .target-hero {
+  color: #f4f6f8;
+}
+html[data-theme="light"] .dashboard-hero h1 {
+  color: #f4f6f8;
+}
+html[data-theme="light"] .dashboard-hero p {
+  color: #a8b1ba;
+}
+
+/* Tabelas gerais no modo claro. */
+html[data-theme="light"] .table {
+  color: #20272e;
+}
+html[data-theme="light"] .table th {
+  color: #6e7a85;
+  border-bottom-color: rgba(20,29,38,.09);
+}
+html[data-theme="light"] .table td {
+  color: #26313a;
+  border-bottom-color: rgba(20,29,38,.07);
+}
+html[data-theme="light"] .table-main {
+  color: #20272e !important;
+}
+html[data-theme="light"] .table-sub,
+html[data-theme="light"] .table-address {
+  color: #73808a !important;
+}
+html[data-theme="light"] .table-more,
+html[data-theme="light"] .delivery-chat-action {
+  color: #52606b;
+  border-color: rgba(20,29,38,.09);
+  background: #f3f6f8;
+}
+
+/* Criar entrega */
+html[data-theme="light"] .wallet-create-summary {
+  border-color: rgba(214,146,0,.20);
+  background:
+    radial-gradient(circle at 90% 20%,rgba(255,184,0,.10),transparent 30%),
+    #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .wallet-create-summary > div {
+  border-color: rgba(20,29,38,.09);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .wallet-create-summary span,
+html[data-theme="light"] .wallet-create-summary p {
+  color: #66737e;
+}
+html[data-theme="light"] .form-section {
+  color: #20272e !important;
+  background: #ffffff !important;
+  border-color: rgba(20,29,38,.10) !important;
+  box-shadow: 0 8px 24px rgba(24,34,44,.035);
+}
+html[data-theme="light"] .field label {
+  color: #77848f;
+}
+html[data-theme="light"] .field input,
+html[data-theme="light"] .field textarea,
+html[data-theme="light"] .field select {
+  color: #20272e !important;
+  background: #ffffff !important;
+  border-color: rgba(20,29,38,.13) !important;
+}
+html[data-theme="light"] .field input::placeholder,
+html[data-theme="light"] .field textarea::placeholder {
+  color: #9aa4ad;
+}
+html[data-theme="light"] .form-actions {
+  background: rgba(255,255,255,.96) !important;
+  border-color: rgba(20,29,38,.10) !important;
+  box-shadow: 0 10px 28px rgba(20,29,38,.07);
+}
+html[data-theme="light"] .button-dark {
+  color: #33404a;
+  background: #eef2f5;
+  border-color: rgba(20,29,38,.11);
+}
+
+/* Pedidos integrados */
+html[data-theme="light"] .orders-hub-hero {
+  color: #f4f6f8;
+  border-color: rgba(20,29,38,.10);
+  background:
+    linear-gradient(90deg,rgba(13,17,21,.97) 0%,rgba(13,17,21,.89) 48%,rgba(13,17,21,.64) 70%,rgba(13,17,21,.94) 100%),
+    radial-gradient(circle at 72% 40%,rgba(255,184,0,.20),transparent 28%),
+    linear-gradient(145deg,#13191e,#080b0e);
+}
+html[data-theme="light"] .orders-hub-hero h1 {
+  color: #f4f6f8;
+}
+html[data-theme="light"] .orders-hub-metrics article,
+html[data-theme="light"] .orders-hub-filters,
+html[data-theme="light"] .orders-hub-table-card,
+html[data-theme="light"] .orders-hub-detail {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .orders-hub-metrics strong,
+html[data-theme="light"] .orders-filter-row > strong,
+html[data-theme="light"] .orders-hub-table,
+html[data-theme="light"] .orders-detail-head strong,
+html[data-theme="light"] .orders-detail-section strong,
+html[data-theme="light"] .orders-detail-total strong,
+html[data-theme="light"] .orders-detail-item strong {
+  color: #20272e;
+}
+html[data-theme="light"] .orders-hub-metrics small,
+html[data-theme="light"] .orders-hub-metrics article div > span,
+html[data-theme="light"] .orders-detail-muted,
+html[data-theme="light"] .orders-detail-time,
+html[data-theme="light"] .orders-detail-item small {
+  color: #74808a;
+}
+html[data-theme="light"] .orders-filter-row.source,
+html[data-theme="light"] .orders-hub-table-search {
+  border-color: rgba(20,29,38,.08);
+}
+html[data-theme="light"] .orders-filter-row button {
+  color: #596671;
+  border-color: rgba(20,29,38,.10);
+  background: #f4f7f9;
+}
+html[data-theme="light"] .orders-filter-row button:hover {
+  color: #20272e;
+  border-color: rgba(214,146,0,.25);
+}
+html[data-theme="light"] .orders-filter-row button b {
+  color: #596671;
+  background: rgba(20,29,38,.06);
+}
+html[data-theme="light"] .orders-filter-row button.active,
+html[data-theme="light"] .orders-filter-row button.active b {
+  color: #171109;
+}
+html[data-theme="light"] .orders-hub-table-search input,
+html[data-theme="light"] .orders-hub-table-card input {
+  color: #20272e;
+  border-color: rgba(20,29,38,.11);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .orders-hub-empty,
+html[data-theme="light"] .orders-detail-empty {
+  color: #70808c;
+}
+html[data-theme="light"] .orders-detail-section,
+html[data-theme="light"] .orders-detail-items,
+html[data-theme="light"] .orders-detail-note,
+html[data-theme="light"] .orders-detail-payment,
+html[data-theme="light"] .orders-detail-delivery {
+  border-color: rgba(20,29,38,.08);
+  background: #f8fafb;
+}
+
+/* Entregadores */
+html[data-theme="light"] .couriers-list-card,
+html[data-theme="light"] .courier-card {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .courier-card.in-route {
+  border-color: rgba(214,146,0,.20);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,184,0,.07),transparent 33%),
+    #ffffff;
+}
+html[data-theme="light"] .couriers-toolbar {
+  border-bottom-color: rgba(20,29,38,.08);
+}
+html[data-theme="light"] .couriers-toolbar > div:first-child strong,
+html[data-theme="light"] .courier-card-name strong {
+  color: #20272e;
+}
+html[data-theme="light"] .couriers-toolbar > div:first-child span,
+html[data-theme="light"] .courier-card-name small,
+html[data-theme="light"] .courier-card-name > span {
+  color: #74808a;
+}
+html[data-theme="light"] .couriers-search,
+html[data-theme="light"] .couriers-filters,
+html[data-theme="light"] .courier-card-metrics,
+html[data-theme="light"] .courier-active-delivery,
+html[data-theme="light"] .courier-no-route {
+  border-color: rgba(20,29,38,.09);
+  background: #f6f8fa;
+}
+html[data-theme="light"] .couriers-search input {
+  color: #20272e;
+}
+html[data-theme="light"] .courier-card-metrics strong,
+html[data-theme="light"] .courier-route-customer {
+  color: #29343e;
+}
+html[data-theme="light"] .courier-card-metrics small,
+html[data-theme="light"] .courier-route-meta,
+html[data-theme="light"] .courier-no-route {
+  color: #6f7c87;
+}
+html[data-theme="light"] .courier-card-avatar > i {
+  border-color: #ffffff;
+}
+html[data-theme="light"] .courier-card-actions .secondary {
+  color: #44515c;
+  border-color: rgba(20,29,38,.10);
+  background: #f4f7f9;
+}
+
+/* Mapa ao vivo: chrome claro, mapa em cores naturais. */
+html[data-theme="light"] .live-map-header,
+html[data-theme="light"] .live-map-stats article {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background:
+    radial-gradient(circle at 78% 20%,rgba(255,184,0,.10),transparent 28%),
+    #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .live-map-header h1,
+html[data-theme="light"] .live-map-stats strong {
+  color: #20272e;
+}
+html[data-theme="light"] .live-map-header p,
+html[data-theme="light"] .live-map-stats span,
+html[data-theme="light"] .live-map-stats small {
+  color: #6f7c87;
+}
+html[data-theme="light"] .live-map-signal {
+  color: #61707b;
+  border-color: rgba(20,29,38,.10);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .live-map-card,
+html[data-theme="light"] .live-courier-panel {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .live-map-toolbar,
+html[data-theme="light"] .live-courier-panel-head {
+  border-color: rgba(20,29,38,.08);
+  background: #f8fafb;
+}
+html[data-theme="light"] .live-map-toolbar strong,
+html[data-theme="light"] .live-courier-panel-head strong,
+html[data-theme="light"] .live-courier-info strong,
+html[data-theme="light"] .live-delivery-detail strong {
+  color: #20272e;
+}
+html[data-theme="light"] .live-map-toolbar span,
+html[data-theme="light"] .live-courier-panel-head span,
+html[data-theme="light"] .live-courier-info small,
+html[data-theme="light"] .live-delivery-meta {
+  color: #71808b;
+}
+html[data-theme="light"] .live-courier-filters,
+html[data-theme="light"] .live-courier-item,
+html[data-theme="light"] .live-delivery-detail,
+html[data-theme="light"] .map-selected-card {
+  border-color: rgba(20,29,38,.09);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .live-courier-item.active {
+  border-color: rgba(214,146,0,.26);
+  background: rgba(255,184,0,.08);
+}
+html[data-theme="light"] .live-map-canvas .leaflet-tile-pane {
+  filter: brightness(.96) saturate(.88) contrast(1.02) !important;
+}
+html[data-theme="light"] .live-map-stage,
+html[data-theme="light"] .live-map-canvas {
+  background: #dfe6ea;
+}
+
+/* Chat */
+html[data-theme="light"] .store-chat-page-head {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,184,0,.09),transparent 28%),
+    #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .store-chat-page-head h1 {
+  color: #20272e;
+}
+html[data-theme="light"] .store-chat-page-head p {
+  color: #6f7c87;
+}
+html[data-theme="light"] .store-chat-shell {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .store-chat-conversations {
+  border-color: rgba(20,29,38,.08);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .store-chat-conversations-head,
+html[data-theme="light"] .store-chat-panel-head,
+html[data-theme="light"] .store-chat-composer {
+  border-color: rgba(20,29,38,.08);
+  background: #ffffff;
+}
+html[data-theme="light"] .store-chat-search {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+}
+html[data-theme="light"] .store-chat-search input {
+  color: #20272e;
+  background: transparent;
+}
+html[data-theme="light"] .store-chat-conversation {
+  color: #20272e;
+  border-color: transparent;
+  background: transparent;
+}
+html[data-theme="light"] .store-chat-conversation:hover {
+  background: #eef2f5;
+}
+html[data-theme="light"] .store-chat-conversation.selected {
+  border-color: rgba(214,146,0,.23);
+  background: rgba(255,184,0,.09);
+}
+html[data-theme="light"] .store-chat-conversation-line strong,
+html[data-theme="light"] .store-chat-panel-person strong {
+  color: #20272e;
+}
+html[data-theme="light"] .store-chat-preview,
+html[data-theme="light"] .store-chat-conversation-line small {
+  color: #74808a;
+}
+html[data-theme="light"] .store-chat-panel,
+html[data-theme="light"] .store-chat-messages {
+  background: #ffffff;
+}
+html[data-theme="light"] .store-chat-bubble {
+  color: #26313a;
+  border-color: rgba(20,29,38,.09);
+  background: #f0f3f5;
+}
+html[data-theme="light"] .store-chat-message-row.mine .store-chat-bubble {
+  color: #332400;
+  border-color: rgba(214,146,0,.24);
+  background: #fff3cc;
+}
+html[data-theme="light"] .store-chat-date-divider {
+  color: #74808a;
+  background: #eef2f5;
+}
+html[data-theme="light"] .store-chat-context,
+html[data-theme="light"] .store-chat-footnote,
+html[data-theme="light"] .store-chat-empty,
+html[data-theme="light"] .store-chat-state {
+  color: #6f7c87;
+}
+html[data-theme="light"] .store-chat-composer textarea,
+html[data-theme="light"] .store-chat-composer input {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #f7f9fa;
+}
+
+/* Integrações */
+html[data-theme="light"] .integrations-hero {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,184,0,.10),transparent 27%),
+    #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .integrations-hero h1 {
+  color: #20272e;
+}
+html[data-theme="light"] .integrations-hero p {
+  color: #6f7c87;
+}
+html[data-theme="light"] .integrations-live {
+  color: #64717c;
+  border-color: rgba(20,29,38,.10);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .integrations-stats article,
+html[data-theme="light"] .integration-card,
+html[data-theme="light"] .integration-detail,
+html[data-theme="light"] .integrations-flow {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24,34,44,.035);
+}
+html[data-theme="light"] .integrations-stats strong,
+html[data-theme="light"] .integration-card-head strong,
+html[data-theme="light"] .integration-detail h2,
+html[data-theme="light"] .integration-detail strong {
+  color: #20272e;
+}
+html[data-theme="light"] .integrations-stats span,
+html[data-theme="light"] .integrations-stats small,
+html[data-theme="light"] .integration-card-copy > span:not(.integration-card-head):not(.integration-capabilities),
+html[data-theme="light"] .integration-detail p,
+html[data-theme="light"] .integration-detail small {
+  color: #6f7c87;
+}
+html[data-theme="light"] .integration-card:hover {
+  border-color: rgba(214,146,0,.18);
+  background: #fbfcfd;
+}
+html[data-theme="light"] .integration-card.selected {
+  border-color: rgba(214,146,0,.26);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(255,184,0,.07),transparent 34%),
+    #ffffff;
+  box-shadow: inset 3px 0 0 #ffbd12,0 8px 24px rgba(24,34,44,.04);
+}
+html[data-theme="light"] .integration-capabilities i,
+html[data-theme="light"] .integration-status,
+html[data-theme="light"] .integration-switch-row,
+html[data-theme="light"] .integration-note,
+html[data-theme="light"] .integration-provider-warning,
+html[data-theme="light"] .whatsapp-webhook-box,
+html[data-theme="light"] .whatsapp-direct-intro,
+html[data-theme="light"] .whatsapp-direct-benefits > div,
+html[data-theme="light"] .whatsapp-direct-security {
+  border-color: rgba(20,29,38,.09);
+  background: #f7f9fa;
+}
+html[data-theme="light"] .integration-capabilities i {
+  color: #64717c;
+}
+html[data-theme="light"] .integration-form input {
+  color: #20272e !important;
+  border-color: rgba(20,29,38,.12) !important;
+  background: #ffffff !important;
+}
+html[data-theme="light"] .integration-form > label > span,
+html[data-theme="light"] .integration-switch-row strong,
+html[data-theme="light"] .whatsapp-webhook-head strong,
+html[data-theme="light"] .whatsapp-direct-intro h3,
+html[data-theme="light"] .whatsapp-direct-benefits > div > span strong {
+  color: #20272e !important;
+}
+html[data-theme="light"] .integration-form label > small,
+html[data-theme="light"] .integration-switch-row small,
+html[data-theme="light"] .whatsapp-webhook-head small,
+html[data-theme="light"] .whatsapp-webhook-box > p,
+html[data-theme="light"] .whatsapp-direct-intro p,
+html[data-theme="light"] .whatsapp-direct-benefits > div > span,
+html[data-theme="light"] .whatsapp-direct-security p {
+  color: #6f7c87 !important;
+}
+
+/* Home: pequenos blocos que ainda usavam fundo escuro. */
+html[data-theme="light"] .finance-main,
+html[data-theme="light"] .finance-breakdown {
+  color: #20272e;
+  background: #ffffff;
+}
+html[data-theme="light"] .finance-main strong,
+html[data-theme="light"] .finance-breakdown strong {
+  color: #20272e;
+}
+html[data-theme="light"] .finance-main span,
+html[data-theme="light"] .finance-breakdown span {
+  color: #74808a;
+}
+html[data-theme="light"] .finance-separator {
+  background: rgba(20,29,38,.09);
+}
+html[data-theme="light"] .fake-map {
+  border-color: rgba(20,29,38,.10);
+}
+html[data-theme="light"] .map-delivery {
+  color: #20272e;
+  border-color: rgba(20,29,38,.10);
+  background: rgba(255,255,255,.94);
+}
+html[data-theme="light"] .map-delivery small,
+html[data-theme="light"] .map-city {
+  color: #687681;
+}
