@@ -1,60 +1,108 @@
-# Integração WhatsApp Business Platform — ChamaEntrega
+# WhatsApp no ChamaEntrega — integração direta
 
-## Endpoint
+## Experiência da loja
 
-Callback URL:
+A loja não configura Supabase, webhook, App Secret, Verify Token ou Phone Number ID manualmente.
+
+No dashboard ela usa apenas:
+
+```text
+Integrações → WhatsApp → Conectar WhatsApp
+```
+
+O botão abre o Embedded Signup oficial da Meta. A loja entra na Meta, escolhe a empresa, a conta do WhatsApp Business e o número. Ao concluir, o ChamaEntrega recebe os identificadores autorizados e conclui a conexão no servidor.
+
+## Fluxo
+
+```text
+Loja
+  ↓
+Conectar WhatsApp
+  ↓
+Meta Embedded Signup
+  ↓
+authorization code + waba_id + phone_number_id
+  ↓
+/api/integrations/whatsapp/complete
+  ↓
+troca do código por token na Meta
+  ↓
+assinatura da WABA em /{WABA_ID}/subscribed_apps
+  ↓
+credencial privada no backend
+  ↓
+store_integrations = connected
+  ↓
+whatsapp-webhook
+  ↓
+Pedidos Integrados
+```
+
+## Variáveis internas da plataforma
+
+Estas variáveis pertencem ao ChamaEntrega e são configuradas uma única vez pelo operador da plataforma. Nunca devem ser solicitadas às lojas clientes.
+
+No ambiente do Next.js:
+
+```text
+META_WHATSAPP_APP_ID=
+META_WHATSAPP_APP_SECRET=
+META_WHATSAPP_CONFIG_ID=
+META_GRAPH_API_VERSION=v26.0
+META_WHATSAPP_REDIRECT_URI=
+META_WHATSAPP_FEATURE_TYPE=
+```
+
+No ambiente da Edge Function `whatsapp-webhook`:
+
+```text
+WHATSAPP_VERIFY_TOKEN=
+WHATSAPP_APP_SECRET=
+```
+
+## Rotas do dashboard
+
+- `GET /api/integrations/whatsapp/config`: devolve ao browser somente App ID, Configuration ID e versão necessários para abrir o Embedded Signup. Nunca devolve App Secret.
+- `POST /api/integrations/whatsapp/complete`: recebe o código temporário do Embedded Signup, troca por credencial na Meta no servidor, valida a WABA e o número, assina o app nos webhooks e grava a conexão.
+- `POST /api/integrations/whatsapp/disconnect`: remove a conexão local e a credencial privada da loja.
+
+## Armazenamento seguro
+
+A tabela `whatsapp_connection_credentials` guarda a credencial de cada loja.
+
+- RLS está habilitado;
+- `anon` e `authenticated` não têm SELECT, INSERT, UPDATE ou DELETE;
+- o navegador não recebe o token;
+- as RPCs de gravação verificam `auth.uid()` e se a loja pertence ao usuário.
+
+A tabela `store_integrations` recebe apenas dados não secretos, como:
+
+- `waba_id`;
+- `phone_number_id`;
+- número formatado;
+- nome verificado;
+- preferência `auto_import`.
+
+## Webhook
+
+O webhook de mensagens permanece centralizado:
 
 ```text
 https://zmwkigzuhizjujsrhlae.supabase.co/functions/v1/whatsapp-webhook
 ```
 
-A Edge Function está publicada com `verify_jwt = false` porque a Meta não envia JWT do Supabase. A segurança do POST é feita pela assinatura `x-hub-signature-256` usando o App Secret da Meta.
+Ele identifica a loja pelo `phone_number_id` gravado automaticamente no Embedded Signup.
 
-## Secrets obrigatórios
+## Pedidos
 
-Configure no Supabase Edge Functions:
+Quando `auto_import=true`:
 
-```text
-WHATSAPP_VERIFY_TOKEN=<token escolhido para verificar o webhook>
-WHATSAPP_APP_SECRET=<App Secret do app na Meta>
-```
+- pedidos estruturados do catálogo viram `store_orders`;
+- mensagens de texto que parecem pedido entram como candidato para revisão;
+- mensagens seguintes da mesma conversa são anexadas ao pedido ativo;
+- localização enviada pelo cliente atualiza latitude/longitude;
+- a página `/pedidos` recebe as alterações via Realtime.
 
-Não coloque esses valores em `.env.local` do Next.js e nunca use prefixo `NEXT_PUBLIC_`.
+## Requisitos da Meta para produção
 
-## Configuração na Meta
-
-1. Crie ou abra um app do tipo Business no Meta for Developers.
-2. Adicione o produto WhatsApp.
-3. Em Webhooks do WhatsApp, informe o Callback URL acima.
-4. Informe no campo Verify Token exatamente o mesmo valor configurado em `WHATSAPP_VERIFY_TOKEN`.
-5. Assine pelo menos o campo `messages`.
-6. Copie o `Phone Number ID` do número e salve no painel ChamaEntrega em Integrações > WhatsApp.
-7. Salve o número comercial com DDI e DDD.
-8. Ative “Importar pedidos automaticamente” se quiser criar candidatos em Pedidos Integrados.
-
-## O que o backend faz
-
-- valida o GET de verificação da Meta;
-- valida a assinatura HMAC SHA-256 do POST;
-- identifica a loja pelo `Phone Number ID` ou pelo número comercial;
-- grava mensagens com deduplicação por `provider_message_id`;
-- mantém uma conversa por loja + cliente;
-- marca a integração como `connected` quando a primeira mensagem válida chegar;
-- mensagens estruturadas do catálogo do WhatsApp viram pedidos com itens e valores;
-- mensagens de texto que parecem pedido viram candidato em `store_orders` com `requires_review=true`;
-- novas mensagens da mesma conversa são anexadas ao pedido ativo;
-- mensagens de localização atualizam latitude/longitude do pedido ativo;
-- todos os pedidos aparecem na rota `/pedidos` por Realtime.
-
-## Segurança
-
-As tabelas `whatsapp_messages` e `whatsapp_conversations` usam RLS. Usuários autenticados da loja têm somente leitura. Inserções são feitas exclusivamente pela Edge Function usando chave administrativa do Supabase.
-
-O App Secret e o Verify Token não são armazenados no navegador nem em `store_integrations.public_config`.
-
-## Limitações atuais
-
-- texto livre usa classificação conservadora por regras e entra como “requer revisão”;
-- nomes de produtos em pedidos estruturados usam o `product_retailer_id` enviado pelo catálogo até existir sincronização do catálogo;
-- respostas automáticas pelo WhatsApp ainda não estão implementadas;
-- o Access Token da WhatsApp Cloud API só será necessário quando o ChamaEntrega passar a enviar mensagens ativamente.
+O app do ChamaEntrega precisa estar configurado para Embedded Signup e, para onboarding público, precisa cumprir os requisitos da Meta para Tech Provider/App Review e permissões aplicáveis.
