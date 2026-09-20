@@ -1,9 +1,11 @@
 'use client'
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { currency, shortId } from '@/lib/format'
 import type { Delivery } from '@/lib/types'
 import { StatusBadge } from './status-badge'
+import { Icon } from './icon'
 
 function onlyTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value))
@@ -39,7 +41,21 @@ export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId:
       <td><StatusBadge status={delivery.status} /></td>
       <td><strong>{currency(Number(delivery.delivery_fee))}</strong></td>
       <td>{onlyTime(delivery.updated_at)}</td>
-      <td><button className="table-more" aria-label="Mais ações">⋮</button></td>
+      <td>
+        <div className="delivery-table-actions">
+          {delivery.assigned_courier_id ? (
+            <Link
+              href={`/chat?delivery=${delivery.id}`}
+              className="delivery-chat-action"
+              aria-label="Abrir chat com entregador"
+              title="Abrir chat"
+            >
+              <Icon name="chat" size={15}/>
+            </Link>
+          ) : null}
+          <button className="table-more" aria-label="Mais ações">⋮</button>
+        </div>
+      </td>
     </tr>)}</tbody>
   </table></div>
 }
