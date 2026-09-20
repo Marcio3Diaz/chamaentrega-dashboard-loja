@@ -28,6 +28,7 @@ type Props = {
 
 type Draft = {
   phone?: string
+  phoneNumberId?: string
   menuUrl?: string
   merchantReference?: string
   autoImport?: boolean
@@ -131,6 +132,8 @@ export function StoreIntegrationsPanel({
   const [message,setMessage] = useState('')
   const [messageType,setMessageType] = useState<'success'|'error'>('success')
   const [liveState,setLiveState] = useState('CONECTANDO')
+  const [whatsappBackend,setWhatsappBackend] = useState<'checking'|'ready'|'missing'|'error'>('checking')
+  const whatsappCallbackUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}/functions/v1/whatsapp-webhook`
 
   const rowByProvider = useMemo(
     () => new Map(rows.map(row => [row.provider,row])),
@@ -148,6 +151,10 @@ export function StoreIntegrationsPanel({
         phone:
           provider.key === 'whatsapp'
             ? asString(config.phone) || storePhone || ''
+            : undefined,
+        phoneNumberId:
+          provider.key === 'whatsapp'
+            ? asString(config.phone_number_id)
             : undefined,
         menuUrl:
           provider.key === 'own_menu'
@@ -169,6 +176,32 @@ export function StoreIntegrationsPanel({
   useEffect(() => {
     setDrafts(initialDrafts)
   }, [initialDrafts])
+
+  useEffect(() => {
+    if (!whatsappCallbackUrl) {
+      setWhatsappBackend('error')
+      return
+    }
+
+    let cancelled = false
+
+    fetch(whatsappCallbackUrl, { cache:'no-store' })
+      .then(async response => {
+        if (!response.ok) throw new Error('health failed')
+        return await response.json() as { configured?: boolean }
+      })
+      .then(data => {
+        if (cancelled) return
+        setWhatsappBackend(data.configured ? 'ready' : 'missing')
+      })
+      .catch(() => {
+        if (!cancelled) setWhatsappBackend('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [whatsappCallbackUrl])
 
   useEffect(() => {
     const channel = supabase
@@ -253,6 +286,7 @@ export function StoreIntegrationsPanel({
     if (provider === 'whatsapp') {
       return {
         phone: draft.phone?.trim() || '',
+        phone_number_id: draft.phoneNumberId?.trim() || '',
         auto_import: Boolean(draft.autoImport),
       }
     }
@@ -501,6 +535,44 @@ export function StoreIntegrationsPanel({
                 />
                 <small>Use o número com DDI e DDD.</small>
               </label>
+
+              <label>
+                <span>Phone Number ID da Meta</span>
+                <input
+                  value={selectedDraft.phoneNumberId ?? ''}
+                  onChange={event => updateDraft('whatsapp',{ phoneNumberId:event.target.value.replace(/\D/g,'').slice(0,40) })}
+                  placeholder="Ex.: 123456789012345"
+                />
+                <small>Opcional por enquanto, mas recomendado para identificar a loja de forma exata no webhook.</small>
+              </label>
+
+              <div className="whatsapp-webhook-box">
+                <div className="whatsapp-webhook-head">
+                  <span>
+                    <strong>Webhook ChamaEntrega</strong>
+                    <small>Callback oficial para configurar na Meta.</small>
+                  </span>
+                  <b className={`whatsapp-backend-status ${whatsappBackend}`}>
+                    {whatsappBackend === 'ready' ? 'Backend pronto' :
+                     whatsappBackend === 'missing' ? 'Faltam secrets da Meta' :
+                     whatsappBackend === 'error' ? 'Indisponível' : 'Verificando'}
+                  </b>
+                </div>
+                <div className="whatsapp-webhook-url">
+                  <code>{whatsappCallbackUrl}</code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(whatsappCallbackUrl)
+                      notify('Callback URL copiado.')
+                    }}
+                  >Copiar</button>
+                </div>
+                <p>
+                  Para receber mensagens reais, o Supabase ainda precisa dos secrets
+                  <strong> WHATSAPP_VERIFY_TOKEN</strong> e <strong>WHATSAPP_APP_SECRET</strong>.
+                </p>
+              </div>
 
               <label className="integration-switch-row">
                 <span>
