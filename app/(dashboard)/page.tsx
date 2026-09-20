@@ -53,10 +53,6 @@ export default async function OverviewPage() {
         <p>Acompanhe suas entregas, clientes e resultados em tempo real.</p>
       </div>
       <div className="hero-visual" aria-hidden="true">
-        <div className="hero-rider">
-          <div className="rider-head" />
-          <div className="rider-body">Chama<span>Entrega</span></div>
-        </div>
         <div className="hero-quote">Mais<br/>distâncias.<br/>Mais sabores.<br/>Mais histórias.<i /></div>
       </div>
       <Link href="/entregas/nova" className="button hero-cta"><Icon name="plus" size={20}/>NOVA ENTREGA</Link>
