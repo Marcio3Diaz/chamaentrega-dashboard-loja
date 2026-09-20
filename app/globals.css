@@ -821,3 +821,440 @@ body { background: #07090c; }
     filter: none !important;
   }
 }
+
+
+/* =================================================================
+   HOME FINAL — referência aprovada 20/09/2026
+   Este bloco é a fonte de verdade visual para a Visão Geral desktop.
+   ================================================================= */
+@media (min-width: 1200px) {
+  .premium-shell {
+    grid-template-columns: 258px minmax(0, 1fr) !important;
+    min-height: 100vh;
+    background: #07090c !important;
+  }
+
+  .premium-sidebar {
+    width: 258px !important;
+    padding: 22px 14px 20px !important;
+    gap: 18px !important;
+    background: linear-gradient(180deg,#0b0f13 0%,#0a0d10 100%) !important;
+    border-right: 1px solid rgba(255,255,255,.09) !important;
+  }
+
+  .premium-brand {
+    padding: 4px 16px 18px !important;
+    gap: 4px !important;
+  }
+
+  .brand-word {
+    font-size: 23px !important;
+    letter-spacing: -1.05px !important;
+    line-height: 1 !important;
+  }
+
+  .premium-brand small {
+    margin-left: 43px !important;
+    font-size: 7px !important;
+    letter-spacing: .37em !important;
+  }
+
+  .premium-store-chip {
+    min-height: 66px !important;
+    padding: 11px 12px !important;
+    border-radius: 15px !important;
+  }
+
+  .store-logo-upload.variant-sidebar .store-logo-button {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  .store-copy strong {
+    font-size: 11px !important;
+  }
+
+  .store-copy small {
+    font-size: 9px !important;
+  }
+
+  .premium-nav {
+    gap: 6px !important;
+  }
+
+  .premium-nav a {
+    min-height: 48px !important;
+    padding: 0 16px !important;
+    gap: 14px !important;
+    font-size: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .account-box strong {
+    font-size: 10px !important;
+  }
+
+  .account-box small,
+  .premium-sidebar .signout {
+    font-size: 9px !important;
+  }
+
+  .premium-main {
+    min-width: 0;
+    background: #07090c !important;
+  }
+
+  .premium-topbar {
+    min-height: 76px !important;
+    height: 76px !important;
+    padding: 0 28px !important;
+    background: linear-gradient(180deg,#10151a,#0d1115) !important;
+    border-bottom: 1px solid rgba(255,255,255,.09) !important;
+  }
+
+  .premium-topbar .topbar-title {
+    font-size: 15px !important;
+    line-height: 1.15 !important;
+  }
+
+  .topbar-subtitle {
+    font-size: 10px !important;
+  }
+
+  .premium-topbar .online-pill {
+    padding: 8px 13px !important;
+    font-size: 10px !important;
+  }
+
+  .topbar-profile {
+    min-width: 180px !important;
+  }
+
+  .topbar-profile strong {
+    font-size: 10px !important;
+  }
+
+  .topbar-profile small {
+    font-size: 9px !important;
+  }
+
+  .store-logo-upload.variant-topbar .store-logo-button {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .premium-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 28px 34px !important;
+  }
+
+  /* Hero exatamente no formato da referência */
+  .dashboard-hero.target-hero {
+    position: relative !important;
+    min-height: 167px !important;
+    height: 167px !important;
+    margin: 0 -28px !important;
+    padding: 27px 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    border-bottom: 0 !important;
+    background:
+      radial-gradient(circle at 71% 45%, rgba(211,137,24,.13), transparent 22%),
+      linear-gradient(90deg,#07090c 0%,#07090c 39%,rgba(7,9,12,.88) 57%,#07090c 100%) !important;
+  }
+
+  .dashboard-hero.target-hero:before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(90deg,transparent 36%,rgba(255,184,0,.025) 58%,transparent 82%) !important;
+    pointer-events: none;
+  }
+
+  .target-hero .hero-content {
+    position: relative !important;
+    z-index: 3 !important;
+    width: 58% !important;
+    padding: 0 !important;
+  }
+
+  .target-hero .eyebrow {
+    font-size: 10px !important;
+    letter-spacing: .12em !important;
+    margin-bottom: 7px !important;
+  }
+
+  .target-hero h1 {
+    font-size: 39px !important;
+    line-height: 1.03 !important;
+    letter-spacing: -1.65px !important;
+    margin: 0 0 9px !important;
+  }
+
+  .target-hero h1 span {
+    color: #f4b51d !important;
+  }
+
+  .target-hero p {
+    margin: 0 !important;
+    color: #9ea9b6 !important;
+    font-size: 14px !important;
+  }
+
+  .target-hero-visual {
+    position: absolute !important;
+    z-index: 1 !important;
+    inset: 0 178px 0 45% !important;
+    opacity: 1 !important;
+    background:
+      linear-gradient(90deg,#07090c 0%,rgba(7,9,12,.22) 18%,rgba(7,9,12,.02) 72%,rgba(7,9,12,.68) 100%),
+      url('/images/dashboard-hero-courier.webp') center 45% / cover no-repeat !important;
+  }
+
+  .target-hero-visual:after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.12)) !important;
+    pointer-events: none !important;
+  }
+
+  .target-hero .hero-quote {
+    position: absolute !important;
+    z-index: 3 !important;
+    right: 12px !important;
+    top: 34px !important;
+    font-size: 18px !important;
+    line-height: 1.16 !important;
+    color: #d9dee4 !important;
+  }
+
+  .target-hero .hero-quote i {
+    width: 38px !important;
+    margin-top: 12px !important;
+  }
+
+  .target-hero .hero-cta {
+    position: absolute !important;
+    z-index: 4 !important;
+    top: 50% !important;
+    right: 28px !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: translateY(-50%) !important;
+    min-width: 174px !important;
+    height: 52px !important;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    color: #111 !important;
+    background: linear-gradient(135deg,#ffad00,#ffd23a) !important;
+    box-shadow: 0 10px 28px rgba(255,181,0,.18) !important;
+  }
+
+  /* Métricas */
+  .premium-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+    gap: 14px !important;
+    width: 100% !important;
+    padding-top: 14px !important;
+  }
+
+  .premium-metric {
+    min-height: 126px !important;
+    height: 126px !important;
+    grid-template-columns: 48px minmax(0,1fr) 20px !important;
+    gap: 12px !important;
+    padding: 16px 13px !important;
+    border-radius: 14px !important;
+  }
+
+  .metric-icon {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 11px !important;
+  }
+
+  .premium-metric .metric-label {
+    font-size: 11px !important;
+  }
+
+  .premium-metric .metric-value {
+    font-size: 26px !important;
+    margin-top: 2px !important;
+  }
+
+  .premium-metric .metric-note {
+    font-size: 9px !important;
+    margin-top: 7px !important;
+  }
+
+  /* Bloco central */
+  .dashboard-row {
+    gap: 14px !important;
+    margin-top: 14px !important;
+    width: 100% !important;
+  }
+
+  .main-row {
+    grid-template-columns: minmax(0, 1.68fr) minmax(365px, .96fr) !important;
+  }
+
+  .deliveries-card,
+  .quick-card {
+    min-height: 240px !important;
+    height: 240px !important;
+  }
+
+  .premium-card {
+    border-radius: 14px !important;
+  }
+
+  .premium-card-head {
+    min-height: 67px !important;
+    height: 67px !important;
+    padding: 12px 14px !important;
+  }
+
+  .section-icon {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 11px !important;
+  }
+
+  .premium-card h2 {
+    font-size: 17px !important;
+  }
+
+  .premium-card-head p {
+    font-size: 10px !important;
+  }
+
+  .outline-link {
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    font-size: 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .premium-table th {
+    padding: 11px 13px !important;
+    font-size: 8px !important;
+  }
+
+  .premium-table td {
+    padding: 13px !important;
+    font-size: 10px !important;
+  }
+
+  .table-main {
+    font-size: 10px !important;
+  }
+
+  .table-sub {
+    font-size: 9px !important;
+  }
+
+  .quick-grid {
+    padding: 12px !important;
+    gap: 9px !important;
+  }
+
+  .quick-grid a {
+    min-height: 66px !important;
+    padding: 10px !important;
+  }
+
+  .quick-grid strong {
+    font-size: 10px !important;
+  }
+
+  .quick-grid small {
+    font-size: 8px !important;
+  }
+
+  /* Rodapé de cards */
+  .bottom-row {
+    grid-template-columns: 1.04fr 1fr 1.03fr !important;
+  }
+
+  .courier-card,
+  .finance-card,
+  .activity-card {
+    min-height: 241px !important;
+    height: 241px !important;
+  }
+
+  .courier-line {
+    margin: 13px !important;
+    padding: 10px !important;
+    min-height: 61px !important;
+  }
+
+  .courier-photo {
+    width: 39px !important;
+    height: 39px !important;
+  }
+
+  .courier-copy strong {
+    font-size: 10px !important;
+  }
+
+  .courier-copy small {
+    font-size: 8px !important;
+  }
+
+  .finance-main {
+    padding: 20px 18px 16px !important;
+  }
+
+  .finance-main strong {
+    font-size: 22px !important;
+  }
+
+  .finance-main span,
+  .finance-breakdown span {
+    font-size: 8px !important;
+  }
+
+  .finance-breakdown {
+    padding: 13px 16px 16px !important;
+  }
+
+  .finance-breakdown strong {
+    font-size: 13px !important;
+  }
+
+  .fake-map {
+    min-height: 157px !important;
+    height: 157px !important;
+    margin: 0 13px 13px !important;
+  }
+
+  .map-delivery {
+    min-height: 44px !important;
+  }
+
+  .map-city {
+    font-size: 14px !important;
+  }
+
+  /* O banner promocional grande antigo não faz mais parte desta Home. */
+  .dashboard-banner {
+    display: none !important;
+  }
+}
+
+/* Tablet/mobile mantém o hero funcional sem tentar reproduzir o desktop 1:1 */
+@media (max-width: 1199px) {
+  .target-hero-visual {
+    background:
+      linear-gradient(90deg,#07090c 0%,rgba(7,9,12,.15) 45%,rgba(7,9,12,.65) 100%),
+      url('/images/dashboard-hero-courier.webp') center center / cover no-repeat !important;
+  }
+}
