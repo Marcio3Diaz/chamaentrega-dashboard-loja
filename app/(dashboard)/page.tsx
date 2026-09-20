@@ -48,7 +48,7 @@ export default async function OverviewPage() {
   return <>
     <section className="dashboard-banner" aria-label="ChamaEntrega Entregador">
       <img
-        src="/images/chamaentrega-dashboard-banner.avif"
+        src="/images/chamaentrega-dashboard-banner.webp"
         alt="Banner ChamaEntrega Entregador"
         className="dashboard-banner-image"
       />
