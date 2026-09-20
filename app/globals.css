@@ -1303,9 +1303,12 @@ body { background: #07090c; }
   border-radius: 22px;
   font-size: 24px;
   font-weight: 1000;
-  color: #121212;
-  background: linear-gradient(135deg,#ffab00,#ffd33e);
-  box-shadow: 0 14px 42px rgba(255,184,0,.17);
+  color: #f5b51d;
+  background: linear-gradient(145deg,#11161b,#07090c);
+  border: 1px solid rgba(255,184,0,.16);
+  box-shadow:
+    0 14px 42px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.035);
 }
 
 .wallet-balance-grid {
