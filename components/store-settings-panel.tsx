@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
@@ -37,7 +37,8 @@ type Props = {
   initialData: StoreSettingsData
 }
 
-type Tab = 'store' | 'address' | 'account' | 'payments'
+type Tab = 'store' | 'address' | 'account' | 'payments' | 'appearance'
+type Theme = 'dark' | 'light'
 
 function money(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -76,6 +77,7 @@ export function StoreSettingsPanel({ initialData }: Props) {
   const supabase = useMemo(() => createClient(), [])
 
   const [tab,setTab] = useState<Tab>('store')
+  const [theme,setTheme] = useState<Theme>('dark')
   const [name,setName] = useState(initialData.name)
   const [phone,setPhone] = useState(initialData.phone ?? '')
   const [isActive,setIsActive] = useState(initialData.isActive)
@@ -98,6 +100,18 @@ export function StoreSettingsPanel({ initialData }: Props) {
   const [saving,setSaving] = useState(false)
   const [message,setMessage] = useState('')
   const [messageType,setMessageType] = useState<'success'|'error'>('success')
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('chamaentrega-theme')
+    setTheme(saved === 'light' ? 'light' : 'dark')
+  }, [])
+
+  function changeTheme(nextTheme: Theme) {
+    setTheme(nextTheme)
+    document.documentElement.dataset.theme = nextTheme
+    document.documentElement.style.colorScheme = nextTheme
+    window.localStorage.setItem('chamaentrega-theme', nextTheme)
+  }
 
   const computedAddress = buildAddress({
     street,
@@ -304,6 +318,11 @@ export function StoreSettingsPanel({ initialData }: Props) {
           <button className={tab === 'payments' ? 'active' : ''} onClick={() => setTab('payments')}>
             <span><Icon name="money" size={17}/></span>
             <div><strong>Carteira e Pix</strong><small>Saldo pré-pago</small></div>
+          </button>
+
+          <button className={tab === 'appearance' ? 'active' : ''} onClick={() => setTab('appearance')}>
+            <span><Icon name="palette" size={17}/></span>
+            <div><strong>Aparência</strong><small>Tema do painel</small></div>
           </button>
         </aside>
 
@@ -556,6 +575,82 @@ export function StoreSettingsPanel({ initialData }: Props) {
                 <div><b>1</b><span><strong>Recarregue por Pix</strong><small>Adicione saldo antes de publicar as corridas.</small></span></div>
                 <div><b>2</b><span><strong>Taxa reservada</strong><small>Ao publicar uma entrega, o valor fica protegido.</small></span></div>
                 <div><b>3</b><span><strong>Pagamento automático</strong><small>Ao concluir, a taxa é debitada da carteira.</small></span></div>
+              </div>
+            </div>
+          ) : null}
+
+          {tab === 'appearance' ? (
+            <div className="settings-panel appearance-panel">
+              <div className="settings-panel-head">
+                <div>
+                  <span className="eyebrow">PERSONALIZAÇÃO</span>
+                  <h2>Aparência</h2>
+                  <p>Escolha como o Portal da Loja deve aparecer neste dispositivo.</p>
+                </div>
+                <span className="appearance-current">Tema atual: <strong>{theme === 'dark' ? 'Escuro' : 'Claro'}</strong></span>
+              </div>
+
+              <div className="appearance-intro">
+                <span className="appearance-intro-icon"><Icon name={theme === 'dark' ? 'moon' : 'sun'} size={22}/></span>
+                <div>
+                  <strong>Escolha seu tema</strong>
+                  <p>A alteração é aplicada imediatamente e fica salva neste navegador.</p>
+                </div>
+              </div>
+
+              <div className="theme-options" role="radiogroup" aria-label="Tema do painel">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={theme === 'dark'}
+                  className={`theme-option dark ${theme === 'dark' ? 'selected' : ''}`}
+                  onClick={() => changeTheme('dark')}
+                >
+                  <div className="theme-preview dark-preview" aria-hidden="true">
+                    <span className="preview-sidebar" />
+                    <span className="preview-topbar" />
+                    <span className="preview-card one" />
+                    <span className="preview-card two" />
+                    <span className="preview-accent" />
+                  </div>
+                  <span className="theme-option-copy">
+                    <span className="theme-option-icon"><Icon name="moon" size={18}/></span>
+                    <span>
+                      <strong>Tema escuro</strong>
+                      <small>Visual atual, com fundos pretos e cartões grafite.</small>
+                    </span>
+                    <i className="theme-check">{theme === 'dark' ? '✓' : ''}</i>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={theme === 'light'}
+                  className={`theme-option light ${theme === 'light' ? 'selected' : ''}`}
+                  onClick={() => changeTheme('light')}
+                >
+                  <div className="theme-preview light-preview" aria-hidden="true">
+                    <span className="preview-sidebar" />
+                    <span className="preview-topbar" />
+                    <span className="preview-card one" />
+                    <span className="preview-card two" />
+                    <span className="preview-accent" />
+                  </div>
+                  <span className="theme-option-copy">
+                    <span className="theme-option-icon"><Icon name="sun" size={18}/></span>
+                    <span>
+                      <strong>Tema claro</strong>
+                      <small>Fundos claros, cartões brancos e contraste suave.</small>
+                    </span>
+                    <i className="theme-check">{theme === 'light' ? '✓' : ''}</i>
+                  </span>
+                </button>
+              </div>
+
+              <div className="appearance-note">
+                <Icon name="palette" size={17}/>
+                <span>O amarelo e laranja oficiais do ChamaEntrega permanecem como cores de destaque nos dois temas.</span>
               </div>
             </div>
           ) : null}
