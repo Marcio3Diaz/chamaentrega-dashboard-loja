@@ -584,12 +584,12 @@ body { background: #07090c; }
   place-items: center;
   background: rgba(255,184,0,.10);
 }
-.store-logo-upload.sidebar .store-logo-button {
+.store-logo-upload.variant-sidebar .store-logo-button {
   width: 42px;
   height: 42px;
   border-radius: 11px;
 }
-.store-logo-upload.topbar .store-logo-button {
+.store-logo-upload.variant-topbar .store-logo-button {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -653,11 +653,11 @@ body { background: #07090c; }
   margin-right: 1px;
 }
 @media (min-width: 1200px) {
-  .store-logo-upload.sidebar .store-logo-button {
+  .store-logo-upload.variant-sidebar .store-logo-button {
     width: 44px;
     height: 44px;
   }
-  .store-logo-upload.topbar .store-logo-button {
+  .store-logo-upload.variant-topbar .store-logo-button {
     width: 38px;
     height: 38px;
   }
