@@ -14,12 +14,21 @@ export default async function LiveMapPage() {
   const { store } = await requireStore()
   const supabase = await createClient()
 
-  const { data: courierRows } = await supabase
-    .from('couriers')
-    .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
-    .order('is_online', { ascending: false })
+  const { data: networkRows } = await supabase
+    .from('courier_store_networks')
+    .select('courier_id')
+    .eq('store_id', store.id)
+    .eq('status', 'connected')
 
-  const courierIds = (courierRows ?? []).map(item => item.id)
+  const courierIds = (networkRows ?? []).map(item => item.courier_id)
+
+  const { data: courierRows } = courierIds.length
+    ? await supabase
+        .from('couriers')
+        .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
+        .in('id', courierIds)
+        .order('is_online', { ascending: false })
+    : { data: [] as any[] }
   const { data: profileRows } = courierIds.length
     ? await supabase.from('profiles').select('id,full_name,avatar_url').in('id', courierIds)
     : { data: [] as { id:string; full_name:string|null; avatar_url:string|null }[] }
