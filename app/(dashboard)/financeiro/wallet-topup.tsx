@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type PixCharge = {
@@ -17,6 +18,8 @@ type PixCharge = {
 const presets = [50, 100, 200, 500]
 
 export function WalletTopup({ storeId }: { storeId: string }) {
+  const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
   const [amount, setAmount] = useState('100')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -28,12 +31,64 @@ export function WalletTopup({ storeId }: { storeId: string }) {
     return Number.isFinite(value) ? value : 0
   }, [amount])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('wallet-topups:' + storeId)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'store_wallet_topups',
+          filter: 'store_id=eq.' + storeId,
+        },
+        payload => {
+          const row = payload.new as any
+          if (!charge || row.id !== charge.topupId) return
+
+          setCharge(current => current ? { ...current,status:String(row.status ?? current.status) } : current)
+
+          if (row.status === 'paid') {
+            router.refresh()
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [charge,router,storeId,supabase])
+
+  useEffect(() => {
+    if (!charge || charge.status === 'paid') return
+
+    const poll = window.setInterval(async () => {
+      const { data } = await supabase
+        .from('store_wallet_topups')
+        .select('status,paid_at')
+        .eq('id',charge.topupId)
+        .eq('store_id',storeId)
+        .maybeSingle()
+
+      if (!data) return
+
+      setCharge(current => current ? { ...current,status:String(data.status ?? current.status) } : current)
+
+      if (data.status === 'paid') {
+        window.clearInterval(poll)
+        router.refresh()
+      }
+    },5000)
+
+    return () => window.clearInterval(poll)
+  }, [charge,router,storeId,supabase])
+
   async function createCharge() {
     setLoading(true)
     setError('')
     setCharge(null)
 
-    const supabase = createClient()
     const { data, error: invokeError } = await supabase.functions.invoke('create-wallet-topup', {
       body: { storeId, amount: numericAmount },
     })
@@ -107,7 +162,9 @@ export function WalletTopup({ storeId }: { storeId: string }) {
         <div className="pix-charge-result">
           <div className="pix-charge-title">
             <strong>Pix de R$ {Number(charge.amount).toFixed(2).replace('.', ',')}</strong>
-            <span>Aguardando pagamento</span>
+            <span className={charge.status === 'paid' ? 'paid' : ''}>
+              {charge.status === 'paid' ? 'Pagamento confirmado ✓' : 'Aguardando pagamento'}
+            </span>
           </div>
 
           {charge.qrCodeImageUrl ? (
@@ -130,7 +187,9 @@ export function WalletTopup({ storeId }: { storeId: string }) {
           ) : null}
 
           <p className="wallet-security-note">
-            Assim que a Woovi confirmar o Pix, o saldo entra automaticamente na carteira.
+            {charge.status === 'paid'
+              ? 'Pagamento confirmado. O saldo já foi atualizado na carteira.'
+              : 'Esta tela acompanha a confirmação automaticamente. Assim que a Woovi confirmar o Pix, o saldo será atualizado sem você precisar recarregar a página.'}
           </p>
         </div>
       ) : null}
