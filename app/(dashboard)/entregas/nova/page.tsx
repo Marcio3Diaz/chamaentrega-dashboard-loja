@@ -1,26 +1,71 @@
-import { CreateDeliveryForm } from './create-form'
+import { CreateDeliveryForm, type DeliveryOrderPrefill } from './create-form'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function NewDeliveryPage() {
+type NewDeliveryPageProps = {
+  searchParams?: Promise<{ order?: string }>
+}
+
+export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageProps) {
   const { store } = await requireStore()
   const supabase = await createClient()
-  const { data } = await supabase.rpc('get_my_store_wallet', { p_store_id: store.id })
-  const wallet = data?.[0]
+  const params = searchParams ? await searchParams : {}
+  const orderId = params.order?.trim() || null
+
+  const [{ data: walletRows }, orderResult] = await Promise.all([
+    supabase.rpc('get_my_store_wallet', { p_store_id: store.id }),
+    orderId
+      ? supabase
+          .from('store_orders')
+          .select('id,external_order_id,customer_name,customer_phone,delivery_address,delivery_latitude,delivery_longitude,items,order_total,payment_method,customer_note,delivery_id,status')
+          .eq('id', orderId)
+          .eq('store_id', store.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+
+  const wallet = walletRows?.[0]
   const availableBalance = Number(wallet?.available_balance ?? 0)
   const reservedBalance = Number(wallet?.reserved_balance ?? 0)
+
+  const sourceOrder = orderResult.data as any
+  const items = Array.isArray(sourceOrder?.items) ? sourceOrder.items : []
+  const itemCount = items.reduce((sum:number,item:any) => sum + Math.max(1,Number(item?.quantity ?? 1)),0)
+
+  const initialOrder: DeliveryOrderPrefill | null = sourceOrder && !sourceOrder.delivery_id
+    ? {
+        orderId: sourceOrder.id,
+        externalOrderId: sourceOrder.external_order_id,
+        customerName: sourceOrder.customer_name ?? '',
+        customerPhone: sourceOrder.customer_phone ?? '',
+        deliveryAddress: sourceOrder.delivery_address ?? '',
+        deliveryLatitude: sourceOrder.delivery_latitude == null ? '' : String(sourceOrder.delivery_latitude),
+        deliveryLongitude: sourceOrder.delivery_longitude == null ? '' : String(sourceOrder.delivery_longitude),
+        orderTotal: sourceOrder.order_total == null ? '' : String(sourceOrder.order_total),
+        paymentMethod: ['already_paid','pix','cash','card_on_delivery'].includes(sourceOrder.payment_method)
+          ? sourceOrder.payment_method
+          : 'already_paid',
+        customerNote: sourceOrder.customer_note ?? '',
+        itemCount: Math.max(1,itemCount || 1),
+      }
+    : null
 
   return <>
     <div className="hero">
       <div>
-        <div className="eyebrow">Nova corrida</div>
+        <div className="eyebrow">{initialOrder ? 'Pedido integrado' : 'Nova corrida'}</div>
         <h1>Criar entrega</h1>
-        <p className="subtle">Cadastre o pedido e só publique quando ele estiver realmente pronto.</p>
+        <p className="subtle">
+          {initialOrder
+            ? `Dados do pedido #${initialOrder.externalOrderId || initialOrder.orderId.replaceAll('-','').slice(0,7).toUpperCase()} carregados. Revise a taxa antes de publicar.`
+            : 'Cadastre o pedido e só publique quando ele estiver realmente pronto.'}
+        </p>
       </div>
     </div>
     <CreateDeliveryForm
       availableBalance={availableBalance}
       reservedBalance={reservedBalance}
+      initialOrder={initialOrder}
     />
   </>
 }
