@@ -368,17 +368,6 @@ export function StoreSettingsPanel({ initialData }: Props) {
                 </div>
               </div>
 
-              <div className="settings-location-tools">
-                <button type="button" className="settings-secondary-action" onClick={useMyLocation} disabled={locating}>
-                  <Icon name="pin" size={15}/> {locating ? 'Obtendo localização...' : 'Usar minha localização'}
-                </button>
-                <span>
-                  {latitude != null && longitude != null
-                    ? 'Coordenadas prontas para o ponto de retirada.'
-                    : 'Adicione o GPS da loja para melhorar mapa e cálculo de proximidade.'}
-                </span>
-              </div>
-
               <div className="settings-actions">
                 <button type="submit" className="settings-save" disabled={saving}>
                   {saving ? 'Salvando...' : 'Salvar alterações'}
@@ -457,6 +446,17 @@ export function StoreSettingsPanel({ initialData }: Props) {
                     required
                   />
                 </label>
+              </div>
+
+              <div className="settings-location-tools">
+                <button type="button" className="settings-secondary-action" onClick={useMyLocation} disabled={locating}>
+                  <Icon name="pin" size={15}/> {locating ? 'Obtendo localização...' : 'Usar minha localização'}
+                </button>
+                <span>
+                  {latitude != null && longitude != null
+                    ? 'Coordenadas prontas para o ponto de retirada.'
+                    : 'Adicione o GPS da loja para melhorar mapa e cálculo de proximidade.'}
+                </span>
               </div>
 
               <div className="settings-actions">
