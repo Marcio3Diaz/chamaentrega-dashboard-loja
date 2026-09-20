@@ -37,6 +37,7 @@ const providers: Array<{
   key: IntegrationProvider
   name: string
   short: string
+  logoUrl?: string
   description: string
   category: string
   color: string
@@ -46,6 +47,7 @@ const providers: Array<{
     key: 'whatsapp',
     name: 'WhatsApp',
     short: 'WA',
+    logoUrl: 'https://logo.clearbit.com/whatsapp.com?size=128',
     description: 'Centralize o contato da loja e abra conversas de pedidos pelo número comercial.',
     category: 'Mensageria',
     color: 'green',
@@ -55,6 +57,7 @@ const providers: Array<{
     key: 'ifood',
     name: 'iFood',
     short: 'iF',
+    logoUrl: 'https://logo.clearbit.com/ifood.com.br?size=128',
     description: 'Prepare a conexão para importar pedidos e acionar a entrega própria pelo ChamaEntrega.',
     category: 'Marketplace',
     color: 'red',
@@ -64,6 +67,7 @@ const providers: Array<{
     key: '99food',
     name: '99Food',
     short: '99',
+    logoUrl: 'https://logo.clearbit.com/99app.com?size=128',
     description: 'Cadastre a referência da loja para futura integração oficial com pedidos e entregas.',
     category: 'Marketplace',
     color: 'yellow',
@@ -73,6 +77,7 @@ const providers: Array<{
     key: 'goomer',
     name: 'Goomer',
     short: 'G',
+    logoUrl: 'https://logo.clearbit.com/goomer.com.br?size=128',
     description: 'Prepare o vínculo com o seu cardápio Goomer para receber pedidos no fluxo logístico.',
     category: 'Cardápio digital',
     color: 'purple',
@@ -432,7 +437,13 @@ export function StoreIntegrationsPanel({
                 className={`integration-card ${active ? 'selected' : ''}`}
                 onClick={() => setSelected(provider.key)}
               >
-                <span className={`integration-logo ${provider.color}`}>{provider.short}</span>
+                <span className={`integration-logo integration-logo-brand ${provider.color}`}>
+                  {provider.logoUrl ? (
+                    <img src={provider.logoUrl} alt={`Logo ${provider.name}`} loading="lazy" />
+                  ) : (
+                    <span className="integration-own-brand"><b>Chama</b><strong>Entrega</strong></span>
+                  )}
+                </span>
                 <span className="integration-card-copy">
                   <span className="integration-card-head">
                     <strong>{provider.name}</strong>
@@ -452,7 +463,13 @@ export function StoreIntegrationsPanel({
 
         <aside className="integration-detail">
           <div className="integration-detail-head">
-            <span className={`integration-logo large ${selectedProvider.color}`}>{selectedProvider.short}</span>
+            <span className={`integration-logo integration-logo-brand large ${selectedProvider.color}`}>
+              {selectedProvider.logoUrl ? (
+                <img src={selectedProvider.logoUrl} alt={`Logo ${selectedProvider.name}`} />
+              ) : (
+                <span className="integration-own-brand"><b>Chama</b><strong>Entrega</strong></span>
+              )}
+            </span>
             <div>
               <span className="eyebrow">{selectedProvider.category}</span>
               <h2>{selectedProvider.name}</h2>
