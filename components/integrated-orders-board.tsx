@@ -77,7 +77,6 @@ const sourceMeta: Record<OrderSource,{label:string;logo?:string;className:string
   manual:{ label:'Manual', className:'manual' },
 }
 
-const deliveryActive = new Set(['available','negotiating','accepted','heading_to_pickup','at_pickup','heading_to_dropoff','at_dropoff'])
 
 function shortId(value:string) {
   return value.replaceAll('-','').slice(0,7).toUpperCase()
@@ -277,11 +276,25 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
     notify('Status do pedido atualizado.')
   }
 
+  const todayKey = new Intl.DateTimeFormat('en-CA', {
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+  }).format(new Date())
+
+  const todayItems = enriched.filter(({order}) =>
+    new Intl.DateTimeFormat('en-CA', {
+      year:'numeric',
+      month:'2-digit',
+      day:'2-digit',
+    }).format(new Date(order.receivedAt)) === todayKey
+  )
+
   const metrics = {
-    total: enriched.length,
-    new: counts.new,
-    preparing: counts.preparing,
-    ready: counts.ready,
+    total: todayItems.length,
+    new: todayItems.filter(item => item.status === 'new').length,
+    preparing: todayItems.filter(item => item.status === 'preparing').length,
+    ready: todayItems.filter(item => item.status === 'ready').length,
   }
 
   return (
