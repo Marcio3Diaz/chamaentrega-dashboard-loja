@@ -83,7 +83,7 @@ export default async function FinancePage() {
           <h1>Financeiro</h1>
           <p>Adicione saldo por Pix e use a carteira para pagar suas entregas automaticamente.</p>
         </div>
-        <div className="wallet-shield">CE</div>
+        <div className="wallet-shield" aria-label="ChamaEntrega"><img src="/brand/chamaentrega-flame-official.webp" alt="" style={{ width: 48, height: 48, objectFit: 'contain', display: 'block' }} /></div>
       </section>
 
       <section className="wallet-balance-grid">
