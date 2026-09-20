@@ -23,13 +23,10 @@ export type StoreIntegrationRow = {
 type Props = {
   storeId: string
   storeName: string
-  storePhone: string | null
   initialRows: StoreIntegrationRow[]
 }
 
 type Draft = {
-  phone?: string
-  phoneNumberId?: string
   menuUrl?: string
   merchantReference?: string
   autoImport?: boolean
@@ -104,14 +101,6 @@ const statusLabel: Record<IntegrationStatus,string> = {
   error: 'Atenção',
 }
 
-function normalizePhone(value: string) {
-  return value.replace(/[^0-9+]/g, '').slice(0,18)
-}
-
-function digits(value: string) {
-  return value.replace(/\D/g,'')
-}
-
 function asString(value: unknown) {
   return typeof value === 'string' ? value : ''
 }
@@ -123,7 +112,6 @@ function asBoolean(value: unknown) {
 export function StoreIntegrationsPanel({
   storeId,
   storeName,
-  storePhone,
   initialRows,
 }: Props) {
   const supabase = useMemo(() => createClient(), [])
@@ -133,8 +121,6 @@ export function StoreIntegrationsPanel({
   const [message,setMessage] = useState('')
   const [messageType,setMessageType] = useState<'success'|'error'>('success')
   const [liveState,setLiveState] = useState('CONECTANDO')
-  const [whatsappBackend,setWhatsappBackend] = useState<'checking'|'ready'|'missing'|'error'>('checking')
-  const whatsappCallbackUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}/functions/v1/whatsapp-webhook`
 
   const rowByProvider = useMemo(
     () => new Map(rows.map(row => [row.provider,row])),
@@ -149,14 +135,6 @@ export function StoreIntegrationsPanel({
       const config = row?.publicConfig ?? {}
 
       result[provider.key] = {
-        phone:
-          provider.key === 'whatsapp'
-            ? asString(config.phone) || storePhone || ''
-            : undefined,
-        phoneNumberId:
-          provider.key === 'whatsapp'
-            ? asString(config.phone_number_id)
-            : undefined,
         menuUrl:
           provider.key === 'own_menu'
             ? asString(config.menu_url)
@@ -170,39 +148,13 @@ export function StoreIntegrationsPanel({
     }
 
     return result
-  }, [rowByProvider,storePhone])
+  }, [rowByProvider])
 
   const [drafts,setDrafts] = useState<Record<IntegrationProvider,Draft>>(initialDrafts)
 
   useEffect(() => {
     setDrafts(initialDrafts)
   }, [initialDrafts])
-
-  useEffect(() => {
-    if (!whatsappCallbackUrl) {
-      setWhatsappBackend('error')
-      return
-    }
-
-    let cancelled = false
-
-    fetch(whatsappCallbackUrl, { cache:'no-store' })
-      .then(async response => {
-        if (!response.ok) throw new Error('health failed')
-        return await response.json() as { configured?: boolean }
-      })
-      .then(data => {
-        if (cancelled) return
-        setWhatsappBackend(data.configured ? 'ready' : 'missing')
-      })
-      .catch(() => {
-        if (!cancelled) setWhatsappBackend('error')
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [whatsappCallbackUrl])
 
   useEffect(() => {
     const channel = supabase
@@ -284,14 +236,6 @@ export function StoreIntegrationsPanel({
   function buildConfig(provider: IntegrationProvider): Record<string,unknown> {
     const draft = drafts[provider]
 
-    if (provider === 'whatsapp') {
-      return {
-        phone: draft.phone?.trim() || '',
-        phone_number_id: draft.phoneNumberId?.trim() || '',
-        auto_import: Boolean(draft.autoImport),
-      }
-    }
-
     if (provider === 'own_menu') {
       return {
         menu_url: draft.menuUrl?.trim() || '',
@@ -307,11 +251,6 @@ export function StoreIntegrationsPanel({
 
   async function save(provider: IntegrationProvider, nextStatus?: IntegrationStatus) {
     const config = buildConfig(provider)
-
-    if (provider === 'whatsapp' && !asString(config.phone)) {
-      notify('Informe o número comercial do WhatsApp.','error')
-      return
-    }
 
     if (provider === 'own_menu') {
       const url = asString(config.menu_url)
@@ -336,7 +275,7 @@ export function StoreIntegrationsPanel({
 
     const status: IntegrationStatus =
       nextStatus ??
-      (provider === 'whatsapp' || provider === 'own_menu' ? 'configured' : 'pending')
+      (provider === 'own_menu' ? 'configured' : 'pending')
 
     setSaving(true)
 
@@ -346,7 +285,7 @@ export function StoreIntegrationsPanel({
         store_id: storeId,
         provider,
         status,
-        is_enabled: provider === 'whatsapp' || provider === 'own_menu',
+        is_enabled: provider === 'own_menu',
         public_config: config,
         last_error: null,
       }, {
@@ -415,20 +354,6 @@ export function StoreIntegrationsPanel({
     ))
 
     notify('Integração desativada.')
-  }
-
-  function openWhatsApp() {
-    const phone = digits(drafts.whatsapp.phone ?? '')
-    if (!phone) {
-      notify('Configure primeiro o número do WhatsApp.','error')
-      return
-    }
-
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(`Olá! Este é um teste do WhatsApp da ${storeName} no ChamaEntrega.`)}`,
-      '_blank',
-      'noopener,noreferrer',
-    )
   }
 
   function openMenu() {
