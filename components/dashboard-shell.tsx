@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { signOutAction } from '@/app/actions'
 import { Icon } from '@/components/icon'
@@ -36,6 +37,13 @@ export function DashboardShell({
   children,
 }: Props) {
   const pathname = usePathname()
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('chamaentrega-theme')
+    const theme = saved === 'light' ? 'light' : 'dark'
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+  }, [])
 
   return (
     <div className="shell premium-shell">
