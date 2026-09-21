@@ -10307,3 +10307,188 @@ html[data-theme="light"] .settings-pricing-preview{
     min-height:20px;
   }
 }
+
+
+/* =================================================================
+   MULTI-LOJA — seletor de operação
+   ================================================================= */
+.store-switcher{
+  position:relative;
+  margin:0 12px 12px;
+  z-index:40;
+}
+.store-switcher .premium-store-chip{
+  margin:0;
+}
+.store-switcher-trigger{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  text-align:left;
+  cursor:pointer;
+}
+.store-switcher-logo-wrap{
+  display:block;
+  line-height:0;
+}
+.store-chevron{
+  transition:transform .18s ease;
+}
+.store-chevron.open{
+  transform:rotate(180deg);
+}
+.store-switcher-menu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  right:0;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:14px;
+  background:rgba(13,17,21,.98);
+  box-shadow:0 18px 45px rgba(0,0,0,.48);
+  backdrop-filter:blur(18px);
+}
+.store-switcher-head{
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:5px 7px 9px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.store-switcher-head small{
+  display:block;
+  color:#ffbd12;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.store-switcher-head strong{
+  display:block;
+  margin-top:2px;
+  color:#f2f5f7;
+  font-size:10px;
+}
+.store-switcher-head>span{
+  min-width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  color:#ffbd12;
+  background:rgba(255,184,0,.10);
+  font-size:8px;
+  font-weight:900;
+}
+.store-switcher-list{
+  display:grid;
+  gap:5px;
+  max-height:285px;
+  overflow:auto;
+  padding-top:7px;
+}
+.store-switcher-list>button{
+  width:100%;
+  min-height:50px;
+  display:grid;
+  grid-template-columns:35px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:9px;
+  padding:7px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  color:#dfe4e8;
+  text-align:left;
+  cursor:pointer;
+}
+.store-switcher-list>button:hover{
+  background:rgba(255,255,255,.045);
+}
+.store-switcher-list>button.active{
+  border-color:rgba(255,184,0,.20);
+  background:rgba(255,184,0,.07);
+}
+.store-switcher-avatar{
+  width:35px;
+  height:35px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#171c21;
+  color:#ffbd12;
+  font-size:11px;
+  font-weight:950;
+}
+.store-switcher-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.store-switcher-list strong{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:8px;
+}
+.store-switcher-list small{
+  display:block;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#7f8a94;
+  font-size:7px;
+}
+.store-switcher-list em{
+  color:#ffbd12;
+  font-size:11px;
+  font-style:normal;
+  font-weight:900;
+  text-align:center;
+}
+.store-switcher-admin{
+  min-height:37px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin-top:7px;
+  border-top:1px solid rgba(255,255,255,.07);
+  color:#98a3ad;
+  font-size:7px;
+  font-weight:850;
+}
+.store-switcher-admin:hover{
+  color:#ffbd12;
+}
+html[data-theme="light"] .store-switcher-menu{
+  border-color:#dce1e5;
+  background:rgba(255,255,255,.98);
+  box-shadow:0 18px 45px rgba(25,35,45,.18);
+}
+html[data-theme="light"] .store-switcher-head{
+  border-color:#e6e9eb;
+}
+html[data-theme="light"] .store-switcher-head strong,
+html[data-theme="light"] .store-switcher-list>button{
+  color:#151a1e;
+}
+html[data-theme="light"] .store-switcher-list>button:hover{
+  background:#f4f6f7;
+}
+html[data-theme="light"] .store-switcher-list>button.active{
+  background:#fff8e6;
+  border-color:#f0ddb0;
+}
+html[data-theme="light"] .store-switcher-avatar{
+  background:#f3f5f6;
+  border-color:#e1e5e8;
+}
