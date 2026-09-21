@@ -3,10 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
-import {
-  selectStoreForAdminAction,
-  setStoreActiveAdminAction,
-} from '@/app/(admin)/admin/actions'
+import { setStoreActiveAdminAction } from '@/app/(admin)/admin/actions'
 
 export type AdminStoreRow = {
   id:string
@@ -71,22 +68,10 @@ export function AdminStoresPanel({
     startTransition(async () => {
       const result = await setStoreActiveAdminAction(store.id,!store.isActive)
       setMessage(result.message)
-      if (result.ok) router.refresh()
+      if (result.ok) window.location.reload()
     })
   }
 
-  function openStore(storeId:string) {
-    setMessage('')
-    startTransition(async () => {
-      const result = await selectStoreForAdminAction(storeId)
-      if (result.ok) {
-        router.push('/painel')
-        router.refresh()
-        return
-      }
-      setMessage(result.message)
-    })
-  }
 
   return (
     <div className="admin-stores-panel">
