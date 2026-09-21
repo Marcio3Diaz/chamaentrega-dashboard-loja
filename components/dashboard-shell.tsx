@@ -33,7 +33,6 @@ type StoreOption = {
 type Props = {
   storeId: string
   userId: string
-  role: string
   stores: StoreOption[]
   storeName: string
   storeActive: boolean
@@ -44,7 +43,6 @@ type Props = {
 export function DashboardShell({
   storeId,
   userId,
-  role,
   stores,
   storeName,
   storeActive,
