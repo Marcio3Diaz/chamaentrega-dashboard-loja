@@ -25,5 +25,10 @@ export async function loginAction(_: LoginState, formData: FormData): Promise<Lo
     return { error: 'Esta conta não possui acesso ao painel da loja.' }
   }
 
-  redirect('/')
+  const { data:stores } = await supabase
+    .from('stores')
+    .select('id')
+    .limit(1)
+
+  redirect(stores?.length ? '/' : '/onboarding')
 }
