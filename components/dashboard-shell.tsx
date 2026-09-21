@@ -26,6 +26,7 @@ type StoreOption = {
   name: string
   logo_url: string | null
   is_active: boolean
+  moderation_status: 'pending' | 'active' | 'suspended' | 'banned' | 'rejected'
   city: string | null
   state: string | null
 }
@@ -36,6 +37,8 @@ type Props = {
   stores: StoreOption[]
   storeName: string
   storeActive: boolean
+  moderationStatus: 'pending' | 'active' | 'suspended' | 'banned' | 'rejected'
+  moderationReason: string | null
   storeLogoUrl: string | null
   children: React.ReactNode
 }
@@ -46,6 +49,8 @@ export function DashboardShell({
   stores,
   storeName,
   storeActive,
+  moderationStatus,
+  moderationReason,
   storeLogoUrl,
   children,
 }: Props) {
@@ -60,6 +65,14 @@ export function DashboardShell({
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
   }, [])
+
+  const moderationLabel = {
+    pending:'Aguardando aprovação',
+    active:storeActive ? 'Loja ativa' : 'Loja pausada',
+    suspended:'Loja suspensa',
+    banned:'Loja banida',
+    rejected:'Cadastro rejeitado',
+  }[moderationStatus]
 
   function switchStore(nextStoreId:string) {
     if (nextStoreId === storeId || switchingStore) {
@@ -108,7 +121,7 @@ export function DashboardShell({
             >
               <span className="store-copy">
                 <strong>{storeName}</strong>
-                <small><i />{storeActive ? 'Loja ativa' : 'Loja inativa'}</small>
+                <small><i />{moderationLabel}</small>
               </span>
               <span className={storeMenuOpen ? 'store-chevron open' : 'store-chevron'}>⌄</span>
             </button>
@@ -143,7 +156,15 @@ export function DashboardShell({
                       <small>
                         {store.city && store.state
                           ? `${store.city} · ${store.state}`
-                          : store.is_active ? 'Loja ativa' : 'Loja inativa'}
+                          : store.moderation_status === 'pending'
+                            ? 'Aguardando aprovação'
+                            : store.moderation_status === 'suspended'
+                              ? 'Loja suspensa'
+                              : store.moderation_status === 'banned'
+                                ? 'Loja banida'
+                                : store.moderation_status === 'rejected'
+                                  ? 'Cadastro rejeitado'
+                                  : store.is_active ? 'Loja ativa' : 'Loja pausada'}
                       </small>
                     </span>
                     <em>{store.id === storeId ? '✓' : '›'}</em>
@@ -181,7 +202,10 @@ export function DashboardShell({
           <div className="topbar-actions">
             <button className="icon-button notification-button" aria-label="Notificações"><Icon name="bell" size={21}/><i /></button>
             <span className="topbar-divider" />
-            <div className="online-pill"><span className="online-dot" />Sistema online</div>
+            <div className={moderationStatus === 'active' ? 'online-pill' : 'online-pill moderation-warning'}>
+              <span className="online-dot" />
+              {moderationStatus === 'active' ? 'Sistema online' : moderationLabel}
+            </div>
             <span className="topbar-divider" />
             <div className="topbar-profile">
               <StoreLogoUpload
@@ -196,7 +220,23 @@ export function DashboardShell({
             </div>
           </div>
         </header>
-        <div className="content premium-content">{children}</div>
+        <div className="content premium-content">
+          {moderationStatus !== 'active' ? (
+            <div className={`store-moderation-banner ${moderationStatus}`}>
+              <span><Icon name="shield" size={20}/></span>
+              <div>
+                <strong>{moderationLabel}</strong>
+                <small>
+                  {moderationReason ||
+                    (moderationStatus === 'pending'
+                      ? 'Seu cadastro foi recebido e está aguardando aprovação da equipe ChamaEntrega.'
+                      : 'A operação desta loja está bloqueada administrativamente.')}
+                </small>
+              </div>
+            </div>
+          ) : null}
+          {children}
+        </div>
       </section>
 
       <nav className="mobile-nav">
