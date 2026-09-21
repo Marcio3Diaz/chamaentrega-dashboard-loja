@@ -14845,3 +14845,624 @@ html[data-theme="light"] .store-switcher-avatar{
   .admin-page-primary-action,
   .admin-page-secondary-action{width:100%;justify-content:center}
 }
+
+
+/* =================================================================
+   FINANCEIRO ADMIN — RECEITA DA PLATAFORMA
+   ================================================================= */
+.admin-platform-finance-page{
+  max-width:1600px;
+}
+.admin-platform-finance-badge{
+  min-width:310px;
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:11px;
+  align-items:center;
+  padding:13px 15px;
+  border:1px solid rgba(255,190,30,.20);
+  border-radius:13px;
+  background:rgba(255,184,0,.045);
+  color:#ffbd12;
+}
+.admin-platform-finance-badge>span small,
+.admin-platform-finance-badge>span strong{
+  display:block;
+}
+.admin-platform-finance-badge>span small{
+  color:#927e4a;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.admin-platform-finance-badge>span strong{
+  margin-top:4px;
+  color:#edf2f5;
+  font-size:12px;
+}
+.admin-platform-finance-metrics{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+}
+.admin-platform-finance-metrics article{
+  min-height:122px;
+  display:grid;
+  grid-template-columns:48px 1fr;
+  gap:12px;
+  align-items:center;
+  padding:15px;
+  border:1px solid rgba(104,146,170,.14);
+  border-radius:14px;
+  background:linear-gradient(145deg,#0f1a21,#091218);
+}
+.admin-platform-finance-metrics article.primary{
+  border-color:rgba(255,190,30,.24);
+  background:
+    radial-gradient(circle at 85% 100%,rgba(255,184,0,.10),transparent 40%),
+    linear-gradient(145deg,#111c22,#091218);
+}
+.admin-platform-finance-metrics article>span{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(255,184,0,.10);
+  color:#ffbd12;
+}
+.admin-platform-finance-metrics article:nth-child(2)>span{
+  background:rgba(47,156,255,.10);
+  color:#48aaff;
+}
+.admin-platform-finance-metrics article:nth-child(3)>span{
+  background:rgba(39,219,128,.10);
+  color:#33df85;
+}
+.admin-platform-finance-metrics small,
+.admin-platform-finance-metrics strong,
+.admin-platform-finance-metrics em{
+  display:block;
+}
+.admin-platform-finance-metrics small{
+  color:#8d9aa3;
+  font-size:10px;
+}
+.admin-platform-finance-metrics strong{
+  margin-top:5px;
+  color:#f3f6f7;
+  font-size:22px;
+}
+.admin-platform-finance-metrics em{
+  margin-top:5px;
+  color:#6f7e88;
+  font-size:9px;
+  font-style:normal;
+}
+.admin-platform-finance-grid{
+  display:grid;
+  grid-template-columns:1.25fr .75fr;
+  gap:14px;
+  margin-top:14px;
+}
+.billing-settings-updated{
+  color:#687883;
+  font-size:9px;
+}
+.billing-settings-form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  padding:16px;
+}
+.billing-model-option{
+  grid-column:1/-1;
+  min-height:72px;
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  gap:11px;
+  align-items:center;
+  padding:12px;
+  border:1px solid rgba(105,147,171,.12);
+  border-radius:11px;
+  background:rgba(5,13,18,.35);
+}
+.billing-model-icon{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+}
+.billing-model-icon.commission{
+  background:rgba(48,157,255,.10);
+  color:#46aaff;
+}
+.billing-model-icon.subscription{
+  background:rgba(255,184,0,.10);
+  color:#ffbd12;
+}
+.billing-model-option span strong,
+.billing-model-option span small{
+  display:block;
+}
+.billing-model-option span strong{
+  font-size:12px;
+}
+.billing-model-option span small{
+  margin-top:4px;
+  color:#73828c;
+  font-size:9px;
+  line-height:1.45;
+}
+.billing-model-option input[type="checkbox"]{
+  width:44px;
+  height:24px;
+  accent-color:#ffbd12;
+  cursor:pointer;
+}
+.billing-form-field{
+  display:grid;
+  align-content:start;
+  gap:7px;
+  padding:12px;
+  border:1px solid rgba(105,147,171,.10);
+  border-radius:11px;
+  background:#0b151b;
+}
+.billing-form-field>label{
+  color:#b9c4ca;
+  font-size:10px;
+  font-weight:800;
+}
+.billing-form-field>small{
+  color:#697983;
+  font-size:8.5px;
+  line-height:1.5;
+}
+.billing-input-suffix,
+.billing-input-prefix{
+  height:43px;
+  display:grid;
+  align-items:center;
+  overflow:hidden;
+  border:1px solid rgba(105,147,171,.16);
+  border-radius:9px;
+  background:#071117;
+}
+.billing-input-suffix{
+  grid-template-columns:1fr 42px;
+}
+.billing-input-prefix{
+  grid-template-columns:42px 1fr;
+}
+.billing-input-suffix input,
+.billing-input-prefix input{
+  width:100%;
+  height:100%;
+  border:0;
+  outline:0;
+  padding:0 12px;
+  background:transparent;
+  color:#eef3f5;
+  font-size:13px;
+}
+.billing-input-suffix span,
+.billing-input-prefix span{
+  display:grid;
+  place-items:center;
+  height:100%;
+  border-left:1px solid rgba(105,147,171,.12);
+  color:#ffbd12;
+  font-size:11px;
+  font-weight:900;
+}
+.billing-input-prefix span{
+  border-left:0;
+  border-right:1px solid rgba(105,147,171,.12);
+}
+.billing-save-button{
+  grid-column:1/-1;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:0;
+  border-radius:10px;
+  background:linear-gradient(135deg,#ffb400,#ffd253);
+  color:#101214;
+  font-size:11px;
+  font-weight:950;
+}
+.billing-revenue-split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:15px 15px 10px;
+}
+.billing-revenue-split>div{
+  min-height:115px;
+  display:grid;
+  grid-template-columns:40px 1fr;
+  grid-template-rows:auto auto auto;
+  gap:3px 10px;
+  align-content:center;
+  padding:12px;
+  border:1px solid rgba(105,147,171,.11);
+  border-radius:11px;
+  background:#0a141a;
+}
+.billing-revenue-split>div>span{
+  grid-row:1/4;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+}
+.billing-revenue-split>div>span.commission{
+  background:rgba(48,157,255,.10);
+  color:#46aaff;
+}
+.billing-revenue-split>div>span.subscription{
+  background:rgba(255,184,0,.10);
+  color:#ffbd12;
+}
+.billing-revenue-split small{
+  color:#7c8992;
+  font-size:9px;
+}
+.billing-revenue-split strong{
+  font-size:17px;
+}
+.billing-revenue-split em{
+  color:#64737d;
+  font-size:8px;
+  font-style:normal;
+}
+.billing-projection{
+  display:grid;
+  gap:8px;
+  padding:4px 15px 10px;
+}
+.billing-projection>div{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid rgba(105,147,171,.09);
+  border-radius:9px;
+  background:rgba(4,12,17,.30);
+}
+.billing-projection small{
+  color:#7b8992;
+  font-size:9px;
+}
+.billing-projection strong{
+  font-size:13px;
+}
+.billing-info-note{
+  display:grid;
+  grid-template-columns:28px 1fr;
+  gap:9px;
+  align-items:start;
+  margin:0 15px 15px;
+  padding:10px 11px;
+  border:1px solid rgba(255,184,0,.13);
+  border-radius:9px;
+  background:rgba(255,184,0,.04);
+  color:#ffbd12;
+}
+.billing-info-note p{
+  margin:0;
+  color:#887b59;
+  font-size:8.5px;
+  line-height:1.5;
+}
+.platform-store-revenue-card{
+  margin-top:14px;
+}
+.platform-revenue-table{
+  overflow:auto;
+  padding:0 15px 15px;
+}
+.platform-revenue-table .head,
+.platform-revenue-table .row{
+  min-width:1080px;
+  display:grid;
+  grid-template-columns:1.45fr 1fr 120px 90px 130px 120px 130px;
+  gap:12px;
+  align-items:center;
+}
+.platform-revenue-table .head{
+  min-height:42px;
+  color:#657681;
+  font-size:9px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.platform-revenue-table .row{
+  min-height:72px;
+  border-top:1px solid rgba(105,147,171,.08);
+  font-size:10px;
+}
+.platform-store-cell{
+  display:grid;
+  grid-template-columns:44px 1fr;
+  gap:9px;
+  align-items:center;
+}
+.platform-store-avatar{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:10px;
+  background:linear-gradient(145deg,#ffb500,#ffd458);
+  color:#111;
+  font-size:8px;
+  font-weight:950;
+}
+.platform-store-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.platform-store-cell strong,
+.platform-store-cell small,
+.platform-revenue-table .row>span:nth-child(2) strong,
+.platform-revenue-table .row>span:nth-child(2) small{
+  display:block;
+}
+.platform-store-cell small,
+.platform-revenue-table .row>span:nth-child(2) small{
+  margin-top:4px;
+  color:#687883;
+  font-size:8.5px;
+}
+.platform-revenue-total{
+  color:#31de84;
+  font-size:12px;
+}
+.subscriptions-grid{
+  grid-template-columns:1.35fr .65fr;
+}
+.admin-subscription-list{
+  display:grid;
+  gap:8px;
+  padding:12px 14px 14px;
+}
+.admin-subscription-list>form{
+  min-height:82px;
+  display:grid;
+  grid-template-columns:minmax(170px,1.1fr) 1fr 120px 125px 145px 74px;
+  gap:9px;
+  align-items:end;
+  padding:10px;
+  border:1px solid rgba(105,147,171,.09);
+  border-radius:10px;
+  background:#0a141a;
+}
+.subscription-store-name{
+  align-self:center;
+}
+.subscription-store-name strong,
+.subscription-store-name small{
+  display:block;
+}
+.subscription-store-name strong{
+  font-size:11px;
+}
+.subscription-store-name small{
+  margin-top:4px;
+  color:#687883;
+  font-size:8.5px;
+}
+.admin-subscription-list label{
+  display:grid;
+  gap:5px;
+}
+.admin-subscription-list label small{
+  color:#72818a;
+  font-size:8px;
+}
+.admin-subscription-list input,
+.admin-subscription-list select{
+  height:37px;
+  min-width:0;
+  border:1px solid rgba(105,147,171,.14);
+  border-radius:8px;
+  outline:0;
+  padding:0 9px;
+  background:#071117;
+  color:#e9eef1;
+  font-size:9.5px;
+}
+.admin-subscription-list>form>button{
+  height:37px;
+  border:1px solid rgba(255,184,0,.22);
+  border-radius:8px;
+  background:rgba(255,184,0,.07);
+  color:#ffbd12;
+  font-size:9px;
+  font-weight:900;
+}
+.subscription-payment-list{
+  display:grid;
+  padding:7px 13px 13px;
+}
+.subscription-payment-list>div{
+  min-height:67px;
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:10px;
+  align-items:center;
+  border-bottom:1px solid rgba(105,147,171,.08);
+}
+.subscription-payment-list span strong,
+.subscription-payment-list span small{
+  display:block;
+}
+.subscription-payment-list span strong{
+  font-size:10px;
+}
+.subscription-payment-list span small{
+  margin-top:4px;
+  color:#697984;
+  font-size:8px;
+}
+.subscription-payment-list>div>strong{
+  color:#ffbd12;
+  font-size:12px;
+}
+.subscription-payment-list button{
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid rgba(41,218,129,.20);
+  border-radius:8px;
+  background:rgba(41,218,129,.07);
+  color:#35df88;
+  font-size:8.5px;
+  font-weight:900;
+}
+.platform-revenue-events-card{
+  margin-top:14px;
+}
+.platform-revenue-count{
+  color:#768690;
+  font-size:9px;
+}
+.platform-revenue-event-list{
+  padding:5px 14px 14px;
+}
+.platform-revenue-event-list>div{
+  min-height:66px;
+  display:grid;
+  grid-template-columns:38px minmax(220px,1.4fr) 130px 100px 90px 125px;
+  gap:11px;
+  align-items:center;
+  border-bottom:1px solid rgba(105,147,171,.08);
+}
+.revenue-event-icon{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+}
+.revenue-event-icon.delivery_commission{
+  background:rgba(48,157,255,.10);
+  color:#46aaff;
+}
+.revenue-event-icon.subscription{
+  background:rgba(255,184,0,.10);
+  color:#ffbd12;
+}
+.platform-revenue-event-list span strong,
+.platform-revenue-event-list span small{
+  display:block;
+}
+.platform-revenue-event-list>div>span:nth-child(2)>strong{
+  font-size:10px;
+}
+.platform-revenue-event-list small{
+  color:#697984;
+  font-size:8px;
+}
+.platform-revenue-event-list>div>span:nth-child(2)>small{
+  margin-top:4px;
+}
+.platform-revenue-event-list>div>span:nth-child(3)>strong,
+.platform-revenue-event-list>div>span:nth-child(4)>strong{
+  margin-top:4px;
+  font-size:10px;
+}
+.platform-revenue-status{
+  justify-self:start;
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:8px;
+  font-style:normal;
+  font-weight:900;
+}
+.platform-revenue-status.paid{
+  background:rgba(39,219,128,.09);
+  color:#34df86;
+}
+.platform-revenue-status.accrued{
+  background:rgba(255,184,0,.09);
+  color:#ffbd12;
+}
+.platform-revenue-status.void{
+  background:rgba(255,255,255,.05);
+  color:#84919a;
+}
+.platform-revenue-event-value{
+  justify-self:end;
+  color:#35df88;
+  font-size:11px;
+}
+
+@media(max-width:1280px){
+  .admin-platform-finance-metrics{
+    grid-template-columns:repeat(3,1fr);
+  }
+  .admin-platform-finance-grid,
+  .subscriptions-grid{
+    grid-template-columns:1fr;
+  }
+  .admin-subscription-list>form{
+    grid-template-columns:1fr 1fr 1fr;
+  }
+  .subscription-store-name{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:800px){
+  .admin-platform-finance-badge{
+    min-width:0;
+    width:100%;
+  }
+  .admin-platform-finance-metrics{
+    grid-template-columns:1fr 1fr;
+  }
+  .billing-settings-form{
+    grid-template-columns:1fr;
+  }
+  .billing-model-option,
+  .billing-save-button{
+    grid-column:auto;
+  }
+  .billing-revenue-split{
+    grid-template-columns:1fr;
+  }
+  .admin-subscription-list>form{
+    grid-template-columns:1fr 1fr;
+  }
+  .platform-revenue-event-list>div{
+    grid-template-columns:38px 1fr auto;
+  }
+  .platform-revenue-event-list>div>span:nth-child(3),
+  .platform-revenue-event-list>div>span:nth-child(4){
+    display:none;
+  }
+  .platform-revenue-status{
+    grid-column:2;
+  }
+  .platform-revenue-event-value{
+    grid-column:3;
+    grid-row:1/3;
+  }
+}
+@media(max-width:560px){
+  .admin-platform-finance-metrics{
+    grid-template-columns:1fr;
+  }
+  .admin-subscription-list>form{
+    grid-template-columns:1fr;
+  }
+}
