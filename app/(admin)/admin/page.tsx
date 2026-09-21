@@ -69,10 +69,10 @@ export default async function AdminOverviewPage() {
     recentStoresResult,
   ] = await Promise.all([
     supabase.from('stores')
-      .select('id,name,is_active,city,state,logo_url,created_at,owner_id')
+      .select('id,name,is_active,city,state,logo_url,created_at,owner_id,moderation_status')
       .order('created_at',{ascending:false}),
     supabase.from('couriers')
-      .select('id,is_online,is_available,total_deliveries,rating,created_at'),
+      .select('id,is_online,is_available,total_deliveries,rating,created_at,moderation_status'),
     supabase.from('profiles')
       .select('id,full_name,role,avatar_url,created_at'),
     supabase.from('deliveries')
@@ -105,10 +105,12 @@ export default async function AdminOverviewPage() {
   const recentStores = recentStoresResult.data ?? []
 
   const storeMap = new Map(stores.map(store => [store.id,store]))
-  const activeStores = stores.filter(store => store.is_active).length
+  const activeStores = stores.filter(store => store.is_active && store.moderation_status === 'active').length
+  const pendingStores = stores.filter(store => store.moderation_status === 'pending').length
+  const pendingCouriers = couriers.filter(courier => courier.moderation_status === 'pending').length
   const storeOwners = profiles.filter(profile => profile.role === 'store_owner').length
-  const onlineCouriers = couriers.filter(courier => courier.is_online).length
-  const availableCouriers = couriers.filter(courier => courier.is_online && courier.is_available).length
+  const onlineCouriers = couriers.filter(courier => courier.moderation_status === 'active' && courier.is_online).length
+  const availableCouriers = couriers.filter(courier => courier.moderation_status === 'active' && courier.is_online && courier.is_available).length
   const activeDeliveries = todayDeliveries.filter(delivery => activeStatuses.includes(delivery.status)).length
   const searching = todayDeliveries.filter(delivery => ['available','negotiating'].includes(delivery.status)).length
   const completedToday = todayDeliveries.filter(delivery => delivery.status === 'completed').length
@@ -290,20 +292,36 @@ export default async function AdminOverviewPage() {
               <Icon name="chevron" size={16}/>
             </Link>
 
-            <Link href="/admin/entregadores" className={couriers.length-onlineCouriers ? 'info' : 'ok'}>
+            <Link href="/admin/entregadores" className={pendingCouriers ? 'warning' : couriers.length-onlineCouriers ? 'info' : 'ok'}>
               <span><Icon name="user" size={18}/></span>
               <div>
-                <strong>{onlineCouriers} de {couriers.length} entregadores online</strong>
-                <small>{availableCouriers} disponível(is) para novas ofertas.</small>
+                <strong>
+                  {pendingCouriers
+                    ? pendingCouriers + ' entregador(es) aguardando aprovação'
+                    : onlineCouriers + ' de ' + couriers.length + ' entregadores online'}
+                </strong>
+                <small>
+                  {pendingCouriers
+                    ? 'Há novos cadastros para análise administrativa.'
+                    : availableCouriers + ' disponível(is) para novas ofertas.'}
+                </small>
               </div>
               <Icon name="chevron" size={16}/>
             </Link>
 
-            <Link href="/admin/lojas" className={stores.length-activeStores ? 'warning' : 'ok'}>
+            <Link href="/admin/lojas" className={pendingStores ? 'warning' : stores.length-activeStores ? 'info' : 'ok'}>
               <span><Icon name="store" size={18}/></span>
               <div>
-                <strong>{activeStores} de {stores.length} lojas ativas</strong>
-                <small>{stores.length-activeStores ? `${stores.length-activeStores} operação(ões) pausada(s).` : 'Todas as operações estão ativas.'}</small>
+                <strong>
+                  {pendingStores
+                    ? pendingStores + ' loja(s) aguardando aprovação'
+                    : activeStores + ' de ' + stores.length + ' lojas ativas'}
+                </strong>
+                <small>
+                  {pendingStores
+                    ? 'Abra a gestão de lojas para analisar novos cadastros.'
+                    : 'Cadastros de lojas sem pendências de aprovação.'}
+                </small>
               </div>
               <Icon name="chevron" size={16}/>
             </Link>
