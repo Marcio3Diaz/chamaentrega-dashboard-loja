@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { createClient } from '@/lib/supabase/server'
+import { PublicPricingExperience } from '@/components/public-pricing-experience'
 
 const features = [
   {
@@ -61,7 +62,8 @@ export default async function PublicHomePage() {
           <a href="#como-funciona">Como funciona</a>
           <a href="#recursos">Recursos</a>
           <a href="#diferenciais">Diferenciais</a>
-          <a href="#planos">Para lojas</a>
+          <a href="#planos">Planos</a>
+          <a href="#faq">FAQ</a>
         </nav>
 
         <div className="public-header-actions">
@@ -326,43 +328,135 @@ export default async function PublicHomePage() {
         </div>
       </section>
 
-      <section className="public-plans" id="planos">
-        <div className="public-plans-head">
-          <div className="public-kicker"><i/> PARA NEGÓCIOS DE TODOS OS TAMANHOS</div>
-          <h2>Sua operação pode começar <span>com uma loja.</span></h2>
+      <section className="public-plans public-plans-v2" id="planos">
+        <div className="public-plans-head public-plans-head-v2">
+          <div>
+            <div className="public-kicker"><i/> PLANOS DE ASSINATURA</div>
+            <h2>Escolha a estrutura certa para <span>o seu momento.</span></h2>
+          </div>
           <p>
-            A mesma arquitetura permite crescer para várias unidades e equipes sem criar
-            um sistema separado para cada estabelecimento.
+            Comece com uma operação enxuta e evolua sem trocar de plataforma.
+            Os planos organizam recursos, volume e suporte; a tarifa operacional por entrega
+            pode variar conforme a condição comercial da loja.
           </p>
         </div>
 
-        <div className="public-plans-grid">
-          <article>
-            <small>COMEÇANDO</small>
-            <h3>Uma loja</h3>
-            <p>Para quem quer organizar a própria operação de entregas em um único painel.</p>
-            <ul>
-              <li>Portal completo da loja</li>
-              <li>Carteira e financeiro</li>
-              <li>Despacho e mapa</li>
-              <li>Rede de entregadores</li>
-            </ul>
-            <Link href="/cadastro">CRIAR MINHA LOJA</Link>
-          </article>
+        <PublicPricingExperience />
 
-          <article className="featured">
-            <div className="public-plan-label">ARQUITETURA MULTI-LOJA</div>
-            <small>CRESCENDO</small>
-            <h3>Rede de lojas</h3>
-            <p>Para empresas que precisam administrar mais de uma unidade dentro da mesma conta.</p>
-            <ul>
-              <li>Várias operações</li>
-              <li>Usuários e permissões</li>
-              <li>Dados separados por unidade</li>
-              <li>Visão administrativa</li>
-            </ul>
-            <Link href="/cadastro">COMEÇAR AGORA</Link>
-          </article>
+        <div className="public-pricing-note">
+          <Icon name="shield" size={18}/>
+          <p>
+            Os valores exibidos são a configuração comercial inicial do projeto e podem ser
+            alterados pela administração do ChamaEntrega. Custos das entregas são independentes
+            da mensalidade.
+          </p>
+        </div>
+      </section>
+
+      <section className="public-operations">
+        <div className="public-operations-copy">
+          <div className="public-kicker"><i/> MAIS CONTROLE NO DIA A DIA</div>
+          <h2>Não é só chamar um entregador.<br/><span>É operar melhor.</span></h2>
+          <p>
+            O ChamaEntrega conecta o pedido pronto à execução da entrega e mantém
+            informações, comunicação e histórico organizados do início ao fim.
+          </p>
+
+          <div className="public-operations-list">
+            <article>
+              <span><Icon name="lightning" size={20}/></span>
+              <div>
+                <strong>Despacho inteligente</strong>
+                <p>Publique apenas quando o pedido estiver pronto e encontre quem pode atender a corrida.</p>
+              </div>
+            </article>
+            <article>
+              <span><Icon name="map" size={20}/></span>
+              <div>
+                <strong>Acompanhamento operacional</strong>
+                <p>Mapa, status e histórico reunidos para reduzir ligações e mensagens fora de contexto.</p>
+              </div>
+            </article>
+            <article>
+              <span><Icon name="users" size={20}/></span>
+              <div>
+                <strong>Rede particular de entregadores</strong>
+                <p>Entregadores podem solicitar entrada na rede da loja e a empresa decide quem aprovar.</p>
+              </div>
+            </article>
+            <article>
+              <span><Icon name="chart" size={20}/></span>
+              <div>
+                <strong>Gestão para crescer</strong>
+                <p>Indicadores, usuários, unidades, integrações e histórico sem perder a separação de cada loja.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div className="public-operations-console">
+          <div className="public-console-top">
+            <span>OPERAÇÃO EM TEMPO REAL</span>
+            <b><i/> Sistema online</b>
+          </div>
+          <div className="public-console-metrics">
+            <article><small>Pedidos hoje</small><strong>24</strong><em>+18%</em></article>
+            <article><small>Em rota</small><strong>6</strong><em>agora</em></article>
+            <article><small>Entregadores</small><strong>12</strong><em>online</em></article>
+          </div>
+          <div className="public-console-flow">
+            <div className="done"><span>1</span><strong>Pedido pronto</strong><small>12:42</small></div>
+            <i/>
+            <div className="done"><span>2</span><strong>Entregador aceitou</strong><small>12:44</small></div>
+            <i/>
+            <div className="active"><span>3</span><strong>A caminho</strong><small>agora</small></div>
+            <i/>
+            <div><span>4</span><strong>Entregue</strong><small>previsto</small></div>
+          </div>
+          <div className="public-console-bottom">
+            <span><Icon name="chat" size={17}/> Chat da corrida</span>
+            <span><Icon name="money" size={17}/> Financeiro</span>
+            <span><Icon name="map" size={17}/> Mapa ao vivo</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="public-faq" id="faq">
+        <div className="public-faq-head">
+          <div>
+            <div className="public-kicker"><i/> DÚVIDAS FREQUENTES</div>
+            <h2>Antes de começar, <span>saiba como funciona.</span></h2>
+          </div>
+          <p>
+            Informações rápidas sobre cadastro, entregadores, cobrança e operação da plataforma.
+          </p>
+        </div>
+
+        <div className="public-faq-grid">
+          <details>
+            <summary>Preciso ter entregadores próprios?<Icon name="plus" size={17}/></summary>
+            <p>Não. A proposta é justamente permitir que a loja use a rede de entregadores parceiros e também organize sua rede particular.</p>
+          </details>
+          <details>
+            <summary>Quando a entrega é publicada?<Icon name="plus" size={17}/></summary>
+            <p>A loja cadastra o pedido e publica a corrida quando ele estiver realmente pronto, reduzindo espera desnecessária do entregador.</p>
+          </details>
+          <details>
+            <summary>A assinatura inclui o valor das entregas?<Icon name="plus" size={17}/></summary>
+            <p>Não. A mensalidade dá acesso aos recursos do plano. O custo ou tarifa operacional das entregas é tratado separadamente.</p>
+          </details>
+          <details>
+            <summary>Posso administrar mais de uma loja?<Icon name="plus" size={17}/></summary>
+            <p>Sim. Os planos superiores foram pensados para operações multi-loja, mantendo dados e permissões separados por unidade.</p>
+          </details>
+          <details>
+            <summary>O entregador pode entrar na rede da minha loja?<Icon name="plus" size={17}/></summary>
+            <p>Sim. Ele pode solicitar entrada pelo aplicativo e a loja aprova ou recusa pelo Portal da Loja.</p>
+          </details>
+          <details>
+            <summary>Posso acompanhar a entrega em tempo real?<Icon name="plus" size={17}/></summary>
+            <p>Sim. O projeto inclui mapa operacional, status da corrida e atualização de localização enviada pelo aplicativo do entregador.</p>
+          </details>
         </div>
       </section>
 
@@ -380,29 +474,79 @@ export default async function PublicHomePage() {
         </Link>
       </section>
 
-      <footer className="public-footer">
-        <div className="public-footer-brand">
-          <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega"/>
-          <p>Logística conectada para lojas e entregadores.</p>
+      <footer className="public-footer public-footer-v2">
+        <div className="public-footer-main">
+          <div className="public-footer-brand public-footer-brand-v2">
+            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega"/>
+            <p>
+              Tecnologia para conectar lojas, entregadores e clientes em uma operação
+              de entrega mais organizada, visível e profissional.
+            </p>
+
+            <div className="public-footer-status">
+              <span><i/> Plataforma online</span>
+              <strong>Chamou, chegou.</strong>
+            </div>
+          </div>
+
+          <div className="public-footer-column">
+            <strong>Plataforma</strong>
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#recursos">Recursos</a>
+            <a href="#diferenciais">Diferenciais</a>
+            <a href="#planos">Planos e preços</a>
+            <a href="#faq">Perguntas frequentes</a>
+          </div>
+
+          <div className="public-footer-column">
+            <strong>Para lojas</strong>
+            <Link href="/cadastro">Criar minha loja</Link>
+            <Link href="/login">Acessar Portal da Loja</Link>
+            <a href="#planos">Comparar planos</a>
+            <a href="#recursos">Despacho inteligente</a>
+            <a href="#recursos">Mapa ao vivo</a>
+          </div>
+
+          <div className="public-footer-column">
+            <strong>Operação</strong>
+            <a href="#recursos">Rede de entregadores</a>
+            <a href="#recursos">Carteira pré-paga</a>
+            <a href="#recursos">Chat operacional</a>
+            <a href="#recursos">Integrações</a>
+            <a href="#como-funciona">Fluxo da entrega</a>
+          </div>
+
+          <div className="public-footer-column">
+            <strong>Conta e suporte</strong>
+            <Link href="/login">Entrar</Link>
+            <Link href="/cadastro">Abrir conta</Link>
+            <a href="#faq">Central de dúvidas</a>
+            <a href="#planos">Condições comerciais</a>
+            <span>Atendimento para lojas cadastradas pelo próprio Portal.</span>
+          </div>
         </div>
 
-        <div>
-          <strong>Produto</strong>
-          <a href="#como-funciona">Como funciona</a>
-          <a href="#recursos">Recursos</a>
-          <a href="#diferenciais">Diferenciais</a>
+        <div className="public-footer-cta">
+          <div>
+            <span><Icon name="lightning" size={20}/></span>
+            <div>
+              <small>PRONTO PARA COMEÇAR?</small>
+              <strong>Crie sua operação e publique sua primeira entrega.</strong>
+            </div>
+          </div>
+          <Link href="/cadastro" className="public-primary">
+            CRIAR MINHA LOJA <Icon name="arrow" size={16}/>
+          </Link>
         </div>
 
-        <div>
-          <strong>Para lojas</strong>
-          <Link href="/cadastro">Criar conta</Link>
-          <Link href="/login">Entrar</Link>
-          <a href="#planos">Soluções</a>
-        </div>
-
-        <div className="public-footer-bottom">
-          <span>© 2026 ChamaEntrega.</span>
-          <span>Chamou, chegou.</span>
+        <div className="public-footer-bottom public-footer-bottom-v2">
+          <span>© 2026 ChamaEntrega. Todos os direitos reservados.</span>
+          <div>
+            <a href="#planos">Planos</a>
+            <a href="#faq">Ajuda</a>
+            <Link href="/login">Portal da Loja</Link>
+          </div>
+          <strong>CHAMOU, CHEGOU.</strong>
         </div>
       </footer>
     </main>
