@@ -345,6 +345,7 @@ export function LiveCourierMap({
           opacity: .92,
           lineCap: 'round',
           lineJoin: 'round',
+          className: 'ce-live-route-line',
         },
       ).addTo(mapRef.current)
     }
