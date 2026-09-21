@@ -152,13 +152,6 @@ export function DashboardShell({
                   </button>
                 ))}
               </div>
-
-              {role === 'admin' ? (
-                <Link href="/admin/lojas" className="store-switcher-admin">
-                  <Icon name="gear" size={15}/>
-                  Gerenciar todas as lojas
-                </Link>
-              ) : null}
             </div>
           ) : null}
         </div>
@@ -170,19 +163,12 @@ export function DashboardShell({
               <span>{label}</span>
             </Link>
           ))}
-
-          {role === 'admin' ? (
-            <Link href="/admin" className="dashboard-admin-link">
-              <span className="nav-icon"><Icon name="shield" size={19}/></span>
-              <span>Admin ChamaEntrega</span>
-            </Link>
-          ) : null}
         </nav>
 
         <div className="sidebar-foot">
           <div className="account-box">
             <span className="account-avatar">{storeName.slice(0,1).toUpperCase()}</span>
-            <span><strong>Minha conta</strong><small>{role === 'admin' ? 'Administrador ChamaEntrega' : 'Administrador'}</small></span>
+            <span><strong>Minha conta</strong><small>Administrador da loja</small></span>
           </div>
           <form action={signOutAction}><button className="signout">↪&nbsp; Sair da conta</button></form>
         </div>
@@ -207,7 +193,7 @@ export function DashboardShell({
                 logoUrl={storeLogoUrl}
                 variant="topbar"
               />
-              <span><strong>{storeName}</strong><small>{role === 'admin' ? 'Admin ChamaEntrega' : 'Administrador'}</small></span>
+              <span><strong>{storeName}</strong><small>Administrador da loja</small></span>
               <span>⌄</span>
             </div>
           </div>
