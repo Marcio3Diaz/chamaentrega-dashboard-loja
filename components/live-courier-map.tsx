@@ -33,6 +33,15 @@ export type LiveDelivery = {
   estimatedMinutes: number | null
 }
 
+type LiveRoutePoint = {
+  id: string
+  deliveryId: string
+  courierId: string
+  latitude: number
+  longitude: number
+  recordedAt: string
+}
+
 type Props = {
   storeId: string
   storeName: string
@@ -162,6 +171,9 @@ export function LiveCourierMap({
   const leafletRef = useRef<any>(null)
   const courierMarkersRef = useRef<Map<string,any>>(new Map())
   const storeMarkerRef = useRef<any>(null)
+  const routeLineRef = useRef<any>(null)
+  const pickupMarkerRef = useRef<any>(null)
+  const destinationMarkerRef = useRef<any>(null)
   const firstFitRef = useRef(false)
 
   const [mapReady, setMapReady] = useState(false)
@@ -178,6 +190,7 @@ export function LiveCourierMap({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [liveState, setLiveState] = useState('CONECTANDO')
   const [now, setNow] = useState(Date.now())
+  const [routePoints, setRoutePoints] = useState<LiveRoutePoint[]>([])
 
   const deliveryByCourier = useMemo(() => {
     const map = new Map<string,LiveDelivery>()
@@ -206,6 +219,153 @@ export function LiveCourierMap({
     available: couriers.filter(item => item.isOnline && item.isAvailable).length,
     routes: couriers.filter(item => deliveryByCourier.has(item.id)).length,
   }), [couriers, deliveryByCourier])
+
+
+  useEffect(() => {
+    const deliveryId = selectedDelivery?.id
+    setRoutePoints([])
+
+    if (!deliveryId) return
+
+    let cancelled = false
+
+    const loadRoute = async () => {
+      const { data, error } = await supabase
+        .from('delivery_location_points')
+        .select('id,delivery_id,courier_id,latitude,longitude,recorded_at')
+        .eq('delivery_id', deliveryId)
+        .order('recorded_at', { ascending: true })
+        .limit(1500)
+
+      if (cancelled || error) return
+
+      setRoutePoints((data ?? []).map((item: any) => ({
+        id: item.id,
+        deliveryId: item.delivery_id,
+        courierId: item.courier_id,
+        latitude: Number(item.latitude),
+        longitude: Number(item.longitude),
+        recordedAt: item.recorded_at,
+      })))
+    }
+
+    void loadRoute()
+
+    const channel = supabase
+      .channel(`delivery-live-route-${deliveryId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'delivery_location_points',
+          filter: `delivery_id=eq.${deliveryId}`,
+        },
+        payload => {
+          const item = payload.new as any
+
+          setRoutePoints(current => {
+            if (current.some(point => point.id === item.id)) return current
+
+            return [...current, {
+              id: item.id,
+              deliveryId: item.delivery_id,
+              courierId: item.courier_id,
+              latitude: Number(item.latitude),
+              longitude: Number(item.longitude),
+              recordedAt: item.recorded_at,
+            }]
+          })
+        },
+      )
+      .subscribe()
+
+    return () => {
+      cancelled = true
+      void supabase.removeChannel(channel)
+    }
+  }, [selectedDelivery?.id, supabase])
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !leafletRef.current) return
+
+    const L = leafletRef.current
+
+    routeLineRef.current?.remove()
+    pickupMarkerRef.current?.remove()
+    destinationMarkerRef.current?.remove()
+    routeLineRef.current = null
+    pickupMarkerRef.current = null
+    destinationMarkerRef.current = null
+
+    if (!selectedDelivery) return
+
+    if (
+      selectedDelivery.pickupLatitude != null &&
+      selectedDelivery.pickupLongitude != null
+    ) {
+      pickupMarkerRef.current = L.circleMarker(
+        [selectedDelivery.pickupLatitude, selectedDelivery.pickupLongitude],
+        {
+          radius: 7,
+          color: '#ffb800',
+          weight: 3,
+          fillColor: '#10151a',
+          fillOpacity: 1,
+        },
+      )
+        .bindTooltip('Retirada', { direction: 'top' })
+        .addTo(mapRef.current)
+    }
+
+    if (
+      selectedDelivery.deliveryLatitude != null &&
+      selectedDelivery.deliveryLongitude != null
+    ) {
+      destinationMarkerRef.current = L.circleMarker(
+        [selectedDelivery.deliveryLatitude, selectedDelivery.deliveryLongitude],
+        {
+          radius: 7,
+          color: '#4eb7ff',
+          weight: 3,
+          fillColor: '#10151a',
+          fillOpacity: 1,
+        },
+      )
+        .bindTooltip('Destino', { direction: 'top' })
+        .addTo(mapRef.current)
+    }
+
+    if (routePoints.length >= 2) {
+      routeLineRef.current = L.polyline(
+        routePoints.map(point => [point.latitude, point.longitude]),
+        {
+          color: '#ffb800',
+          weight: 5,
+          opacity: .92,
+          lineCap: 'round',
+          lineJoin: 'round',
+        },
+      ).addTo(mapRef.current)
+    }
+
+    return () => {
+      routeLineRef.current?.remove()
+      pickupMarkerRef.current?.remove()
+      destinationMarkerRef.current?.remove()
+      routeLineRef.current = null
+      pickupMarkerRef.current = null
+      destinationMarkerRef.current = null
+    }
+  }, [
+    mapReady,
+    routePoints,
+    selectedDelivery?.id,
+    selectedDelivery?.pickupLatitude,
+    selectedDelivery?.pickupLongitude,
+    selectedDelivery?.deliveryLatitude,
+    selectedDelivery?.deliveryLongitude,
+  ])
 
   const refreshNetwork = useCallback(async () => {
     const { data: networkRows } = await supabase
@@ -547,6 +707,14 @@ export function LiveCourierMap({
                         ? selectedCourier.isAvailable ? 'Disponível' : 'Online'
                         : 'Offline'}
                   </span>
+                  {selectedDelivery ? (
+                    <span className="map-tracking-status">
+                      <i />
+                      {routePoints.length > 1
+                        ? `Rastreando ao vivo · ${routePoints.length} pontos`
+                        : 'Aguardando próximo ponto do GPS'}
+                    </span>
+                  ) : null}
                 </div>
                 {selectedCourier.currentLatitude != null && selectedCourier.currentLongitude != null ? (
                   <button type="button" onClick={() => focusCourier(selectedCourier)}>Centralizar</button>
