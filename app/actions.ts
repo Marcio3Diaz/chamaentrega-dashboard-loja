@@ -62,7 +62,7 @@ export async function setActiveStoreAction(storeId: string) {
     maxAge:60 * 60 * 24 * 365,
   })
 
-  revalidatePath('/', 'layout')
+  revalidatePath('/painel', 'layout')
 
   return { ok:true }
 }
