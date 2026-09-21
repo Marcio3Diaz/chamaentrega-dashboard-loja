@@ -41,7 +41,8 @@ export async function requireStore(): Promise<{
     .order('is_active', { ascending: false })
     .order('created_at', { ascending: true })
 
-  if (storeError || !stores?.length) redirect('/login?error=loja')
+  if (storeError) redirect('/login?error=loja')
+  if (!stores?.length) redirect('/onboarding')
 
   const cookieStore = (await cookies()).get(ACTIVE_STORE_COOKIE)?.value
   const selected =
