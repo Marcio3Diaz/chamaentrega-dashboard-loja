@@ -24,6 +24,13 @@ export async function createDeliveryAction(_: CreateState, formData: FormData): 
   }
 
   const published = intent === 'publish'
+  const deliveryLatitude = n(formData.get('delivery_latitude'))
+  const deliveryLongitude = n(formData.get('delivery_longitude'))
+
+  if (published && (deliveryLatitude === null || deliveryLongitude === null)) {
+    return { error:'Localize o endereço antes de publicar a entrega.' }
+  }
+
   const now = new Date()
   const expires = new Date(now.getTime() + 5 * 60 * 1000)
   const supabase = await createClient()
@@ -60,8 +67,8 @@ export async function createDeliveryAction(_: CreateState, formData: FormData): 
       pickup_latitude: store.latitude,
       pickup_longitude: store.longitude,
       delivery_address: deliveryAddress,
-      delivery_latitude: n(formData.get('delivery_latitude')),
-      delivery_longitude: n(formData.get('delivery_longitude')),
+      delivery_latitude: deliveryLatitude,
+      delivery_longitude: deliveryLongitude,
       delivery_fee: deliveryFee,
       pickup_distance_km: n(formData.get('pickup_distance_km')),
       delivery_distance_km: n(formData.get('delivery_distance_km')),
@@ -105,5 +112,6 @@ export async function createDeliveryAction(_: CreateState, formData: FormData): 
   revalidatePath('/')
   revalidatePath('/pedidos')
   revalidatePath('/entregas')
+  revalidatePath('/despacho')
   redirect(storeOrderId ? '/pedidos' : '/entregas')
 }
