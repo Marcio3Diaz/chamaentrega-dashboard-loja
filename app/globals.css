@@ -9968,3 +9968,46 @@ html[data-theme="light"] .courier-copy small {
   border-radius: 50% !important;
   padding: 0 !important;
 }
+
+
+/* =================================================================
+   MAPA AO VIVO — trilha real do entregador
+   ================================================================= */
+.ce-live-route-line {
+  filter:
+    drop-shadow(0 0 3px rgba(255,184,0,.72))
+    drop-shadow(0 0 8px rgba(255,184,0,.24));
+}
+
+.map-tracking-status {
+  width: fit-content;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 4px 7px;
+  border: 1px solid rgba(32,210,122,.18);
+  border-radius: 999px;
+  color: #75e4a7 !important;
+  background: rgba(32,210,122,.07);
+  font-size: 7px !important;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.map-tracking-status > i {
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  min-height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #20d27a;
+  box-shadow: 0 0 8px rgba(32,210,122,.9);
+}
+
+html[data-theme="light"] .map-tracking-status {
+  color: #13854c !important;
+  border-color: rgba(19,133,76,.18);
+  background: rgba(32,210,122,.09);
+}
