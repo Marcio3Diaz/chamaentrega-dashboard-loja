@@ -82,11 +82,11 @@ const plans = [
   },
 ]
 
-const outcomes = [
-  ['LM','Loja piloto','Mais controle sobre a saída dos pedidos e sobre quem atende cada corrida.'],
-  ['RR','Rede regional','Entregadores podem circular entre redes de lojas próximas e ampliar a oferta.'],
-  ['OP','Operação própria','A loja consegue organizar sua própria logística sem depender de um único canal.'],
-  ['CE','ChamaEntrega','Quanto mais negócios e entregadores entram, mais forte fica a rede local.'],
+const trustCards = [
+  ['LO','Loja organizada','Mais visibilidade sobre pedidos, entregadores e andamento das corridas.'],
+  ['EP','Entregador parceiro','Mais oportunidades de receber ofertas de diferentes redes próximas.'],
+  ['RR','Rede regional','Restaurantes vizinhos ajudam a ampliar a base de entregadores da região.'],
+  ['OP','Operação própria','A loja ganha uma alternativa para estruturar sua própria logística de entrega.'],
 ]
 
 export default async function PublicHomePage() {
@@ -285,7 +285,7 @@ export default async function PublicHomePage() {
             ))}
           </div>
 
-          <div className="ce-plan-art">
+          <div className="ce-plan-art" aria-label="Entregador ChamaEntrega representando o crescimento da rede">
             <div className="ce-plan-art-copy">
               <strong>Juntos,<br/>o delivery<br/>da sua região<br/>vai mais longe!</strong>
               <span><Icon name="store" size={15}/> Mais negócios</span>
@@ -297,20 +297,23 @@ export default async function PublicHomePage() {
         </div>
       </section>
 
-      <section className="ce-outcomes">
+      <section className="ce-testimonials">
         <div className="ce-section-title compact">
-          <h2>O que a rede busca entregar</h2>
-          <p>Benefícios esperados para quem participa do ecossistema.</p>
+          <div>
+            <h2>Quem entra na rede, <span>ganha força</span></h2>
+            <p>Uma experiência pensada para lojas e entregadores trabalharem de forma mais conectada.</p>
+          </div>
+          <span className="ce-testimonials-caption">Uma rede cresce quando todos ajudam a fortalecê-la.</span>
         </div>
 
-        <div className="ce-outcomes-grid">
-          {outcomes.map(([initials,title,text]) => (
+        <div className="ce-testimonials-grid">
+          {trustCards.map(([initials,title,text]) => (
             <article key={title}>
-              <span>{initials}</span>
+              <span className="ce-testimonial-avatar">{initials}</span>
               <div>
                 <strong>{title}</strong>
-                <p>“{text}”</p>
-                <em>★★★★★</em>
+                <p>{text}</p>
+                <em>CHAMAENTREGA</em>
               </div>
             </article>
           ))}
