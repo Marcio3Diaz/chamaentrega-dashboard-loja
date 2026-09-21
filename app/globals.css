@@ -15466,3 +15466,370 @@ html[data-theme="light"] .store-switcher-avatar{
     grid-template-columns:1fr;
   }
 }
+
+
+/* =================================================================
+   ADMIN — APROVAÇÕES, SUSPENSÃO E BANIMENTO
+   ================================================================= */
+.admin-approval-strip{
+  min-height:86px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-top:14px;
+  padding:14px 16px;
+  border:1px solid rgba(255,184,0,.24);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 90% 50%,rgba(255,184,0,.08),transparent 36%),
+    linear-gradient(135deg,#111a20,#0b1419);
+}
+.admin-approval-strip-copy{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.admin-approval-strip-copy>span{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(255,184,0,.11);
+  color:#ffbd12;
+}
+.admin-approval-strip-copy small,
+.admin-approval-strip-copy strong,
+.admin-approval-strip-copy p{
+  display:block;
+}
+.admin-approval-strip-copy small{
+  color:#ffbd12;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.10em;
+}
+.admin-approval-strip-copy strong{
+  margin-top:3px;
+  color:#eef3f5;
+  font-size:14px;
+}
+.admin-approval-strip-copy p{
+  margin:4px 0 0;
+  color:#7c8a94;
+  font-size:10px;
+}
+.admin-approval-strip-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.admin-approval-strip-actions a{
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 12px;
+  border:1px solid rgba(255,184,0,.24);
+  border-radius:9px;
+  background:rgba(255,184,0,.07);
+  color:#ffbd12;
+  font-size:10px;
+  font-weight:900;
+}
+.admin-approval-strip-actions a span{
+  min-width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#ffbd12;
+  color:#111;
+  font-size:9px;
+}
+.admin-approval-callout{
+  min-width:230px;
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:10px;
+  align-items:center;
+  padding:12px 14px;
+  border:1px solid rgba(255,184,0,.22);
+  border-radius:12px;
+  background:rgba(255,184,0,.055);
+}
+.admin-approval-callout>span{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:rgba(255,184,0,.10);
+  color:#ffbd12;
+}
+.admin-approval-callout small,
+.admin-approval-callout strong{
+  display:block;
+}
+.admin-approval-callout small{
+  color:#9d8650;
+  font-size:8px;
+  font-weight:900;
+}
+.admin-approval-callout strong{
+  margin-top:4px;
+  font-size:12px;
+}
+.admin-moderation-status{
+  display:inline-flex!important;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  min-height:27px;
+  padding:0 9px;
+  border-radius:999px;
+  font-size:9px!important;
+  font-weight:900;
+}
+.admin-moderation-status i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:currentColor;
+}
+.admin-moderation-status.pending{
+  color:#ffbd12;
+  background:rgba(255,184,0,.10);
+}
+.admin-moderation-status.active{
+  color:#31df85;
+  background:rgba(41,219,128,.10);
+}
+.admin-moderation-status.suspended{
+  color:#ff9e39;
+  background:rgba(255,145,30,.10);
+}
+.admin-moderation-status.banned{
+  color:#ff6570;
+  background:rgba(255,83,94,.10);
+}
+.admin-moderation-status.rejected{
+  color:#a48bff;
+  background:rgba(140,112,255,.10);
+}
+.admin-row-button.success{
+  border:1px solid rgba(41,219,128,.24)!important;
+  background:rgba(41,219,128,.07)!important;
+  color:#35df88!important;
+}
+.admin-row-button.warning{
+  border:1px solid rgba(255,166,50,.24)!important;
+  background:rgba(255,166,50,.07)!important;
+  color:#ffad49!important;
+}
+.admin-row-button.danger{
+  border:1px solid rgba(255,83,94,.25)!important;
+  background:rgba(255,83,94,.07)!important;
+  color:#ff747e!important;
+}
+.admin-inline-message{
+  margin:10px 16px 0;
+  padding:10px 12px;
+  border:1px solid rgba(255,184,0,.14);
+  border-radius:9px;
+  background:rgba(255,184,0,.04);
+  color:#e8d596;
+  font-size:10px;
+}
+.admin-pending-summary{
+  margin-left:12px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#ffbd12;
+}
+.admin-pending-summary i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#ffbd12;
+  box-shadow:0 0 8px rgba(255,189,18,.55);
+}
+.moderation-store-row{
+  grid-template-columns:minmax(250px,1.4fr) 150px 180px 210px minmax(260px,auto)!important;
+}
+.moderation-state-cell>span:last-child{
+  max-width:210px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.moderation-actions{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.admin-courier-toolbar{
+  display:grid;
+  grid-template-columns:minmax(320px,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid rgba(108,149,174,.08);
+}
+.admin-courier-toolbar .admin-search{
+  min-height:44px;
+  padding:0 12px;
+  border-radius:11px;
+}
+.admin-courier-list-v2{
+  display:grid;
+}
+.admin-courier-row-v2{
+  min-height:118px;
+  display:grid;
+  grid-template-columns:minmax(240px,1.4fr) 120px 180px 190px 160px minmax(200px,auto);
+  gap:12px;
+  align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid rgba(106,148,171,.08);
+}
+.admin-courier-row-v2:hover{
+  background:rgba(255,255,255,.018);
+}
+.admin-courier-id{
+  display:grid;
+  grid-template-columns:54px 1fr;
+  gap:11px;
+  align-items:center;
+}
+.admin-courier-avatar{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:50%;
+  background:linear-gradient(145deg,#ffb700,#ffd557);
+  color:#111;
+  font-size:15px;
+  font-weight:950;
+}
+.admin-courier-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.admin-courier-id strong,
+.admin-courier-id small,
+.admin-courier-id em,
+.admin-courier-stat small,
+.admin-courier-stat strong,
+.admin-courier-stat span,
+.admin-courier-current small,
+.admin-courier-current strong,
+.admin-courier-current span{
+  display:block;
+}
+.admin-courier-id strong{font-size:12px}
+.admin-courier-id small{
+  margin-top:4px;
+  color:#80909a;
+  font-size:9px;
+}
+.admin-courier-id em{
+  margin-top:5px;
+  color:#61717b;
+  font-size:8.5px;
+  font-style:normal;
+}
+.admin-courier-stat small,
+.admin-courier-current small{
+  color:#677782;
+  font-size:8.5px;
+  font-weight:800;
+}
+.admin-courier-stat strong,
+.admin-courier-current strong{
+  margin-top:5px;
+  color:#e9eef1;
+  font-size:11px;
+}
+.admin-courier-stat span,
+.admin-courier-current span{
+  margin-top:4px;
+  color:#72818b;
+  font-size:8.5px;
+}
+.admin-courier-moderation{
+  display:grid;
+  gap:5px;
+}
+.admin-courier-moderation small{
+  max-width:150px;
+  color:#788690;
+  font-size:8px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.courier-moderation-actions{
+  min-width:200px;
+}
+.moderation-filter-chips{
+  flex-wrap:wrap;
+}
+.moderation-filter-chips button.active.pending{
+  color:#ffbd12;
+}
+.moderation-filter-chips button.active.suspended{
+  color:#ff9e39;
+}
+.moderation-filter-chips button.active.banned{
+  color:#ff6570;
+}
+
+@media(max-width:1380px){
+  .moderation-store-row{
+    grid-template-columns:minmax(230px,1.3fr) 130px 160px 180px!important;
+  }
+  .moderation-store-row .moderation-actions{
+    grid-column:1/-1;
+    justify-content:flex-start;
+  }
+  .admin-courier-row-v2{
+    grid-template-columns:minmax(230px,1.3fr) 110px 170px 180px;
+  }
+  .admin-courier-moderation{
+    grid-column:2;
+  }
+  .courier-moderation-actions{
+    grid-column:3/5;
+    justify-content:flex-end;
+  }
+}
+@media(max-width:900px){
+  .admin-approval-strip{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .admin-courier-toolbar{
+    grid-template-columns:1fr;
+  }
+  .admin-courier-row-v2,
+  .moderation-store-row{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .admin-courier-id,
+  .admin-store-identity{
+    grid-column:1/-1;
+  }
+  .courier-moderation-actions,
+  .moderation-store-row .moderation-actions{
+    grid-column:1/-1;
+    justify-content:flex-start;
+  }
+}
