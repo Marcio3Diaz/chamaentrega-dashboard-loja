@@ -292,14 +292,11 @@ export default async function PublicHomePage() {
             ))}
           </div>
 
-          <div className="ce-plan-art" aria-label="Entregador ChamaEntrega representando o crescimento da rede">
-            <div className="ce-plan-art-copy">
-              <strong><em>Juntos,</em><br/>o delivery<br/>da sua região<br/>vai mais longe!</strong>
-              <span><Icon name="store" size={18}/> Mais negócios</span>
-              <span><Icon name="users" size={18}/> Mais entregas</span>
-              <span><Icon name="chart" size={18}/> Mais renda</span>
-              <span><Icon name="map" size={18}/> Uma região mais forte</span>
-            </div>
+          <div className="ce-plan-art ce-plan-art-image" aria-label="Card promocional do ChamaEntrega">
+            <img
+              src="/images/planos-card-direita.png"
+              alt="Juntos, o delivery da sua região vai mais longe"
+            />
           </div>
         </div>
       </section>
