@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Icon } from '@/components/icon'
+import {
+  AdminCouriersPanel,
+  type AdminCourierRow,
+} from '@/components/admin-couriers-panel'
 
 const activeStatuses = [
   'accepted',
@@ -9,16 +13,6 @@ const activeStatuses = [
   'at_dropoff',
 ]
 
-function dateTime(value:string|null) {
-  if (!value) return 'Sem GPS'
-  return new Intl.DateTimeFormat('pt-BR',{
-    day:'2-digit',
-    month:'2-digit',
-    hour:'2-digit',
-    minute:'2-digit',
-  }).format(new Date(value))
-}
-
 export default async function AdminCouriersPage() {
   const supabase = await createClient()
 
@@ -27,10 +21,11 @@ export default async function AdminCouriersPage() {
     profilesResult,
     deliveriesResult,
     storesResult,
+    verificationsResult,
   ] = await Promise.all([
     supabase
       .from('couriers')
-      .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at,created_at')
+      .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at,created_at,moderation_status,moderation_reason,approved_at')
       .order('created_at',{ascending:false}),
     supabase
       .from('profiles')
@@ -45,148 +40,135 @@ export default async function AdminCouriersPage() {
     supabase
       .from('stores')
       .select('id,name'),
+    supabase
+      .from('courier_verifications')
+      .select('courier_id,status'),
   ])
 
   const profiles = new Map((profilesResult.data ?? []).map(profile => [profile.id,profile]))
   const stores = new Map((storesResult.data ?? []).map(store => [store.id,store.name]))
+  const verifications = new Map(
+    (verificationsResult.data ?? []).map(item => [item.courier_id,item.status]),
+  )
   const activeDeliveryByCourier = new Map<string,any>()
 
   for (const delivery of deliveriesResult.data ?? []) {
-    if (!delivery.assigned_courier_id || activeDeliveryByCourier.has(delivery.assigned_courier_id)) continue
+    if (!delivery.assigned_courier_id || activeDeliveryByCourier.has(delivery.assigned_courier_id)) {
+      continue
+    }
     activeDeliveryByCourier.set(delivery.assigned_courier_id,delivery)
   }
 
-  const couriers = couriersResult.data ?? []
-  const online = couriers.filter(courier => courier.is_online).length
-  const available = couriers.filter(courier => courier.is_online && courier.is_available).length
-  const onRoute = couriers.filter(courier => activeDeliveryByCourier.has(courier.id)).length
-  const averageRating = couriers.length
-    ? couriers.reduce((sum,courier) => sum+Number(courier.rating ?? 0),0)/couriers.length
-    : 0
+  const rows:AdminCourierRow[] = (couriersResult.data ?? []).map(courier => {
+    const profile = profiles.get(courier.id)
+    const delivery = activeDeliveryByCourier.get(courier.id)
+    const storeName = delivery ? stores.get(delivery.store_id) : null
+
+    return {
+      id:courier.id,
+      fullName:profile?.full_name?.trim() || 'Entregador parceiro',
+      phone:profile?.phone ?? null,
+      avatarUrl:profile?.avatar_url ?? null,
+      vehicleType:courier.vehicle_type,
+      isOnline:Boolean(courier.is_online),
+      isAvailable:Boolean(courier.is_available),
+      rating:Number(courier.rating ?? 0),
+      totalDeliveries:Number(courier.total_deliveries ?? 0),
+      currentLatitude:courier.current_latitude == null ? null : Number(courier.current_latitude),
+      currentLongitude:courier.current_longitude == null ? null : Number(courier.current_longitude),
+      lastLocationAt:courier.last_location_at,
+      createdAt:courier.created_at,
+      moderationStatus:courier.moderation_status,
+      moderationReason:courier.moderation_reason,
+      approvedAt:courier.approved_at,
+      verificationStatus:verifications.get(courier.id) ?? null,
+      activeDelivery:delivery ? {
+        storeName:storeName ?? 'Loja',
+        customerName:delivery.customer_name ?? 'Cliente',
+        status:delivery.status,
+      } : null,
+    }
+  })
+
+  const pending = rows.filter(item => item.moderationStatus === 'pending').length
+  const active = rows.filter(item => item.moderationStatus === 'active').length
+  const suspended = rows.filter(item => item.moderationStatus === 'suspended').length
+  const banned = rows.filter(item => item.moderationStatus === 'banned').length
+  const online = rows.filter(item => item.moderationStatus === 'active' && item.isOnline).length
+  const available = rows.filter(item =>
+    item.moderationStatus === 'active' &&
+    item.isOnline &&
+    item.isAvailable
+  ).length
 
   return (
-    <div className="admin-page">
-      <section className="admin-page-head">
+    <div className="admin-page admin-couriers-v2-page">
+      <section className="admin-page-head admin-page-head-v2">
         <div>
           <div className="admin-eyebrow">REDE DE ENTREGADORES</div>
-          <h1>Entregadores</h1>
-          <p>Acompanhe disponibilidade, avaliações, localização e corridas ativas da rede.</p>
+          <h1>Gestão de entregadores</h1>
+          <p>
+            Aprove novos cadastros e controle quem pode operar na plataforma.
+            Suspensões e banimentos desligam o entregador da operação imediatamente.
+          </p>
         </div>
+
+        {pending > 0 ? (
+          <div className="admin-approval-callout">
+            <span><Icon name="clock" size={21}/></span>
+            <div>
+              <small>AGUARDANDO ANÁLISE</small>
+              <strong>{pending} novo{pending===1?' cadastro':'s cadastros'}</strong>
+            </div>
+          </div>
+        ) : null}
       </section>
 
-      <section className="admin-compact-metrics">
+      <section className="admin-compact-metrics admin-store-metrics-v2">
         <article>
-          <small>Cadastrados</small>
-          <strong>{couriers.length}</strong>
-          <span>entregadores na plataforma</span>
+          <span className="metric-icon gold"><Icon name="users" size={21}/></span>
+          <div>
+            <small>Total de entregadores</small>
+            <strong>{rows.length}</strong>
+            <span>cadastros na plataforma</span>
+          </div>
         </article>
         <article>
-          <small>Online agora</small>
-          <strong>{online}</strong>
-          <span>conectados ao aplicativo</span>
+          <span className="metric-icon gold"><Icon name="clock" size={21}/></span>
+          <div>
+            <small>Pendentes</small>
+            <strong>{pending}</strong>
+            <span>aguardando aprovação</span>
+          </div>
         </article>
         <article>
-          <small>Disponíveis</small>
-          <strong>{available}</strong>
-          <span>prontos para novas ofertas</span>
+          <span className="metric-icon green"><Icon name="check" size={21}/></span>
+          <div>
+            <small>Ativos</small>
+            <strong>{active}</strong>
+            <span>{online} online · {available} disponíveis</span>
+          </div>
         </article>
         <article>
-          <small>Em rota</small>
-          <strong>{onRoute}</strong>
-          <span>com entrega ativa</span>
-        </article>
-        <article>
-          <small>Avaliação média</small>
-          <strong>{averageRating ? averageRating.toFixed(1) : '—'}</strong>
-          <span>média da rede</span>
+          <span className="metric-icon blue"><Icon name="shield" size={21}/></span>
+          <div>
+            <small>Moderados</small>
+            <strong>{suspended+banned}</strong>
+            <span>{suspended} suspensos · {banned} banidos</span>
+          </div>
         </article>
       </section>
 
-      <section className="admin-card admin-list-card">
+      <section className="admin-card admin-list-card admin-list-card-v2">
         <header>
           <div>
-            <span className="admin-card-kicker">ENTREGADORES</span>
-            <h2>Rede cadastrada</h2>
+            <span className="admin-card-kicker">MODERAÇÃO DA REDE</span>
+            <h2>Cadastros e permissões</h2>
           </div>
           <span className="admin-live-pill"><i/> {online} ONLINE</span>
         </header>
 
-        <div className="admin-courier-list">
-          {couriers.map(courier => {
-            const profile = profiles.get(courier.id)
-            const delivery = activeDeliveryByCourier.get(courier.id)
-            const storeName = delivery ? stores.get(delivery.store_id) : null
-
-            return (
-              <article className="admin-courier-row" key={courier.id}>
-                <div className="admin-courier-id">
-                  <span className="admin-courier-avatar">
-                    {profile?.avatar_url
-                      ? <img src={profile.avatar_url} alt=""/>
-                      : (profile?.full_name?.slice(0,1) ?? 'E')}
-                  </span>
-                  <span>
-                    <strong>{profile?.full_name ?? 'Entregador parceiro'}</strong>
-                    <small>{profile?.phone ?? 'Telefone não informado'}</small>
-                    <em>
-                      {courier.vehicle_type === 'bike' ? 'Bicicleta' : 'Motocicleta'}
-                    </em>
-                  </span>
-                </div>
-
-                <div className="admin-courier-stat">
-                  <small>Avaliação</small>
-                  <strong>★ {Number(courier.rating ?? 0).toFixed(1)}</strong>
-                  <span>{courier.total_deliveries ?? 0} entregas</span>
-                </div>
-
-                <div className="admin-courier-stat">
-                  <small>GPS</small>
-                  <strong>{courier.current_latitude != null ? 'Disponível' : 'Sem posição'}</strong>
-                  <span>{dateTime(courier.last_location_at)}</span>
-                </div>
-
-                <div className="admin-courier-current">
-                  {delivery ? (
-                    <>
-                      <small>CORRIDA ATIVA</small>
-                      <strong>{storeName ?? 'Loja'}</strong>
-                      <span>{delivery.customer_name ?? 'Cliente'} · {delivery.status}</span>
-                    </>
-                  ) : (
-                    <>
-                      <small>OPERAÇÃO</small>
-                      <strong>{courier.is_online ? (courier.is_available ? 'Disponível' : 'Ocupado') : 'Offline'}</strong>
-                      <span>Sem corrida ativa</span>
-                    </>
-                  )}
-                </div>
-
-                <span className={
-                  courier.is_online
-                    ? courier.is_available
-                      ? 'admin-status active'
-                      : 'admin-status busy'
-                    : 'admin-status paused'
-                }>
-                  <i/>
-                  {courier.is_online
-                    ? courier.is_available
-                      ? 'Disponível'
-                      : 'Online'
-                    : 'Offline'}
-                </span>
-              </article>
-            )
-          })}
-
-          {!couriers.length ? (
-            <div className="admin-empty">
-              <Icon name="user" size={24}/>
-              Nenhum entregador cadastrado.
-            </div>
-          ) : null}
-        </div>
+        <AdminCouriersPanel initialCouriers={rows}/>
       </section>
     </div>
   )
