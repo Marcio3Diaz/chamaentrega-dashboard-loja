@@ -292,12 +292,11 @@ export default async function PublicHomePage() {
             ))}
           </div>
 
-          <div className="ce-plan-art ce-plan-art-image" aria-label="Card promocional do ChamaEntrega">
-            <img
-              src="/images/planos-card-direita.png"
-              alt="Juntos, o delivery da sua região vai mais longe"
-            />
-          </div>
+          <div
+            className="ce-plan-art ce-plan-art-image"
+            role="img"
+            aria-label="Juntos, o delivery da sua região vai mais longe"
+          />
         </div>
       </section>
 
