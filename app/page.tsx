@@ -155,13 +155,6 @@ export default async function PublicHomePage() {
             <i/> OPERAÇÃO AO VIVO
           </div>
 
-          <div className="ce-phone-card">
-            <img src="/brand/chamaentrega-flame-official.webp" alt=""/>
-            <small>NOVA ENTREGA</small>
-            <strong>disponível</strong>
-            <button type="button">Aceitar</button>
-          </div>
-
           <div className="ce-hero-status">
             <span><Icon name="lightning" size={15}/> Entregador encontrado</span>
             <span><Icon name="money" size={15}/> Saldo protegido</span>
