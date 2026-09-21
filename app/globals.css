@@ -18511,3 +18511,90 @@ html[data-theme="light"] .store-switcher-avatar{
     font-size:10px;
   }
 }
+
+/* ChamaEntrega promo image card 2026-09-21 */
+.ce-plans.ce-plans-premium .ce-plans-layout{
+  grid-template-columns:minmax(0,1fr) 440px;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-grid article{
+  min-height:550px;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+  position:relative;
+  min-height:550px;
+  display:block;
+  overflow:hidden;
+  padding:0;
+  border:1px solid rgba(247,185,22,.28);
+  border-radius:20px;
+  background:#070d11;
+  isolation:isolate;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image:before{
+  content:"";
+  position:absolute;
+  inset:-28px;
+  z-index:0;
+  background:
+    linear-gradient(rgba(4,8,11,.38),rgba(4,8,11,.38)),
+    url('/images/planos-card-direita.png') center / cover no-repeat;
+  filter:blur(22px);
+  opacity:.55;
+  transform:scale(1.08);
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image:after{
+  display:none;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
+  position:relative;
+  z-index:1;
+  width:100%;
+  height:550px;
+  display:block;
+  object-fit:contain;
+  object-position:center;
+}
+
+@media(max-width:1380px){
+  .ce-plans.ce-plans-premium .ce-plans-layout{
+    grid-template-columns:minmax(0,1fr) 360px;
+  }
+
+  .ce-plans.ce-plans-premium .ce-plan-grid article,
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:510px;
+  }
+
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
+    height:510px;
+  }
+}
+
+@media(max-width:1100px){
+  .ce-plans.ce-plans-premium .ce-plans-layout{
+    grid-template-columns:1fr;
+  }
+
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:620px;
+  }
+
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
+    height:620px;
+  }
+}
+
+@media(max-width:620px){
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:500px;
+  }
+
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
+    height:500px;
+  }
+}
