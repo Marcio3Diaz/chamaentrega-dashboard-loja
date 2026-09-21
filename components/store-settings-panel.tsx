@@ -31,13 +31,19 @@ export type StoreSettingsData = {
   walletBalance: number
   walletReserved: number
   walletAvailable: number
+  pricingEnabled: boolean
+  pricingMinimumFee: number
+  pricingIncludedKm: number
+  pricingPerExtraKm: number
+  pricingRoadFactor: number
+  pricingRoundStep: number
 }
 
 type Props = {
   initialData: StoreSettingsData
 }
 
-type Tab = 'store' | 'address' | 'account' | 'payments' | 'appearance'
+type Tab = 'store' | 'address' | 'account' | 'payments' | 'pricing' | 'appearance'
 type Theme = 'dark' | 'light'
 
 function money(value: number) {
@@ -96,6 +102,13 @@ export function StoreSettingsPanel({ initialData }: Props) {
 
   const [adminName,setAdminName] = useState(initialData.adminName)
   const [adminPhone,setAdminPhone] = useState(initialData.adminPhone)
+
+  const [pricingEnabled,setPricingEnabled] = useState(initialData.pricingEnabled)
+  const [pricingMinimumFee,setPricingMinimumFee] = useState(String(initialData.pricingMinimumFee))
+  const [pricingIncludedKm,setPricingIncludedKm] = useState(String(initialData.pricingIncludedKm))
+  const [pricingPerExtraKm,setPricingPerExtraKm] = useState(String(initialData.pricingPerExtraKm))
+  const [pricingRoadFactor,setPricingRoadFactor] = useState(String(initialData.pricingRoadFactor))
+  const [pricingRoundStep,setPricingRoundStep] = useState(String(initialData.pricingRoundStep))
 
   const [saving,setSaving] = useState(false)
   const [message,setMessage] = useState('')
@@ -284,6 +297,57 @@ export function StoreSettingsPanel({ initialData }: Props) {
     router.refresh()
   }
 
+  async function savePricing(event: FormEvent) {
+    event.preventDefault()
+
+    const minimumFee = Number(pricingMinimumFee.replace(',','.'))
+    const includedKm = Number(pricingIncludedKm.replace(',','.'))
+    const perExtraKm = Number(pricingPerExtraKm.replace(',','.'))
+    const roadFactor = Number(pricingRoadFactor.replace(',','.'))
+    const roundStep = Number(pricingRoundStep.replace(',','.'))
+
+    if (
+      !Number.isFinite(minimumFee) ||
+      !Number.isFinite(includedKm) ||
+      !Number.isFinite(perExtraKm) ||
+      !Number.isFinite(roadFactor) ||
+      !Number.isFinite(roundStep) ||
+      minimumFee < 0 ||
+      includedKm < 0 ||
+      perExtraKm < 0 ||
+      roadFactor < 1 ||
+      roundStep <= 0
+    ) {
+      notify('Revise os valores da regra de precificação.', 'error')
+      return
+    }
+
+    setSaving(true)
+
+    const { error } = await supabase
+      .from('delivery_pricing_settings')
+      .upsert({
+        store_id: initialData.storeId,
+        enabled: pricingEnabled,
+        minimum_fee: minimumFee,
+        included_km: includedKm,
+        per_extra_km: perExtraKm,
+        road_factor: roadFactor,
+        round_step: roundStep,
+        updated_at: new Date().toISOString(),
+      }, { onConflict:'store_id' })
+
+    setSaving(false)
+
+    if (error) {
+      notify('Não foi possível salvar a precificação automática.', 'error')
+      return
+    }
+
+    notify('Regra de precificação atualizada.')
+    router.refresh()
+  }
+
   return (
     <div className="settings-page">
       <section className="settings-hero">
@@ -318,6 +382,11 @@ export function StoreSettingsPanel({ initialData }: Props) {
           <button className={tab === 'payments' ? 'active' : ''} onClick={() => setTab('payments')}>
             <span><Icon name="money" size={17}/></span>
             <div><strong>Carteira e Pix</strong><small>Saldo pré-pago</small></div>
+          </button>
+
+          <button className={tab === 'pricing' ? 'active' : ''} onClick={() => setTab('pricing')}>
+            <span><Icon name="route" size={17}/></span>
+            <div><strong>Taxas automáticas</strong><small>Preço por distância</small></div>
           </button>
 
           <button className={tab === 'appearance' ? 'active' : ''} onClick={() => setTab('appearance')}>
@@ -577,6 +646,113 @@ export function StoreSettingsPanel({ initialData }: Props) {
                 <div><b>3</b><span><strong>Pagamento automático</strong><small>Ao concluir, a taxa é debitada da carteira.</small></span></div>
               </div>
             </div>
+          ) : null}
+
+          {tab === 'pricing' ? (
+            <form className="settings-panel" onSubmit={savePricing}>
+              <div className="settings-panel-head">
+                <div>
+                  <span className="eyebrow">PRECIFICAÇÃO AUTOMÁTICA</span>
+                  <h2>Taxa por distância</h2>
+                  <p>Defina como o ChamaEntrega sugere a taxa do entregador ao localizar o endereço do cliente.</p>
+                </div>
+                <button
+                  type="button"
+                  className={`settings-toggle ${pricingEnabled ? 'on' : ''}`}
+                  onClick={() => setPricingEnabled(value => !value)}
+                >
+                  <i/>
+                  <b>{pricingEnabled ? 'Automático ativo' : 'Automático desligado'}</b>
+                </button>
+              </div>
+
+              <div className="settings-pricing-preview">
+                <div>
+                  <small>Exemplo de regra atual</small>
+                  <strong>
+                    {money(Number(pricingMinimumFee.replace(',','.')) || 0)}
+                  </strong>
+                  <span>
+                    até {Number(pricingIncludedKm.replace(',','.')) || 0} km
+                  </span>
+                </div>
+                <div className="pricing-preview-plus">+</div>
+                <div>
+                  <small>Depois da franquia</small>
+                  <strong>
+                    {money(Number(pricingPerExtraKm.replace(',','.')) || 0)}/km
+                  </strong>
+                  <span>por km adicional</span>
+                </div>
+              </div>
+
+              <div className="settings-form-grid">
+                <label className="settings-field">
+                  <span>Taxa mínima (R$)</span>
+                  <input
+                    inputMode="decimal"
+                    value={pricingMinimumFee}
+                    onChange={event => setPricingMinimumFee(event.target.value)}
+                    placeholder="7,50"
+                  />
+                </label>
+
+                <label className="settings-field">
+                  <span>Quilômetros inclusos</span>
+                  <input
+                    inputMode="decimal"
+                    value={pricingIncludedKm}
+                    onChange={event => setPricingIncludedKm(event.target.value)}
+                    placeholder="2,0"
+                  />
+                </label>
+
+                <label className="settings-field">
+                  <span>Valor por km adicional (R$)</span>
+                  <input
+                    inputMode="decimal"
+                    value={pricingPerExtraKm}
+                    onChange={event => setPricingPerExtraKm(event.target.value)}
+                    placeholder="1,50"
+                  />
+                </label>
+
+                <label className="settings-field">
+                  <span>Fator viário</span>
+                  <input
+                    inputMode="decimal"
+                    value={pricingRoadFactor}
+                    onChange={event => setPricingRoadFactor(event.target.value)}
+                    placeholder="1,25"
+                  />
+                  <small>Compensa curvas e ruas: distância em linha reta × fator.</small>
+                </label>
+
+                <label className="settings-field">
+                  <span>Arredondamento (R$)</span>
+                  <input
+                    inputMode="decimal"
+                    value={pricingRoundStep}
+                    onChange={event => setPricingRoundStep(event.target.value)}
+                    placeholder="0,50"
+                  />
+                </label>
+              </div>
+
+              <div className="settings-warning">
+                <Icon name="lightning" size={17}/>
+                <div>
+                  <strong>A taxa continua editável antes de publicar.</strong>
+                  <span>O cálculo serve como sugestão automática e usa o endereço localizado na tela Criar entrega.</span>
+                </div>
+              </div>
+
+              <div className="settings-actions">
+                <button type="submit" className="settings-save" disabled={saving}>
+                  {saving ? 'Salvando...' : 'Salvar regra de taxa'}
+                </button>
+              </div>
+            </form>
           ) : null}
 
           {tab === 'appearance' ? (
