@@ -170,6 +170,13 @@ export function DashboardShell({
               <span>{label}</span>
             </Link>
           ))}
+
+          {role === 'admin' ? (
+            <Link href="/admin" className="dashboard-admin-link">
+              <span className="nav-icon"><Icon name="shield" size={19}/></span>
+              <span>Admin ChamaEntrega</span>
+            </Link>
+          ) : null}
         </nav>
 
         <div className="sidebar-foot">
