@@ -17763,3 +17763,339 @@ html[data-theme="light"] .store-switcher-avatar{
   }
   .ce-footer-bottom>div{justify-self:start}
 }
+
+
+/* =================================================================
+   CE SHOWCASE V2 — ajuste fino para reproduzir a estrutura aprovada
+   ================================================================= */
+.ce-showcase{
+  background:#05090c;
+}
+.ce-header{
+  min-height:80px;
+  grid-template-columns:220px 1fr auto;
+  padding:0 clamp(30px,3.2vw,62px);
+}
+.ce-logo img{width:176px}
+.ce-header nav{gap:30px}
+.ce-header nav a{
+  padding:29px 0;
+  font-size:11px;
+}
+.ce-header-actions{gap:9px}
+.ce-link-button{
+  min-height:40px;
+  padding:0 14px;
+  font-size:10px;
+}
+.ce-primary-button{
+  min-height:40px;
+  padding:0 16px;
+  font-size:9.5px;
+}
+
+.ce-hero{
+  min-height:600px;
+  grid-template-columns:44% 56%;
+  background:#05090c;
+}
+.ce-hero-copy{
+  padding:58px 34px 54px clamp(34px,3.4vw,66px);
+  background:
+    radial-gradient(circle at 85% 58%,rgba(255,184,0,.035),transparent 32%),
+    #05090c;
+}
+.ce-hero h1{
+  margin:18px 0 18px;
+  font-size:clamp(52px,4.8vw,78px);
+  line-height:.93;
+  letter-spacing:-3.2px;
+}
+.ce-hero-copy>p{
+  max-width:650px;
+  font-size:13.5px;
+  line-height:1.68;
+}
+.ce-hero-actions{margin-top:24px}
+.ce-primary-button.big,
+.ce-secondary-button{
+  min-height:47px;
+}
+.ce-proof{
+  margin-top:17px;
+  gap:14px;
+  font-size:8.5px;
+}
+.ce-hero-art{
+  min-height:600px;
+  background:
+    linear-gradient(90deg,#05090c 0%,rgba(5,9,12,.36) 9%,rgba(5,9,12,.08) 24%,rgba(5,9,12,.01) 75%,rgba(5,9,12,.12) 100%),
+    url('/images/dashboard-hero-courier.png') 54% 48% / cover no-repeat;
+}
+.ce-hero-art:before{
+  display:none;
+}
+.ce-owner-card{
+  top:52px;
+  left:19%;
+}
+.ce-live-card{
+  top:45px;
+  right:28px;
+}
+.ce-hero-status{
+  right:28px;
+  bottom:42px;
+}
+
+.ce-how{
+  padding-top:30px;
+  padding-bottom:34px;
+}
+.ce-section-title.inline{
+  align-items:center;
+}
+.ce-section-title h2{
+  font-size:31px;
+}
+.ce-section-title.inline em{
+  font-size:17px;
+}
+.ce-how-grid{
+  gap:8px;
+  margin-top:15px;
+}
+.ce-how-grid article{
+  min-height:230px;
+  padding:18px 13px 14px;
+  border-radius:10px;
+}
+.ce-step-icon{
+  min-height:54px;
+  margin-top:12px;
+}
+.ce-how-grid h3{
+  margin:9px 0 6px;
+  font-size:12.5px;
+}
+.ce-how-grid p{
+  font-size:9px;
+  line-height:1.5;
+}
+
+.ce-network{
+  min-height:320px;
+  grid-template-columns:43% 57%;
+  margin-top:10px;
+  border-radius:14px;
+}
+.ce-network-copy{
+  padding:25px 24px;
+}
+.ce-network-copy h2{
+  font-size:27px;
+}
+.ce-network-copy h3{
+  font-size:11.5px;
+}
+.ce-network-copy p{
+  font-size:10px;
+  line-height:1.56;
+}
+.ce-network-note{
+  margin-top:14px;
+}
+.ce-network-art{
+  min-height:320px;
+  background:
+    linear-gradient(90deg,#0b1217 0%,rgba(11,18,23,.15) 11%,rgba(11,18,23,.01) 34%,rgba(11,18,23,.06) 100%),
+    url('/images/chamaentrega-dashboard-banner.png') center 48% / cover no-repeat;
+}
+.ce-network-art:before,
+.ce-store-node,
+.ce-network-riders,
+.ce-network-caption{
+  display:none;
+}
+
+.ce-resources{
+  padding-top:30px;
+  padding-bottom:31px;
+}
+.ce-section-title.compact{
+  align-items:center;
+}
+.ce-resource-grid{
+  gap:8px;
+  margin-top:14px;
+}
+.ce-resource-grid article{
+  min-height:76px;
+  grid-template-columns:43px 1fr;
+  padding:10px 12px;
+  border-radius:9px;
+}
+.ce-resource-grid article>span{
+  width:43px;
+  height:43px;
+}
+.ce-resource-grid strong{font-size:10.5px}
+.ce-resource-grid p{font-size:8px}
+
+.ce-plans{
+  padding-top:28px;
+  padding-bottom:28px;
+}
+.ce-plans-layout{
+  grid-template-columns:minmax(0,1fr) 305px;
+  gap:12px;
+  margin-top:14px;
+}
+.ce-plan-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.ce-plan-grid article{
+  min-height:365px;
+  padding:16px;
+  border-radius:10px;
+}
+.ce-plan-grid h3{font-size:16px}
+.ce-plan-price strong{font-size:26px}
+.ce-plan-grid li{font-size:8.6px}
+.ce-plan-grid article>a{
+  min-height:36px;
+  font-size:8.5px;
+}
+.ce-plan-art{
+  min-height:365px;
+  border-radius:10px;
+  background:
+    linear-gradient(0deg,rgba(5,9,12,.40) 0%,rgba(5,9,12,.02) 44%),
+    url('/images/planos-entregador-chamaentrega.png') center 34% / cover no-repeat,
+    url('/images/dashboard-hero-courier.png') center 35% / cover no-repeat;
+}
+.ce-plan-art-copy{
+  min-height:100%;
+  align-content:end;
+  padding:16px;
+  background:linear-gradient(0deg,rgba(5,9,12,.88) 0%,rgba(5,9,12,.05) 55%);
+}
+.ce-plan-art-copy>strong{
+  max-width:210px;
+  font-size:23px;
+}
+.ce-plan-art-copy>span{
+  min-height:30px;
+  font-size:7.8px;
+}
+
+.ce-testimonials{
+  padding:20px clamp(28px,4vw,66px) 22px;
+  border-bottom:1px solid rgba(255,184,0,.10);
+}
+.ce-testimonials .ce-section-title{
+  margin-bottom:12px;
+}
+.ce-testimonials-caption{
+  color:#70808a;
+  font-size:8.5px;
+}
+.ce-testimonials-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.ce-testimonials-grid article{
+  min-height:94px;
+  display:grid;
+  grid-template-columns:48px 1fr;
+  gap:10px;
+  align-items:center;
+  padding:10px 11px;
+  border:1px solid var(--ce-line);
+  border-radius:9px;
+  background:#0b1318;
+}
+.ce-testimonial-avatar{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 30%,#ffd24d,#9b6500 72%);
+  color:#111;
+  font-size:10px;
+  font-weight:950;
+}
+.ce-testimonials-grid strong{
+  display:block;
+  font-size:9px;
+}
+.ce-testimonials-grid p{
+  margin:4px 0 4px;
+  color:#86939b;
+  font-size:8px;
+  line-height:1.4;
+}
+.ce-testimonials-grid em{
+  color:#ffbd12;
+  font-size:7px;
+  font-style:normal;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.ce-faq{
+  padding-top:22px;
+  padding-bottom:24px;
+}
+.ce-faq-grid{
+  gap:7px;
+  margin-top:11px;
+}
+.ce-faq-grid summary{
+  min-height:39px;
+  font-size:8.5px;
+}
+
+.ce-footer-main{
+  grid-template-columns:1.4fr repeat(4,.8fr) 1.1fr;
+  gap:24px;
+  padding-top:34px;
+  padding-bottom:28px;
+}
+.ce-footer-brand img{width:172px}
+.ce-footer-brand p{
+  max-width:250px;
+  font-size:8.5px;
+}
+.ce-footer-main>div>strong{font-size:9.5px}
+.ce-footer-main>div>a{font-size:7.8px}
+.ce-footer-cta{
+  padding:13px;
+}
+.ce-footer-bottom{
+  min-height:50px;
+}
+
+@media(max-width:1280px){
+  .ce-plans-layout{grid-template-columns:1fr 280px}
+  .ce-testimonials-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:980px){
+  .ce-hero{grid-template-columns:1fr}
+  .ce-hero-art{min-height:520px}
+  .ce-network{grid-template-columns:1fr}
+  .ce-network-art{min-height:330px}
+  .ce-plans-layout{grid-template-columns:1fr}
+  .ce-plan-art{min-height:420px}
+}
+@media(max-width:620px){
+  .ce-hero-art{
+    min-height:390px;
+    background-position:56% 48%;
+  }
+  .ce-testimonials-grid{grid-template-columns:1fr}
+}
