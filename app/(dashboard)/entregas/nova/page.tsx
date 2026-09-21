@@ -1,4 +1,8 @@
-import { CreateDeliveryForm, type DeliveryOrderPrefill } from './create-form'
+import {
+  CreateDeliveryForm,
+  type DeliveryOrderPrefill,
+  type DeliveryPricingConfig,
+} from './create-form'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
@@ -12,7 +16,11 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
   const params = searchParams ? await searchParams : {}
   const orderId = params.order?.trim() || null
 
-  const [{ data: walletRows }, orderResult] = await Promise.all([
+  const [
+    { data: walletRows },
+    orderResult,
+    { data: pricingRow },
+  ] = await Promise.all([
     supabase.rpc('get_my_store_wallet', { p_store_id: store.id }),
     orderId
       ? supabase
@@ -22,6 +30,11 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
           .eq('store_id', store.id)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from('delivery_pricing_settings')
+      .select('enabled,minimum_fee,included_km,per_extra_km,road_factor,round_step')
+      .eq('store_id',store.id)
+      .maybeSingle(),
   ])
 
   const wallet = walletRows?.[0]
@@ -50,6 +63,15 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
       }
     : null
 
+  const pricing: DeliveryPricingConfig = {
+    enabled: Boolean(pricingRow?.enabled ?? true),
+    minimumFee: Number(pricingRow?.minimum_fee ?? 7.5),
+    includedKm: Number(pricingRow?.included_km ?? 2),
+    perExtraKm: Number(pricingRow?.per_extra_km ?? 1.5),
+    roadFactor: Number(pricingRow?.road_factor ?? 1.25),
+    roundStep: Number(pricingRow?.round_step ?? .5),
+  }
+
   return <>
     <div className="hero">
       <div>
@@ -57,15 +79,19 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
         <h1>Criar entrega</h1>
         <p className="subtle">
           {initialOrder
-            ? `Dados do pedido #${initialOrder.externalOrderId || initialOrder.orderId.replaceAll('-','').slice(0,7).toUpperCase()} carregados. Revise a taxa antes de publicar.`
-            : 'Cadastre o pedido e só publique quando ele estiver realmente pronto.'}
+            ? `Dados do pedido #${initialOrder.externalOrderId || initialOrder.orderId.replaceAll('-','').slice(0,7).toUpperCase()} carregados. Localize o endereço e revise a taxa antes de publicar.`
+            : 'Cadastre o destino. O ChamaEntrega calcula automaticamente localização, distância, tempo e taxa sugerida.'}
         </p>
       </div>
     </div>
+
     <CreateDeliveryForm
       availableBalance={availableBalance}
       reservedBalance={reservedBalance}
       initialOrder={initialOrder}
+      storeLatitude={store.latitude == null ? null : Number(store.latitude)}
+      storeLongitude={store.longitude == null ? null : Number(store.longitude)}
+      pricing={pricing}
     />
   </>
 }
