@@ -41,13 +41,11 @@ export default async function AdminFinancePage() {
     supabase
       .from('store_wallet_topups')
       .select('id,store_id,amount,status,provider,created_at,paid_at')
-      .order('created_at',{ascending:false})
-      .limit(120),
+      .order('created_at',{ascending:false}),
     supabase
       .from('store_wallet_transactions')
       .select('id,store_id,transaction_type,direction,amount,status,description,created_at')
-      .order('created_at',{ascending:false})
-      .limit(150),
+      .order('created_at',{ascending:false}),
     supabase
       .from('stores')
       .select('id,name,is_active'),
