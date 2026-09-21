@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/icon'
+import { dispatchRouteAction } from '@/app/(dashboard)/despacho/actions'
 
 export type DispatchDelivery = {
   id: string
@@ -124,8 +126,12 @@ export function SmartDispatchBoard({
   initialDeliveries,
   initialCouriers,
 }:Props) {
+  const router = useRouter()
   const [selectedIds,setSelectedIds] = useState<string[]>(() => initialSelection(initialDeliveries))
   const [autoMode,setAutoMode] = useState(false)
+  const [dispatchMessage,setDispatchMessage] = useState('')
+  const [dispatchError,setDispatchError] = useState(false)
+  const [isDispatching,startDispatch] = useTransition()
 
   const selected = useMemo(
     () => initialDeliveries.filter(item => selectedIds.includes(item.id)).slice(0,3),
@@ -160,6 +166,27 @@ export function SmartDispatchBoard({
       if (current.includes(id)) return current.filter(item => item !== id)
       if (current.length >= 3) return [...current.slice(1),id]
       return [...current,id]
+    })
+  }
+
+  function dispatchSelectedRoute() {
+    if (!suggestedCourier || !selected.length || isDispatching) return
+
+    setDispatchMessage('')
+    setDispatchError(false)
+
+    startDispatch(async () => {
+      const result = await dispatchRouteAction(
+        selected.map(item => item.id),
+        suggestedCourier.id,
+      )
+
+      setDispatchMessage(result.message)
+      setDispatchError(!result.ok)
+
+      if (result.ok) {
+        router.refresh()
+      }
     })
   }
 
@@ -290,11 +317,31 @@ export function SmartDispatchBoard({
           </div>
 
           <div className="dispatch-actions">
-            <button type="button" onClick={() => setSelectedIds(initialSelection(initialDeliveries))} disabled={!initialDeliveries.length}>
+            <button type="button" onClick={() => setSelectedIds(initialSelection(initialDeliveries))} disabled={!initialDeliveries.length || isDispatching}>
               <Icon name="route" size={15}/> OTIMIZAR ROTA
+            </button>
+            <button
+              type="button"
+              className="dispatch-send"
+              onClick={dispatchSelectedRoute}
+              disabled={!selected.length || !suggestedCourier || isDispatching}
+            >
+              <Icon name="lightning" size={15}/>
+              {isDispatching
+                ? 'ENVIANDO...'
+                : selected.length > 1
+                  ? `DESPACHAR ${selected.length} ENTREGAS`
+                  : 'DESPACHAR ENTREGA'}
             </button>
             <Link href="/entregas">ABRIR ENTREGAS</Link>
           </div>
+
+          {dispatchMessage ? (
+            <div className={dispatchError ? 'dispatch-result error' : 'dispatch-result success'}>
+              <i/>
+              <span>{dispatchMessage}</span>
+            </div>
+          ) : null}
 
           {autoMode ? <div className="dispatch-auto-note"><i/><span><strong>Modo automático ativo</strong>A sugestão será recalculada conforme a fila mudar.</span></div> : null}
         </aside>
