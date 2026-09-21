@@ -11,6 +11,7 @@ export default async function SettingsPage() {
     { data: profile },
     { data: userData },
     { data: walletRows },
+    { data: pricingRow },
   ] = await Promise.all([
     supabase
       .from('stores')
@@ -25,6 +26,11 @@ export default async function SettingsPage() {
       .maybeSingle(),
     supabase.auth.getUser(),
     supabase.rpc('get_my_store_wallet', { p_store_id: store.id }),
+    supabase
+      .from('delivery_pricing_settings')
+      .select('enabled,minimum_fee,included_km,per_extra_km,road_factor,round_step')
+      .eq('store_id',store.id)
+      .maybeSingle(),
   ])
 
   const wallet = walletRows?.[0] ?? {
@@ -57,6 +63,12 @@ export default async function SettingsPage() {
     walletBalance: Number(wallet.balance ?? 0),
     walletReserved: Number(wallet.reserved_balance ?? 0),
     walletAvailable: Number(wallet.available_balance ?? 0),
+    pricingEnabled: Boolean(pricingRow?.enabled ?? true),
+    pricingMinimumFee: Number(pricingRow?.minimum_fee ?? 7.5),
+    pricingIncludedKm: Number(pricingRow?.included_km ?? 2),
+    pricingPerExtraKm: Number(pricingRow?.per_extra_km ?? 1.5),
+    pricingRoadFactor: Number(pricingRow?.road_factor ?? 1.25),
+    pricingRoundStep: Number(pricingRow?.round_step ?? .5),
   }
 
   return <StoreSettingsPanel initialData={data} />
