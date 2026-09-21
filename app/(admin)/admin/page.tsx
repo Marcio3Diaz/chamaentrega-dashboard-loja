@@ -44,6 +44,14 @@ const statusLabel:Record<string,string> = {
   expired:'Expirada',
 }
 
+function Sparkline({ tone='gold' }:{ tone?:'gold'|'green'|'blue'|'muted' }) {
+  return (
+    <svg className={`admin-v2-spark ${tone}`} viewBox="0 0 90 30" aria-hidden="true">
+      <path d="M2 26 C12 26,13 13,25 15 S38 4,48 12 S64 9,72 5 S82 4,88 2"/>
+    </svg>
+  )
+}
+
 export default async function AdminOverviewPage() {
   const supabase = await createClient()
   const start = new Date()
@@ -109,6 +117,9 @@ export default async function AdminOverviewPage() {
   const totalWalletBalance = wallets.reduce((sum,wallet) => sum + Number(wallet.balance ?? 0),0)
   const reservedWalletBalance = wallets.reduce((sum,wallet) => sum + Number(wallet.reserved_balance ?? 0),0)
   const topupVolume = paidTopups.reduce((sum,topup) => sum + Number(topup.amount ?? 0),0)
+  const networkAvailability = couriers.length
+    ? Math.round((availableCouriers/couriers.length)*100)
+    : 0
 
   const metrics = [
     {
@@ -117,13 +128,15 @@ export default async function AdminOverviewPage() {
       value:String(stores.length),
       note:`${activeStores} ativas na plataforma`,
       tone:'gold',
+      trend:stores.length ? '+100%' : '0%',
     },
     {
-      icon:'user',
+      icon:'users',
       label:'Entregadores',
       value:String(couriers.length),
-      note:`${onlineCouriers} online · ${availableCouriers} disponíveis`,
+      note:`${onlineCouriers} online · ${Math.max(couriers.length-onlineCouriers,0)} offline`,
       tone:'green',
+      trend:couriers.length ? '+100%' : '0%',
     },
     {
       icon:'route',
@@ -131,6 +144,7 @@ export default async function AdminOverviewPage() {
       value:String(todayDeliveries.length),
       note:`${activeDeliveries} em andamento · ${searching} buscando`,
       tone:'blue',
+      trend:todayDeliveries.length ? '+100%' : '0%',
     },
     {
       icon:'check',
@@ -138,130 +152,167 @@ export default async function AdminOverviewPage() {
       value:String(completedToday),
       note:'entregas finalizadas',
       tone:'green',
+      trend:completedToday ? '+100%' : '0%',
     },
     {
       icon:'money',
       label:'Volume de taxas hoje',
       value:money(feeVolumeToday),
-      note:'taxas de entrega movimentadas',
+      note:'taxa de serviço na plataforma',
       tone:'gold',
+      trend:feeVolumeToday ? '+100%' : '0%',
     },
-  ]
+  ] as const
 
   return (
-    <div className="admin-page">
-      <section className="admin-hero">
-        <div>
+    <div className="admin-page admin-v2-page">
+      <section className="admin-v2-hero">
+        <div className="admin-v2-hero-copy">
           <div className="admin-eyebrow">VISÃO GERAL DA PLATAFORMA</div>
           <h1>Central <span>ChamaEntrega</span></h1>
           <p>
-            Acompanhe lojas, entregadores, corridas e o movimento financeiro de toda a rede.
+            Acompanhe lojas, entregadores, corridas e o movimento financeiro
+            de toda a rede em tempo real.
           </p>
+
+          <div className="admin-v2-hero-tags">
+            <span><Icon name="lightning" size={14}/> Mais entregas</span>
+            <span><Icon name="users" size={14}/> Mais negócios</span>
+            <span><Icon name="chart" size={14}/> Uma cidade mais conectada</span>
+          </div>
         </div>
 
-        <div className="admin-hero-status">
-          <Icon name="shield" size={27}/>
+        <div className="admin-v2-hero-art" aria-hidden="true">
+          <span className="admin-v2-script">Chamou,<br/>Chegou!</span>
+        </div>
+
+        <div className="admin-v2-hero-access">
+          <Icon name="shield" size={28}/>
           <span>
             <small>AMBIENTE ADMINISTRATIVO</small>
             <strong>Acesso da plataforma</strong>
           </span>
+          <Icon name="chevron" size={18}/>
         </div>
       </section>
 
-      <section className="admin-metrics">
-        {metrics.map(metric => (
-          <article key={metric.label} className={metric.tone}>
-            <span className="admin-metric-icon"><Icon name={metric.icon} size={22}/></span>
-            <div>
+      <section className="admin-v2-metrics">
+        {metrics.map((metric,index) => (
+          <article key={metric.label} className={`admin-v2-metric ${metric.tone}`}>
+            <span className="admin-v2-metric-icon">
+              <Icon name={metric.icon} size={22}/>
+            </span>
+
+            <div className="admin-v2-metric-copy">
               <small>{metric.label}</small>
-              <strong>{metric.value}</strong>
+              <div className="admin-v2-metric-value-row">
+                <strong>{metric.value}</strong>
+                <em className={metric.trend === '0%' ? 'neutral' : ''}>
+                  {metric.trend === '0%' ? '0%' : '↑ ' + metric.trend}
+                </em>
+              </div>
               <span>{metric.note}</span>
             </div>
+
+            <Sparkline tone={index===1 ? 'green' : index===2 ? 'blue' : index===3 ? 'muted' : 'gold'}/>
           </article>
         ))}
       </section>
 
-      <section className="admin-overview-grid">
-        <article className="admin-card admin-network-card">
-          <header>
+      <section className="admin-v2-main-grid">
+        <article className="admin-v2-panel admin-v2-health">
+          <header className="admin-v2-panel-head">
             <div>
               <span className="admin-card-kicker">REDE CHAMAENTREGA</span>
               <h2>Saúde da plataforma</h2>
+              <p>Visão geral da operação em tempo real</p>
             </div>
-            <span className="admin-live-pill"><i/> AO VIVO</span>
+
+            <div className="admin-v2-panel-actions">
+              <span className="admin-live-pill"><i/> AO VIVO</span>
+              <span className="admin-v2-period">Últimas 24 horas <Icon name="chevron" size={13}/></span>
+            </div>
           </header>
 
-          <div className="admin-health-grid">
+          <div className="admin-v2-health-grid">
             <div>
               <span><Icon name="store" size={19}/></span>
               <small>Lojas ativas</small>
               <strong>{activeStores}/{stores.length}</strong>
+              <em>{stores.length ? Math.round((activeStores/stores.length)*100) : 0}% operacionais</em>
             </div>
             <div>
               <span><Icon name="user" size={19}/></span>
               <small>Entregadores online</small>
               <strong>{onlineCouriers}</strong>
+              <em>de {couriers.length} cadastrados</em>
             </div>
             <div>
               <span><Icon name="activity" size={19}/></span>
               <small>Corridas ativas</small>
               <strong>{activeDeliveries}</strong>
+              <em>em andamento</em>
             </div>
             <div>
               <span><Icon name="money" size={19}/></span>
               <small>Saldo das lojas</small>
               <strong>{money(totalWalletBalance)}</strong>
+              <em>em carteiras acumuladas</em>
             </div>
           </div>
 
-          <div className="admin-health-bar">
+          <div className="admin-v2-availability">
             <div>
               <span>Disponibilidade da rede</span>
-              <strong>
-                {couriers.length
-                  ? Math.round((availableCouriers/couriers.length)*100)
-                  : 0}%
-              </strong>
+              <strong>{networkAvailability}%</strong>
             </div>
-            <i>
-              <b style={{
-                width:`${couriers.length ? Math.round((availableCouriers/couriers.length)*100) : 0}%`,
-              }}/>
-            </i>
+            <i><b style={{width:`${networkAvailability}%`}}/></i>
           </div>
 
-          <div className="admin-health-notes">
-            <span><i className="green"/> {availableCouriers} entregadores prontos para oferta</span>
+          <div className="admin-v2-health-notes">
+            <span><i className="green"/> {availableCouriers} serviços online</span>
             <span><i className="gold"/> {searching} pedidos procurando entregador</span>
             <span><i className="blue"/> {storeOwners} contas comerciais cadastradas</span>
           </div>
         </article>
 
-        <article className="admin-card admin-finance-summary">
-          <header>
+        <article className="admin-v2-panel admin-v2-finance">
+          <header className="admin-v2-panel-head">
             <div>
               <span className="admin-card-kicker">FINANCEIRO</span>
               <h2>Movimento da rede</h2>
+              <p>Resumo financeiro da plataforma</p>
             </div>
-            <Link href="/admin/financeiro">Abrir financeiro →</Link>
+            <Link href="/admin/financeiro">Abrir financeiro <Icon name="arrow" size={13}/></Link>
           </header>
 
-          <div className="admin-finance-big">
-            <small>Recargas confirmadas</small>
-            <strong>{money(topupVolume)}</strong>
-            <span>volume acumulado de recargas pagas</span>
+          <div className="admin-v2-finance-main">
+            <div>
+              <small>Receita confirmada hoje</small>
+              <strong>{money(topupVolume)}</strong>
+              <span>Volume acumulado de encargos pagos pelas lojas.</span>
+            </div>
+
+            <div className="admin-v2-bars" aria-hidden="true">
+              {[28,40,52,68,61,82,96].map((height,index) => (
+                <i key={index} style={{height:`${height}%`}}/>
+              ))}
+            </div>
           </div>
 
-          <div className="admin-finance-mini">
+          <div className="admin-v2-finance-cards">
             <div>
-              <small>Carteiras</small>
+              <span className="green"><Icon name="money" size={18}/></span>
+              <small>Carteira</small>
               <strong>{money(totalWalletBalance)}</strong>
             </div>
             <div>
+              <span className="blue"><Icon name="store" size={18}/></span>
               <small>Reservado</small>
               <strong>{money(reservedWalletBalance)}</strong>
             </div>
             <div>
+              <span className="gold"><Icon name="chart" size={18}/></span>
               <small>Taxas hoje</small>
               <strong>{money(feeVolumeToday)}</strong>
             </div>
@@ -269,26 +320,29 @@ export default async function AdminOverviewPage() {
         </article>
       </section>
 
-      <section className="admin-overview-grid lower">
-        <article className="admin-card admin-recent-deliveries">
-          <header>
+      <section className="admin-v2-bottom-grid">
+        <article className="admin-v2-panel admin-v2-recent">
+          <header className="admin-v2-panel-head">
             <div>
               <span className="admin-card-kicker">OPERAÇÃO</span>
               <h2>Corridas recentes</h2>
+              <p>Últimas corridas realizadas na plataforma</p>
             </div>
-            <Link href="/admin/corridas">Ver todas →</Link>
+            <Link href="/admin/corridas">Ver todas <Icon name="arrow" size={13}/></Link>
           </header>
 
-          <div className="admin-simple-table">
+          <div className="admin-v2-table">
             <div className="head">
-              <span>Corrida</span>
-              <span>Loja</span>
-              <span>Cliente</span>
-              <span>Status</span>
-              <span>Taxa</span>
-              <span>Horário</span>
+              <span>#CORRIDA</span>
+              <span>LOJA</span>
+              <span>CLIENTE</span>
+              <span>STATUS</span>
+              <span>TAXA</span>
+              <span>HORÁRIO</span>
+              <span>AÇÕES</span>
             </div>
-            {recentDeliveries.map(delivery => {
+
+            {recentDeliveries.slice(0,5).map(delivery => {
               const store = storeMap.get(delivery.store_id)
               return (
                 <div className="row" key={delivery.id}>
@@ -300,41 +354,41 @@ export default async function AdminOverviewPage() {
                   </em>
                   <strong>{money(Number(delivery.delivery_fee ?? 0))}</strong>
                   <small>{time(delivery.created_at)}</small>
+                  <button type="button" aria-label="Mais ações">•••</button>
                 </div>
               )
             })}
+
             {!recentDeliveries.length ? <div className="admin-empty">Nenhuma corrida registrada.</div> : null}
           </div>
         </article>
 
-        <article className="admin-card admin-new-stores">
-          <header>
+        <article className="admin-v2-panel admin-v2-stores">
+          <header className="admin-v2-panel-head">
             <div>
               <span className="admin-card-kicker">CRESCIMENTO</span>
               <h2>Lojas recentes</h2>
+              <p>Últimas lojas cadastradas na plataforma</p>
             </div>
-            <Link href="/admin/lojas">Gerenciar →</Link>
+            <Link href="/admin/lojas">Gerenciar <Icon name="arrow" size={13}/></Link>
           </header>
 
-          <div className="admin-new-store-list">
-            {recentStores.map(store => (
+          <div className="admin-v2-store-list">
+            {recentStores.slice(0,4).map(store => (
               <div key={store.id}>
-                <span className="admin-new-store-logo">
+                <span className="admin-v2-store-logo">
                   {store.logo_url
                     ? <img src={store.logo_url} alt=""/>
                     : store.name.slice(0,2).toUpperCase()}
                 </span>
-                <span>
+                <span className="admin-v2-store-copy">
                   <strong>{store.name}</strong>
-                  <small>
-                    {store.city && store.state
-                      ? `${store.city} · ${store.state}`
-                      : 'Local não informado'}
-                  </small>
+                  <small>Cadastrada em {time(store.created_at)}</small>
                 </span>
                 <em className={store.is_active ? 'active' : 'paused'}>
-                  {store.is_active ? 'Ativa' : 'Pausada'}
+                  <i/>{store.is_active ? 'Ativa' : 'Pausada'}
                 </em>
+                <button type="button" aria-label="Mais ações">•••</button>
               </div>
             ))}
           </div>
