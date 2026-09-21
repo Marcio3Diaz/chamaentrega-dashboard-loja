@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/icon'
 import {
   selectStoreForAdminAction,
@@ -48,7 +47,6 @@ export function AdminStoresPanel({
 }:{
   initialStores:AdminStoreRow[]
 }) {
-  const router = useRouter()
   const [search,setSearch] = useState('')
   const [message,setMessage] = useState('')
   const [pending,startTransition] = useTransition()
@@ -155,15 +153,6 @@ export function AdminStoresPanel({
               >
                 Detalhes
               </Link>
-
-              <button
-                type="button"
-                className="admin-row-button"
-                onClick={() => openStore(store.id)}
-                disabled={pending}
-              >
-                Abrir portal
-              </button>
 
               <button
                 type="button"
