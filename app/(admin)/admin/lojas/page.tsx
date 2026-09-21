@@ -25,7 +25,7 @@ export default async function AdminStoresPage() {
   ] = await Promise.all([
     supabase
       .from('stores')
-      .select('id,owner_id,name,phone,logo_url,address,is_active,city,state,created_at')
+      .select('id,owner_id,name,phone,logo_url,address,is_active,city,state,created_at,moderation_status,moderation_reason,moderated_at,approved_at')
       .order('created_at',{ascending:false}),
     supabase
       .from('profiles')
@@ -84,6 +84,10 @@ export default async function AdminStoresPage() {
       state:store.state,
       address:store.address,
       isActive:Boolean(store.is_active),
+      moderationStatus:store.moderation_status,
+      moderationReason:store.moderation_reason,
+      moderatedAt:store.moderated_at,
+      approvedAt:store.approved_at,
       createdAt:store.created_at,
       ownerName:profile?.full_name?.trim() || 'Responsável não identificado',
       walletBalance:Number(wallet?.balance ?? 0),
@@ -95,7 +99,8 @@ export default async function AdminStoresPage() {
     }
   })
 
-  const active = stores.filter(store => store.isActive).length
+  const active = stores.filter(store => store.moderationStatus === 'active').length
+  const pending = stores.filter(store => store.moderationStatus === 'pending').length
   const totalBalance = stores.reduce((sum,store) => sum+store.walletBalance,0)
   const totalDeliveries = stores.reduce((sum,store) => sum+store.totalDeliveries,0)
 
@@ -140,7 +145,7 @@ export default async function AdminStoresPage() {
           <div>
             <small>Lojas ativas</small>
             <strong>{active}</strong>
-            <span>{stores.length-active} pausadas</span>
+            <span>{pending} aguardando aprovação</span>
           </div>
         </article>
         <article>
