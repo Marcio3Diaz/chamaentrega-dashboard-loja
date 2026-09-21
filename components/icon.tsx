@@ -16,6 +16,7 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
     money: <><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.8-.8-2-1.2-3.1-1.1-1.5.1-2.4.8-2.4 1.8 0 2.8 5.5 1.1 5.5 4.1 0 1.2-1 2-2.6 2.2-1.3.1-2.7-.3-3.6-1.2M12 5.5v13"/></>,
     lightning: <path d="m13 2-8 12h6l-1 8 8-12h-6l1-8Z"/>,
     map: <><path d="m3 6 5-3 8 3 5-3v15l-5 3-8-3-5 3V6Z"/><path d="M8 3v15M16 6v15"/></>,
+    route: <><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h3a3 3 0 0 0 3-3v-2a3 3 0 0 1 3-3h1"/><path d="m15 7 3-3 3 3"/></>,
     pin: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
     arrow: <path d="M5 12h14M14 7l5 5-5 5"/>,
     store: <><path d="M4 10v10h16V10"/><path d="M3 10 5 4h14l2 6"/><path d="M8 20v-6h8v6"/></>,
