@@ -8,7 +8,7 @@ import { Icon } from '@/components/icon'
 import { StoreLogoUpload } from '@/components/store-logo-upload'
 
 const nav = [
-  ['/', 'Visão Geral', 'home'],
+  ['/painel', 'Visão Geral', 'home'],
   ['/pedidos', 'Pedidos', 'box'],
   ['/entregas/nova', 'Criar entrega', 'plus'],
   ['/despacho', 'Despacho Inteligente', 'route'],
@@ -81,7 +81,7 @@ export function DashboardShell({
   return (
     <div className="shell premium-shell">
       <aside className="sidebar premium-sidebar">
-        <Link href="/" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
+        <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
             src="/brand/chamaentrega-logo-official.webp"
             alt="ChamaEntrega — Chamou, Chegou"
@@ -209,7 +209,7 @@ export function DashboardShell({
       </section>
 
       <nav className="mobile-nav">
-        <Link href="/"><Icon name="home" size={18}/>Início</Link>
+        <Link href="/painel"><Icon name="home" size={18}/>Início</Link>
         <Link href="/pedidos"><Icon name="box" size={18}/>Pedidos</Link>
         <Link href="/entregas"><Icon name="box" size={18}/>Entregas</Link>
         <Link href="/mapa"><Icon name="map" size={18}/>Mapa</Link>
