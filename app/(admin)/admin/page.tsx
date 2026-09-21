@@ -130,6 +130,7 @@ export default async function AdminOverviewPage() {
   const platformMrr = subscriptions
     .filter(subscription => subscription.status === 'active')
     .reduce((sum,subscription) => sum + Number(subscription.monthly_amount ?? 0),0)
+  const pendingApprovals = pendingStores + pendingCouriers
   const networkAvailability = couriers.length
     ? Math.round((availableCouriers/couriers.length)*100)
     : 0
@@ -213,6 +214,33 @@ export default async function AdminOverviewPage() {
           <Icon name="chevron" size={18}/>
         </div>
       </section>
+
+      {pendingApprovals > 0 ? (
+        <section className="admin-approval-strip">
+          <div className="admin-approval-strip-copy">
+            <span><Icon name="shield" size={21}/></span>
+            <div>
+              <small>APROVAÇÕES PENDENTES</small>
+              <strong>{pendingApprovals} novo{pendingApprovals===1?' cadastro':'s cadastros'} aguardando análise</strong>
+              <p>
+                {pendingStores} loja{pendingStores===1?'':'s'} · {pendingCouriers} entregador{pendingCouriers===1?'':'es'}
+              </p>
+            </div>
+          </div>
+          <div className="admin-approval-strip-actions">
+            {pendingStores > 0 ? (
+              <Link href="/admin/lojas">
+                Revisar lojas <span>{pendingStores}</span>
+              </Link>
+            ) : null}
+            {pendingCouriers > 0 ? (
+              <Link href="/admin/entregadores">
+                Revisar entregadores <span>{pendingCouriers}</span>
+              </Link>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <section className="admin-v2-metrics">
         {metrics.map((metric,index) => (
