@@ -16972,7 +16972,7 @@ html[data-theme="light"] .store-switcher-avatar{
   background:
     linear-gradient(90deg,#05090c 0%,rgba(5,9,12,.10) 24%,rgba(5,9,12,.02) 74%,rgba(5,9,12,.32) 100%),
     linear-gradient(0deg,rgba(5,9,12,.22),rgba(5,9,12,.04)),
-    url('/images/dashboard-hero-courier.png') center 42% / cover no-repeat;
+    url('/images/dashboard-hero-courier.png') 58% 42% / cover no-repeat;
 }
 .ce-hero-art:before{
   content:"";
@@ -16985,7 +16985,6 @@ html[data-theme="light"] .store-switcher-avatar{
 }
 .ce-owner-card,
 .ce-live-card,
-.ce-phone-card,
 .ce-hero-status{
   position:absolute;
   z-index:3;
@@ -17032,42 +17031,6 @@ html[data-theme="light"] .store-switcher-avatar{
   border-radius:50%;
   background:#2ede84;
   box-shadow:0 0 10px rgba(46,222,132,.8);
-}
-.ce-phone-card{
-  left:49%;
-  bottom:74px;
-  width:122px;
-  min-height:202px;
-  display:grid;
-  justify-items:center;
-  align-content:center;
-  gap:6px;
-  padding:13px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:22px;
-  background:
-    radial-gradient(circle at 50% 25%,rgba(255,184,0,.10),transparent 28%),
-    rgba(5,11,15,.88);
-  box-shadow:0 20px 45px rgba(0,0,0,.42);
-  transform:rotate(-1.5deg);
-}
-.ce-phone-card img{width:38px}
-.ce-phone-card small{
-  color:#7e8b93;
-  font-size:7px;
-}
-.ce-phone-card strong{
-  font-size:11px;
-}
-.ce-phone-card button{
-  min-height:30px;
-  width:100%;
-  border:0;
-  border-radius:8px;
-  background:#ffbd12;
-  color:#111;
-  font-size:8px;
-  font-weight:950;
 }
 .ce-hero-status{
   right:34px;
@@ -17760,11 +17723,6 @@ html[data-theme="light"] .store-switcher-avatar{
   .ce-hero-art{min-height:420px}
   .ce-owner-card{left:18px}
   .ce-live-card{right:18px}
-  .ce-phone-card{
-    left:50%;
-    bottom:70px;
-    transform:translateX(-50%);
-  }
   .ce-hero-status{
     right:15px;
     bottom:20px;
