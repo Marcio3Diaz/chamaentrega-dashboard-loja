@@ -63,8 +63,8 @@ export default async function AdminOverviewPage() {
     courierResult,
     profilesResult,
     todayDeliveriesResult,
-    walletsResult,
-    topupsResult,
+    revenueEventsResult,
+    subscriptionsResult,
     recentDeliveriesResult,
     recentStoresResult,
   ] = await Promise.all([
@@ -79,11 +79,12 @@ export default async function AdminOverviewPage() {
       .select('id,store_id,status,delivery_fee,customer_name,created_at,assigned_courier_id')
       .gte('created_at',startIso)
       .order('created_at',{ascending:false}),
-    supabase.from('store_wallets')
-      .select('store_id,balance,reserved_balance'),
-    supabase.from('store_wallet_topups')
-      .select('amount,status,created_at')
-      .eq('status','paid'),
+    supabase.from('platform_revenue_events')
+      .select('amount,status,revenue_type,occurred_at')
+      .neq('status','void')
+      .order('occurred_at',{ascending:false}),
+    supabase.from('store_subscriptions')
+      .select('monthly_amount,status'),
     supabase.from('deliveries')
       .select('id,store_id,status,delivery_fee,customer_name,created_at')
       .order('created_at',{ascending:false})
@@ -98,8 +99,8 @@ export default async function AdminOverviewPage() {
   const couriers = courierResult.data ?? []
   const profiles = profilesResult.data ?? []
   const todayDeliveries = todayDeliveriesResult.data ?? []
-  const wallets = walletsResult.data ?? []
-  const paidTopups = topupsResult.data ?? []
+  const revenueEvents = revenueEventsResult.data ?? []
+  const subscriptions = subscriptionsResult.data ?? []
   const recentDeliveries = recentDeliveriesResult.data ?? []
   const recentStores = recentStoresResult.data ?? []
 
@@ -114,9 +115,19 @@ export default async function AdminOverviewPage() {
   const feeVolumeToday = todayDeliveries
     .filter(delivery => !['draft','cancelled','expired'].includes(delivery.status))
     .reduce((sum,delivery) => sum + Number(delivery.delivery_fee ?? 0),0)
-  const totalWalletBalance = wallets.reduce((sum,wallet) => sum + Number(wallet.balance ?? 0),0)
-  const reservedWalletBalance = wallets.reduce((sum,wallet) => sum + Number(wallet.reserved_balance ?? 0),0)
-  const topupVolume = paidTopups.reduce((sum,topup) => sum + Number(topup.amount ?? 0),0)
+  const totalPlatformRevenue = revenueEvents.reduce((sum,event) => sum + Number(event.amount ?? 0),0)
+  const accruedPlatformRevenue = revenueEvents
+    .filter(event => event.status === 'accrued')
+    .reduce((sum,event) => sum + Number(event.amount ?? 0),0)
+  const paidPlatformRevenueToday = revenueEvents
+    .filter(event =>
+      event.status === 'paid' &&
+      new Date(event.occurred_at).getTime() >= new Date(startIso).getTime()
+    )
+    .reduce((sum,event) => sum + Number(event.amount ?? 0),0)
+  const platformMrr = subscriptions
+    .filter(subscription => subscription.status === 'active')
+    .reduce((sum,subscription) => sum + Number(subscription.monthly_amount ?? 0),0)
   const networkAvailability = couriers.length
     ? Math.round((availableCouriers/couriers.length)*100)
     : 0
@@ -345,9 +356,9 @@ export default async function AdminOverviewPage() {
             </div>
             <div>
               <span><Icon name="money" size={19}/></span>
-              <small>Saldo das lojas</small>
-              <strong>{money(totalWalletBalance)}</strong>
-              <em>em carteiras acumuladas</em>
+              <small>Receita da plataforma</small>
+              <strong>{money(totalPlatformRevenue)}</strong>
+              <em>assinaturas + comissões</em>
             </div>
           </div>
 
@@ -378,9 +389,9 @@ export default async function AdminOverviewPage() {
 
           <div className="admin-v2-finance-main">
             <div>
-              <small>Receita confirmada hoje</small>
-              <strong>{money(topupVolume)}</strong>
-              <span>Volume acumulado de encargos pagos pelas lojas.</span>
+              <small>Receita recebida hoje</small>
+              <strong>{money(paidPlatformRevenueToday)}</strong>
+              <span>Somente receitas pertencentes ao ChamaEntrega.</span>
             </div>
 
             <div className="admin-v2-bars" aria-hidden="true">
@@ -393,18 +404,18 @@ export default async function AdminOverviewPage() {
           <div className="admin-v2-finance-cards">
             <div>
               <span className="green"><Icon name="money" size={18}/></span>
-              <small>Carteira</small>
-              <strong>{money(totalWalletBalance)}</strong>
+              <small>Receita total</small>
+              <strong>{money(totalPlatformRevenue)}</strong>
             </div>
             <div>
               <span className="blue"><Icon name="store" size={18}/></span>
-              <small>Reservado</small>
-              <strong>{money(reservedWalletBalance)}</strong>
+              <small>A receber</small>
+              <strong>{money(accruedPlatformRevenue)}</strong>
             </div>
             <div>
               <span className="gold"><Icon name="chart" size={18}/></span>
-              <small>Taxas hoje</small>
-              <strong>{money(feeVolumeToday)}</strong>
+              <small>MRR</small>
+              <strong>{money(platformMrr)}</strong>
             </div>
           </div>
         </article>
