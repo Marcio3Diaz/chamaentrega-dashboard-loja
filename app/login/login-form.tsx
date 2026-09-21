@@ -28,6 +28,11 @@ export function LoginForm() {
         {pending ? 'ENTRANDO...' : 'ENTRAR NO PAINEL'}
       </button>
       {state.error ? <div className="error">{state.error}</div> : null}
+
+      <div className="login-signup-cta">
+        <span>Ainda não usa o ChamaEntrega?</span>
+        <Link href="/cadastro">Criar minha loja</Link>
+      </div>
     </form>
   )
 }
