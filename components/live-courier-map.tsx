@@ -194,11 +194,20 @@ export function LiveCourierMap({
 
   const deliveryByCourier = useMemo(() => {
     const map = new Map<string,LiveDelivery>()
+
+    // As entregas chegam ordenadas por updated_at DESC. Mantemos a primeira
+    // entrega ativa de cada entregador (a mais recente) e não deixamos uma
+    // corrida antiga sobrescrevê-la.
     deliveries.forEach(delivery => {
-      if (delivery.assignedCourierId && activeStatuses.has(delivery.status)) {
+      if (
+        delivery.assignedCourierId &&
+        activeStatuses.has(delivery.status) &&
+        !map.has(delivery.assignedCourierId)
+      ) {
         map.set(delivery.assignedCourierId, delivery)
       }
     })
+
     return map
   }, [deliveries])
 
