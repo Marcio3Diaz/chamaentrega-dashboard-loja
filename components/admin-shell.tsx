@@ -24,7 +24,7 @@ export function AdminShell({
   const pathname = usePathname()
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell admin-shell-modern">
       <aside className="admin-sidebar">
         <Link href="/admin" className="admin-brand">
           <img
@@ -80,9 +80,27 @@ export function AdminShell({
             <div className="admin-system-status">
               <i/> Plataforma online
             </div>
+
             <Link href="/" className="admin-site-link">
               Ver site
+              <Icon name="arrow" size={13}/>
             </Link>
+
+            <button className="admin-topbar-bell" type="button" aria-label="Notificações">
+              <Icon name="bell" size={18}/>
+              <i/>
+            </button>
+
+            <div className="admin-topbar-user">
+              <span className="admin-topbar-avatar">
+                {fullName.slice(0,1).toUpperCase()}
+              </span>
+              <span className="admin-topbar-user-copy">
+                <strong>{fullName}</strong>
+                <small>Administrador</small>
+              </span>
+              <Icon name="chevron" size={15}/>
+            </div>
           </div>
         </header>
 
