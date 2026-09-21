@@ -24,6 +24,7 @@ export default async function OnboardingPage() {
   ])
 
   if (!profile || !['store_owner','admin'].includes(profile.role)) {
+    await supabase.auth.signOut()
     redirect('/login?error=acesso')
   }
 
