@@ -1,0 +1,61 @@
+'use server'
+
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { ACTIVE_STORE_COOKIE } from '@/lib/auth'
+
+export type AdminLoginState = { error?: string }
+
+export async function adminLoginAction(
+  _: AdminLoginState,
+  formData: FormData,
+): Promise<AdminLoginState> {
+  const email = String(formData.get('email') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+
+  if (!email || !password) {
+    return { error: 'Informe e-mail e senha.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+  if (error) {
+    return { error: 'E-mail ou senha inválidos.' }
+  }
+
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+
+  if (!userId) {
+    await supabase.auth.signOut()
+    return { error: 'Não foi possível validar sua sessão.' }
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (!profile || profile.role !== 'admin') {
+    await supabase.auth.signOut()
+    return { error: 'Esta conta não possui acesso à Central ChamaEntrega.' }
+  }
+
+  const cookieStore = await cookies()
+  cookieStore.delete(ACTIVE_STORE_COOKIE)
+
+  redirect('/admin')
+}
+
+export async function adminSignOutAction() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+
+  const cookieStore = await cookies()
+  cookieStore.delete(ACTIVE_STORE_COOKIE)
+
+  redirect('/admin/login')
+}
