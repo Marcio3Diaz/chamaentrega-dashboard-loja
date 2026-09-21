@@ -75,7 +75,7 @@ export default async function AdminStoreDetailPage({
 
   const { data:store,error:storeError } = await supabase
     .from('stores')
-    .select('id,owner_id,organization_id,name,phone,logo_url,address,latitude,longitude,is_active,zip_code,street,street_number,complement,neighborhood,city,state,created_at,updated_at')
+    .select('id,owner_id,organization_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,moderated_at,approved_at,zip_code,street,street_number,complement,neighborhood,city,state,created_at,updated_at')
     .eq('id',id)
     .maybeSingle()
 
@@ -196,8 +196,17 @@ export default async function AdminStoreDetailPage({
                 : store.address}
             </p>
             <div className="admin-store-detail-meta">
-              <span className={store.is_active ? 'admin-status active' : 'admin-status paused'}>
-                <i/>{store.is_active ? 'Loja ativa' : 'Loja pausada'}
+              <span className={`admin-moderation-status ${store.moderation_status}`}>
+                <i/>
+                {store.moderation_status === 'pending'
+                  ? 'Aguardando aprovação'
+                  : store.moderation_status === 'active'
+                    ? 'Loja ativa'
+                    : store.moderation_status === 'suspended'
+                      ? 'Loja suspensa'
+                      : store.moderation_status === 'banned'
+                        ? 'Loja banida'
+                        : 'Cadastro rejeitado'}
               </span>
               <span>Cadastro: {dateTime(store.created_at)}</span>
               <span>ID {shortId(store.id)}</span>
@@ -207,9 +216,39 @@ export default async function AdminStoreDetailPage({
 
         <AdminStoreDetailActions
           storeId={store.id}
-          isActive={Boolean(store.is_active)}
+          storeName={store.name}
+          moderationStatus={store.moderation_status}
+          moderationReason={store.moderation_reason}
         />
       </section>
+
+      {store.moderation_status !== 'active' ? (
+        <section className={`admin-store-moderation-summary ${store.moderation_status}`}>
+          <span><Icon name="shield" size={21}/></span>
+          <div>
+            <strong>
+              {store.moderation_status === 'pending'
+                ? 'Cadastro aguardando aprovação'
+                : store.moderation_status === 'suspended'
+                  ? 'Operação suspensa'
+                  : store.moderation_status === 'banned'
+                    ? 'Loja banida'
+                    : 'Cadastro rejeitado'}
+            </strong>
+            <small>
+              {store.moderation_reason ||
+                (store.moderation_status === 'pending'
+                  ? 'Analise os dados da empresa e aprove ou rejeite o cadastro.'
+                  : 'Nenhum motivo administrativo foi informado.')}
+            </small>
+          </div>
+          <em>
+            {store.moderated_at
+              ? 'Última moderação: ' + dateTime(store.moderated_at)
+              : 'Ainda não analisada'}
+          </em>
+        </section>
+      ) : null}
 
       <section className="admin-store-detail-metrics">
         <article>
