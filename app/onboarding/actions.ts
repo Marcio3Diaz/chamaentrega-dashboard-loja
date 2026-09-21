@@ -109,6 +109,6 @@ export async function createFirstStoreAction(
     maxAge:60*60*24*365,
   })
 
-  revalidatePath('/','layout')
-  redirect('/')
+  revalidatePath('/painel','layout')
+  redirect('/painel')
 }
