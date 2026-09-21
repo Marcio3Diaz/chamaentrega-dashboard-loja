@@ -255,10 +255,13 @@ export default async function PublicHomePage() {
         </div>
       </section>
 
-      <section className="ce-plans" id="planos">
-        <div className="ce-section-title compact">
-          <h2>Planos para cada fase da sua operação</h2>
-          <p>Cresça no seu ritmo. Sempre com o ChamaEntrega.</p>
+      <section className="ce-plans ce-plans-premium" id="planos">
+        <div className="ce-plans-heading-row">
+          <div>
+            <div className="ce-plans-kicker"><i/> PLANOS</div>
+            <h2>Planos para cada fase da sua operação</h2>
+          </div>
+          <p>Cresça no seu ritmo. Sempre com o <strong>ChamaEntrega.</strong></p>
         </div>
 
         <div className="ce-plans-layout">
@@ -266,20 +269,24 @@ export default async function PublicHomePage() {
             {plans.map(plan => (
               <article key={plan.name} className={plan.featured ? 'featured' : ''}>
                 {plan.featured ? <div className="ce-plan-tag">MAIS ESCOLHIDO</div> : null}
-                <h3>{plan.name}</h3>
-                <small>{plan.subtitle}</small>
+
+                <div className="ce-plan-card-head">
+                  <h3>{plan.name}</h3>
+                  <small>{plan.subtitle}</small>
+                </div>
+
                 <div className="ce-plan-price">
                   <strong>{plan.price}</strong><span>{plan.suffix}</span>
                 </div>
 
                 <ul>
                   {plan.features.map(feature => (
-                    <li key={feature}><Icon name="check" size={15}/>{feature}</li>
+                    <li key={feature}><Icon name="check" size={18}/>{feature}</li>
                   ))}
                 </ul>
 
                 <Link href="/cadastro">
-                  {plan.cta} <Icon name="arrow" size={14}/>
+                  {plan.cta} <Icon name="arrow" size={17}/>
                 </Link>
               </article>
             ))}
@@ -287,11 +294,11 @@ export default async function PublicHomePage() {
 
           <div className="ce-plan-art" aria-label="Entregador ChamaEntrega representando o crescimento da rede">
             <div className="ce-plan-art-copy">
-              <strong>Juntos,<br/>o delivery<br/>da sua região<br/>vai mais longe!</strong>
-              <span><Icon name="store" size={15}/> Mais negócios</span>
-              <span><Icon name="users" size={15}/> Mais entregas</span>
-              <span><Icon name="chart" size={15}/> Mais oportunidades</span>
-              <span><Icon name="map" size={15}/> Uma região mais forte</span>
+              <strong><em>Juntos,</em><br/>o delivery<br/>da sua região<br/>vai mais longe!</strong>
+              <span><Icon name="store" size={18}/> Mais negócios</span>
+              <span><Icon name="users" size={18}/> Mais entregas</span>
+              <span><Icon name="chart" size={18}/> Mais renda</span>
+              <span><Icon name="map" size={18}/> Uma região mais forte</span>
             </div>
           </div>
         </div>
