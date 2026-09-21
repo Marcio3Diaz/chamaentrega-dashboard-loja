@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOutAction } from '@/app/actions'
+import { adminSignOutAction } from '@/app/(admin-auth)/admin/login/actions'
 import { Icon } from '@/components/icon'
 
 const nav = [
@@ -52,11 +52,6 @@ export function AdminShell({
 
         <div className="admin-sidebar-spacer"/>
 
-        <Link href="/painel" className="admin-open-portal">
-          <Icon name="store" size={17}/>
-          Abrir Portal da Loja
-        </Link>
-
         <div className="admin-account">
           <div className="admin-account-avatar">
             {fullName.slice(0,1).toUpperCase()}
@@ -67,7 +62,7 @@ export function AdminShell({
           </div>
         </div>
 
-        <form action={signOutAction}>
+        <form action={adminSignOutAction}>
           <button className="admin-signout">
             <Icon name="arrow" size={15}/> Sair
           </button>
