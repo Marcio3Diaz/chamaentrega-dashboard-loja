@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { Icon } from '@/components/icon'
 import {
   AdminStoresPanel,
   type AdminStoreRow,
@@ -103,39 +105,63 @@ export default async function AdminStoresPage() {
   })
 
   return (
-    <div className="admin-page">
-      <section className="admin-page-head">
+    <div className="admin-page admin-stores-v2-page">
+      <section className="admin-page-head admin-page-head-v2">
         <div>
           <div className="admin-eyebrow">EMPRESAS DA PLATAFORMA</div>
-          <h1>Lojas</h1>
-          <p>Visualize e administre todas as operações cadastradas no ChamaEntrega.</p>
+          <h1>Gestão de lojas</h1>
+          <p>
+            Acompanhe cadastros, operação, carteira e desempenho de cada empresa
+            conectada ao ChamaEntrega.
+          </p>
+        </div>
+
+        <div className="admin-page-head-actions">
+          <Link href="/admin/corridas" className="admin-page-secondary-action">
+            <Icon name="route" size={17}/> Ver corridas
+          </Link>
+          <Link href="/admin/entregadores" className="admin-page-primary-action">
+            <Icon name="users" size={17}/> Rede de entregadores
+          </Link>
         </div>
       </section>
 
-      <section className="admin-compact-metrics">
+      <section className="admin-compact-metrics admin-store-metrics-v2">
         <article>
-          <small>Total de lojas</small>
-          <strong>{stores.length}</strong>
-          <span>operações cadastradas</span>
+          <span className="metric-icon gold"><Icon name="store" size={21}/></span>
+          <div>
+            <small>Total de lojas</small>
+            <strong>{stores.length}</strong>
+            <span>operações cadastradas</span>
+          </div>
         </article>
         <article>
-          <small>Lojas ativas</small>
-          <strong>{active}</strong>
-          <span>{stores.length-active} pausadas</span>
+          <span className="metric-icon green"><Icon name="check" size={21}/></span>
+          <div>
+            <small>Lojas ativas</small>
+            <strong>{active}</strong>
+            <span>{stores.length-active} pausadas</span>
+          </div>
         </article>
         <article>
-          <small>Corridas acumuladas</small>
-          <strong>{totalDeliveries}</strong>
-          <span>em todas as lojas</span>
+          <span className="metric-icon blue"><Icon name="route" size={21}/></span>
+          <div>
+            <small>Corridas acumuladas</small>
+            <strong>{totalDeliveries}</strong>
+            <span>em todas as lojas</span>
+          </div>
         </article>
         <article>
-          <small>Saldo em carteiras</small>
-          <strong>{money.format(totalBalance)}</strong>
-          <span>saldo total da rede</span>
+          <span className="metric-icon gold"><Icon name="money" size={21}/></span>
+          <div>
+            <small>Saldo em carteiras</small>
+            <strong>{money.format(totalBalance)}</strong>
+            <span>saldo total da rede</span>
+          </div>
         </article>
       </section>
 
-      <section className="admin-card admin-list-card">
+      <section className="admin-card admin-list-card admin-list-card-v2">
         <header>
           <div>
             <span className="admin-card-kicker">GESTÃO DE LOJAS</span>
