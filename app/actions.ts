@@ -9,13 +9,16 @@ import { ACTIVE_STORE_COOKIE } from '@/lib/auth'
 export async function signOutAction() {
   const supabase = await createClient()
   await supabase.auth.signOut()
+
   const cookieStore = await cookies()
   cookieStore.delete(ACTIVE_STORE_COOKIE)
+
   redirect('/login')
 }
 
 export async function setActiveStoreAction(storeId: string) {
   const normalizedStoreId = storeId.trim()
+
   if (!normalizedStoreId) {
     return { ok:false, message:'Loja inválida.' }
   }
@@ -28,29 +31,27 @@ export async function setActiveStoreAction(storeId: string) {
     return { ok:false, message:'Sua sessão expirou.' }
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .maybeSingle()
+  const [{ data: owned }, { data: membership }] = await Promise.all([
+    supabase
+      .from('stores')
+      .select('id')
+      .eq('id', normalizedStoreId)
+      .eq('owner_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('store_members')
+      .select('store_id')
+      .eq('store_id', normalizedStoreId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle(),
+  ])
 
-  if (!profile || !['store_owner','admin'].includes(profile.role)) {
-    return { ok:false, message:'Conta sem acesso ao portal.' }
-  }
-
-  let query = supabase
-    .from('stores')
-    .select('id')
-    .eq('id', normalizedStoreId)
-
-  if (profile.role !== 'admin') {
-    query = query.eq('owner_id', userId)
-  }
-
-  const { data: store } = await query.maybeSingle()
-
-  if (!store) {
-    return { ok:false, message:'Você não possui acesso a essa loja.' }
+  if (!owned && !membership) {
+    return {
+      ok:false,
+      message:'Você não possui acesso operacional a essa loja.',
+    }
   }
 
   const cookieStore = await cookies()
