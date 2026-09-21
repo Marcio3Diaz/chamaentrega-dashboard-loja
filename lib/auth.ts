@@ -5,7 +5,7 @@ import type { Store } from '@/lib/types'
 
 export type StoreOption = Pick<
   Store,
-  'id' | 'name' | 'logo_url' | 'is_active' | 'city' | 'state'
+  'id' | 'name' | 'logo_url' | 'is_active' | 'moderation_status' | 'city' | 'state'
 >
 
 const ACTIVE_STORE_COOKIE = 'chamaentrega-store-id'
@@ -37,7 +37,7 @@ export async function requireStore(): Promise<{
     await Promise.all([
       supabase
         .from('stores')
-        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,city,state,created_at')
+        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
         .eq('owner_id', userId),
       supabase
         .from('store_members')
@@ -56,7 +56,7 @@ export async function requireStore(): Promise<{
   const { data: memberStores, error: memberStoreError } = memberIds.length
     ? await supabase
         .from('stores')
-        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,city,state,created_at')
+        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
         .in('id', memberIds)
     : { data: [], error: null }
 
@@ -85,6 +85,7 @@ export async function requireStore(): Promise<{
       name: item.name,
       logo_url: item.logo_url,
       is_active: item.is_active,
+      moderation_status: item.moderation_status,
       city: item.city,
       state: item.state,
     })) as StoreOption[],
