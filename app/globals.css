@@ -18598,3 +18598,30 @@ html[data-theme="light"] .store-switcher-avatar{
     height:500px;
   }
 }
+
+/* ChamaEntrega promo local-image fallback 2026-09-21 */
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+  background-color:#070d11;
+  background-image:
+    url('/images/planos-card-direita.png'),
+    url('/images/planos-card-direita.webp'),
+    url('/images/ChatGPT Image 21 de set. de 2026, 19_14_44 (3)(1).png');
+  background-repeat:no-repeat,no-repeat,no-repeat;
+  background-position:center,center,center;
+  background-size:cover,cover,cover;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:none;
+  filter:none;
+  opacity:1;
+  transform:none;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
+  display:none !important;
+}
