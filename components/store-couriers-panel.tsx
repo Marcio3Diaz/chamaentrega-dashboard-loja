@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
+import { reviewCourierNetworkRequestAction } from '@/app/(dashboard)/entregadores/actions'
 
 export type StoreCourierActiveDelivery = {
   id: string
@@ -13,6 +15,18 @@ export type StoreCourierActiveDelivery = {
   deliveryFee: number
   estimatedMinutes: number | null
   updatedAt: string
+}
+
+export type StoreCourierRequest = {
+  courierId: string
+  fullName: string
+  phone: string | null
+  avatarUrl: string | null
+  vehicleType: string | null
+  rating: number
+  totalDeliveries: number
+  isOnline: boolean
+  requestedAt: string
 }
 
 export type StoreCourier = {
@@ -36,6 +50,7 @@ type Props = {
   storeLatitude: number | null
   storeLongitude: number | null
   initialCouriers: StoreCourier[]
+  initialRequests: StoreCourierRequest[]
 }
 
 type Filter = 'all' | 'online' | 'available' | 'route'
@@ -123,9 +138,15 @@ export function StoreCouriersPanel({
   storeLatitude,
   storeLongitude,
   initialCouriers,
+  initialRequests,
 }: Props) {
+  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [couriers, setCouriers] = useState(initialCouriers)
+  const [requests, setRequests] = useState(initialRequests)
+  const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set())
+  const [reviewMessage, setReviewMessage] = useState('')
+  const [, startReviewTransition] = useTransition()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [liveState, setLiveState] = useState('CONECTANDO')
@@ -204,6 +225,14 @@ export function StoreCouriersPanel({
   }, [storeId, supabase])
 
   useEffect(() => {
+    setCouriers(initialCouriers)
+  }, [initialCouriers])
+
+  useEffect(() => {
+    setRequests(initialRequests)
+  }, [initialRequests])
+
+  useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(timer)
   }, [])
@@ -252,14 +281,32 @@ export function StoreCouriersPanel({
       )
       .subscribe()
 
+    const networksChannel = supabase
+      .channel(`store-courier-networks:${storeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'courier_store_networks',
+          filter: `store_id=eq.${storeId}`,
+        },
+        () => {
+          router.refresh()
+          void refresh()
+        },
+      )
+      .subscribe()
+
     const poll = window.setInterval(() => void refresh(), 30000)
 
     return () => {
       window.clearInterval(poll)
       void supabase.removeChannel(courierChannel)
       void supabase.removeChannel(deliveriesChannel)
+      void supabase.removeChannel(networksChannel)
     }
-  }, [refresh, storeId, supabase])
+  }, [refresh, router, storeId, supabase])
 
   const stats = useMemo(() => ({
     connected: couriers.length,
@@ -301,6 +348,50 @@ export function StoreCouriersPanel({
       })
   }, [couriers, filter, search, storeLatitude, storeLongitude])
 
+
+  function reviewRequest(
+    courierId: string,
+    decision: 'connected' | 'rejected',
+  ) {
+    if (reviewingIds.has(courierId)) return
+
+    setReviewMessage('')
+    setReviewingIds(current => new Set(current).add(courierId))
+
+    startReviewTransition(async () => {
+      const result = await reviewCourierNetworkRequestAction(
+        storeId,
+        courierId,
+        decision,
+      )
+
+      setReviewMessage(result.message)
+
+      if (result.ok) {
+        setRequests(current =>
+          current.filter(request => request.courierId !== courierId),
+        )
+        router.refresh()
+        void refresh()
+      }
+
+      setReviewingIds(current => {
+        const next = new Set(current)
+        next.delete(courierId)
+        return next
+      })
+    })
+  }
+
+  function requestedLabel(value: string) {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value))
+  }
+
   return (
     <div className="couriers-page">
       <section className="couriers-page-head">
@@ -333,6 +424,88 @@ export function StoreCouriersPanel({
           <span className="couriers-stat-icon amber"><Icon name="truck" size={18}/></span>
           <div><small>Em rota</small><strong>{stats.routes}</strong><span>com corrida ativa</span></div>
         </article>
+      </section>
+
+
+      <section className="courier-network-requests">
+        <div className="courier-network-requests-head">
+          <div>
+            <span className="eyebrow">REDE PARTICULAR DA LOJA</span>
+            <h2>Solicitações de entrada</h2>
+            <p>
+              Entregadores podem encontrar sua loja no app e pedir para entrar na rede particular.
+            </p>
+          </div>
+          <span className={requests.length ? 'network-request-count active' : 'network-request-count'}>
+            {requests.length} pendente{requests.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        {reviewMessage ? (
+          <div className="network-review-message">{reviewMessage}</div>
+        ) : null}
+
+        {requests.length ? (
+          <div className="courier-network-request-list">
+            {requests.map(request => {
+              const busy = reviewingIds.has(request.courierId)
+
+              return (
+                <article key={request.courierId}>
+                  <span className="network-request-avatar">
+                    {request.avatarUrl
+                      ? <img src={request.avatarUrl} alt="" />
+                      : request.fullName.slice(0,1).toUpperCase()}
+                    <i className={request.isOnline ? 'online' : ''}/>
+                  </span>
+
+                  <span className="network-request-person">
+                    <strong>{request.fullName}</strong>
+                    <small>
+                      {vehicleLabel(request.vehicleType)} · ★ {request.rating.toFixed(1)}
+                    </small>
+                    <em>
+                      {request.totalDeliveries} entregas · solicitado em {requestedLabel(request.requestedAt)}
+                    </em>
+                  </span>
+
+                  <span className="network-request-contact">
+                    <small>Contato</small>
+                    <strong>{request.phone || 'Não informado'}</strong>
+                  </span>
+
+                  <div className="network-request-actions">
+                    <button
+                      type="button"
+                      className="reject"
+                      disabled={busy}
+                      onClick={() => reviewRequest(request.courierId,'rejected')}
+                    >
+                      Recusar
+                    </button>
+                    <button
+                      type="button"
+                      className="approve"
+                      disabled={busy}
+                      onClick={() => reviewRequest(request.courierId,'connected')}
+                    >
+                      <Icon name="check" size={14}/>
+                      Aprovar na rede
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="network-requests-empty">
+            <span><Icon name="users" size={22}/></span>
+            <div>
+              <strong>Nenhuma solicitação pendente</strong>
+              <p>Quando um entregador tocar em “Solicitar entrada” no app, ele aparecerá aqui.</p>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="couriers-list-card">
