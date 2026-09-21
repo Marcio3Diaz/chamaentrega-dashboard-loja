@@ -8,6 +8,8 @@ export type Store = {
   latitude: number | null
   longitude: number | null
   is_active: boolean
+  moderation_status: 'pending' | 'active' | 'suspended' | 'banned' | 'rejected'
+  moderation_reason?: string | null
   city: string | null
   state: string | null
 }
