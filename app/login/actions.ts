@@ -30,5 +30,5 @@ export async function loginAction(_: LoginState, formData: FormData): Promise<Lo
     .select('id')
     .limit(1)
 
-  redirect(stores?.length ? '/' : '/onboarding')
+  redirect(stores?.length ? '/painel' : '/onboarding')
 }
