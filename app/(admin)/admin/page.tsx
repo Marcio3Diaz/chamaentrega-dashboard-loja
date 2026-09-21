@@ -129,6 +129,7 @@ export default async function AdminOverviewPage() {
       note:`${activeStores} ativas na plataforma`,
       tone:'gold',
       trend:stores.length ? '+100%' : '0%',
+      href:'/admin/lojas',
     },
     {
       icon:'users',
@@ -137,6 +138,7 @@ export default async function AdminOverviewPage() {
       note:`${onlineCouriers} online · ${Math.max(couriers.length-onlineCouriers,0)} offline`,
       tone:'green',
       trend:couriers.length ? '+100%' : '0%',
+      href:'/admin/entregadores',
     },
     {
       icon:'route',
@@ -145,6 +147,7 @@ export default async function AdminOverviewPage() {
       note:`${activeDeliveries} em andamento · ${searching} buscando`,
       tone:'blue',
       trend:todayDeliveries.length ? '+100%' : '0%',
+      href:'/admin/corridas',
     },
     {
       icon:'check',
@@ -153,6 +156,7 @@ export default async function AdminOverviewPage() {
       note:'entregas finalizadas',
       tone:'green',
       trend:completedToday ? '+100%' : '0%',
+      href:'/admin/corridas',
     },
     {
       icon:'money',
@@ -161,6 +165,7 @@ export default async function AdminOverviewPage() {
       note:'taxa de serviço na plataforma',
       tone:'gold',
       trend:feeVolumeToday ? '+100%' : '0%',
+      href:'/admin/financeiro',
     },
   ] as const
 
@@ -198,7 +203,7 @@ export default async function AdminOverviewPage() {
 
       <section className="admin-v2-metrics">
         {metrics.map((metric,index) => (
-          <article key={metric.label} className={`admin-v2-metric ${metric.tone}`}>
+          <Link key={metric.label} href={metric.href} className={`admin-v2-metric ${metric.tone}`}>
             <span className="admin-v2-metric-icon">
               <Icon name={metric.icon} size={22}/>
             </span>
@@ -215,8 +220,93 @@ export default async function AdminOverviewPage() {
             </div>
 
             <Sparkline tone={index===1 ? 'green' : index===2 ? 'blue' : index===3 ? 'muted' : 'gold'}/>
-          </article>
+            <span className="admin-v2-card-arrow"><Icon name="chevron" size={16}/></span>
+          </Link>
         ))}
+      </section>
+
+      <section className="admin-v2-utility-grid">
+        <article className="admin-v2-panel admin-v2-quick">
+          <header className="admin-v2-panel-head compact">
+            <div>
+              <span className="admin-card-kicker">ATALHOS RÁPIDOS</span>
+              <h2>Ações frequentes</h2>
+              <p>Acesse as áreas mais usadas da administração.</p>
+            </div>
+          </header>
+
+          <div className="admin-v2-quick-grid">
+            <Link href="/admin/lojas">
+              <span><Icon name="store" size={21}/></span>
+              <div><strong>Gerenciar lojas</strong><small>Cadastros, status e operação</small></div>
+              <Icon name="chevron" size={17}/>
+            </Link>
+            <Link href="/admin/entregadores">
+              <span><Icon name="users" size={21}/></span>
+              <div><strong>Entregadores</strong><small>Rede, disponibilidade e cadastros</small></div>
+              <Icon name="chevron" size={17}/>
+            </Link>
+            <Link href="/admin/corridas">
+              <span><Icon name="route" size={21}/></span>
+              <div><strong>Acompanhar corridas</strong><small>Entregas e status em tempo real</small></div>
+              <Icon name="chevron" size={17}/>
+            </Link>
+            <Link href="/admin/financeiro">
+              <span><Icon name="chart" size={21}/></span>
+              <div><strong>Financeiro</strong><small>Carteiras, reservas e taxas</small></div>
+              <Icon name="chevron" size={17}/>
+            </Link>
+          </div>
+        </article>
+
+        <article className="admin-v2-panel admin-v2-alerts" id="admin-alerts">
+          <header className="admin-v2-panel-head compact">
+            <div>
+              <span className="admin-card-kicker">CENTRAL DE ALERTAS</span>
+              <h2>Atenção operacional</h2>
+              <p>Itens que merecem acompanhamento agora.</p>
+            </div>
+            <span className="admin-live-pill"><i/> AO VIVO</span>
+          </header>
+
+          <div className="admin-v2-alert-list">
+            <Link href="/admin/corridas" className={searching ? 'warning' : 'ok'}>
+              <span><Icon name="clock" size={18}/></span>
+              <div>
+                <strong>{searching ? `${searching} pedido(s) buscando entregador` : 'Nenhum pedido aguardando entregador'}</strong>
+                <small>{searching ? 'Verifique a disponibilidade da rede.' : 'Fluxo de despacho normal.'}</small>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </Link>
+
+            <Link href="/admin/entregadores" className={couriers.length-onlineCouriers ? 'info' : 'ok'}>
+              <span><Icon name="user" size={18}/></span>
+              <div>
+                <strong>{onlineCouriers} de {couriers.length} entregadores online</strong>
+                <small>{availableCouriers} disponível(is) para novas ofertas.</small>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </Link>
+
+            <Link href="/admin/lojas" className={stores.length-activeStores ? 'warning' : 'ok'}>
+              <span><Icon name="store" size={18}/></span>
+              <div>
+                <strong>{activeStores} de {stores.length} lojas ativas</strong>
+                <small>{stores.length-activeStores ? `${stores.length-activeStores} operação(ões) pausada(s).` : 'Todas as operações estão ativas.'}</small>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </Link>
+
+            <Link href="/admin/financeiro" className={reservedWalletBalance ? 'info' : 'ok'}>
+              <span><Icon name="money" size={18}/></span>
+              <div>
+                <strong>{money(reservedWalletBalance)} em saldo reservado</strong>
+                <small>Valores protegidos em corridas ativas.</small>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </Link>
+          </div>
+        </article>
       </section>
 
       <section className="admin-v2-main-grid">
