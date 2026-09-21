@@ -33,19 +33,13 @@ export async function requireStore(): Promise<{
     redirect('/login?error=acesso')
   }
 
-  let storesQuery = supabase
+  // A RLS de stores limita a consulta às lojas que o usuário possui
+  // ou das quais é membro. Administradores enxergam todas.
+  const { data: stores, error: storeError } = await supabase
     .from('stores')
     .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,city,state')
     .order('is_active', { ascending: false })
     .order('created_at', { ascending: true })
-
-  // Donos enxergam somente as próprias lojas. A conta admin poderá usar
-  // o mesmo seletor para acessar qualquer operação cadastrada.
-  if (profile.role !== 'admin') {
-    storesQuery = storesQuery.eq('owner_id', userId)
-  }
-
-  const { data: stores, error: storeError } = await storesQuery
 
   if (storeError || !stores?.length) redirect('/login?error=loja')
 
