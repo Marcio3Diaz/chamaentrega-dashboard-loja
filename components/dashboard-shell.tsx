@@ -10,6 +10,7 @@ const nav = [
   ['/', 'Visão Geral', 'home'],
   ['/pedidos', 'Pedidos', 'box'],
   ['/entregas/nova', 'Criar entrega', 'plus'],
+  ['/despacho', 'Despacho Inteligente', 'route'],
   ['/entregas', 'Entregas', 'box'],
   ['/entregadores', 'Entregadores', 'user'],
   ['/mapa', 'Mapa ao vivo', 'map'],
