@@ -13341,3 +13341,32 @@ html[data-theme="light"] .store-switcher-avatar{
     width:auto;
   }
 }
+
+
+/* Admin login is intentionally separate from the store portal. */
+.admin-login-page{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,184,0,.08),transparent 32%),
+    #070a0d;
+}
+.admin-login-card{
+  border-color:rgba(255,184,0,.12);
+}
+.admin-login-separation-note{
+  display:grid;
+  gap:3px;
+  margin:16px 0;
+  padding:10px 11px;
+  border:1px solid rgba(255,184,0,.13);
+  border-radius:10px;
+  background:rgba(255,184,0,.045);
+}
+.admin-login-separation-note strong{
+  color:#ffbd12;
+  font-size:6px;
+  letter-spacing:.12em;
+}
+.admin-login-separation-note span{
+  color:#717c86;
+  font-size:6px;
+}
