@@ -29,6 +29,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const publicRoute =
     pathname.startsWith('/login') ||
+    pathname.startsWith('/cadastro') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password')
@@ -42,6 +43,12 @@ export async function updateSession(request: NextRequest) {
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && pathname === '/cadastro') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/onboarding'
     return NextResponse.redirect(url)
   }
 
