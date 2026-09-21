@@ -10492,3 +10492,26 @@ html[data-theme="light"] .store-switcher-avatar{
   background:#f3f5f6;
   border-color:#e1e5e8;
 }
+
+
+.store-switcher-selector{
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+.store-switcher-selector .store-copy{
+  min-width:0;
+}
+.store-switcher-selector:focus-visible{
+  outline:2px solid #ffbd12;
+  outline-offset:4px;
+  border-radius:8px;
+}
