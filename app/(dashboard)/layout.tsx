@@ -11,6 +11,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       stores={stores}
       storeName={store.name}
       storeActive={store.is_active}
+      moderationStatus={store.moderation_status}
+      moderationReason={store.moderation_reason ?? null}
       storeLogoUrl={store.logo_url}
     >
       {children}
