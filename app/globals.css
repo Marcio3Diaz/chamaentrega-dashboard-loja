@@ -18660,3 +18660,25 @@ html[data-theme="light"] .store-switcher-avatar{
     background-size:cover !important;
   }
 }
+
+/* ChamaEntrega widen promo plan card 2026-09-21 */
+.ce-plans.ce-plans-premium .ce-plans-layout{
+  grid-template-columns:minmax(0,1fr) 500px;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+  min-width:0;
+  width:100%;
+}
+
+@media(max-width:1500px){
+  .ce-plans.ce-plans-premium .ce-plans-layout{
+    grid-template-columns:minmax(0,1fr) 460px;
+  }
+}
+
+@media(max-width:1280px){
+  .ce-plans.ce-plans-premium .ce-plans-layout{
+    grid-template-columns:1fr;
+  }
+}
