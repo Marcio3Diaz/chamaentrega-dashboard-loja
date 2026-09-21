@@ -1,0 +1,31 @@
+import { AdminLoginForm } from './admin-login-form'
+
+export default function AdminLoginPage() {
+  return (
+    <main className="login-page admin-login-page">
+      <section className="login-card admin-login-card">
+        <div className="login-brand official-login-brand">
+          <img
+            src="/brand/chamaentrega-logo-official.webp"
+            alt="ChamaEntrega — Chamou, Chegou"
+            className="official-login-logo"
+          />
+        </div>
+
+        <div className="eyebrow">Central administrativa</div>
+        <h1>Gestão da plataforma ChamaEntrega.</h1>
+        <p className="subtle">
+          Acesso restrito à administração da rede, lojas, entregadores,
+          corridas e financeiro da plataforma.
+        </p>
+
+        <div className="admin-login-separation-note">
+          <strong>AMBIENTE INDEPENDENTE</strong>
+          <span>Este acesso não faz parte do Portal da Loja.</span>
+        </div>
+
+        <AdminLoginForm />
+      </section>
+    </main>
+  )
+}
