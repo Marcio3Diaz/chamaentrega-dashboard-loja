@@ -86,10 +86,10 @@ export function AdminShell({
               <Icon name="arrow" size={13}/>
             </Link>
 
-            <button className="admin-topbar-bell" type="button" aria-label="Notificações">
+            <Link className="admin-topbar-bell" href="/admin#admin-alerts" aria-label="Notificações">
               <Icon name="bell" size={18}/>
               <i/>
-            </button>
+            </Link>
 
             <div className="admin-topbar-user">
               <span className="admin-topbar-avatar">
