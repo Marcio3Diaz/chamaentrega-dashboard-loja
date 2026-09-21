@@ -65,3 +65,30 @@ export async function requireStore(): Promise<{
 }
 
 export { ACTIVE_STORE_COOKIE }
+
+
+export async function requireAdmin(): Promise<{
+  userId:string
+  fullName:string
+}> {
+  const supabase = await createClient()
+  const { data:claimsData,error:claimsError } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+
+  if (claimsError || !userId) redirect('/login')
+
+  const { data:profile } = await supabase
+    .from('profiles')
+    .select('full_name,role')
+    .eq('id',userId)
+    .maybeSingle()
+
+  if (!profile || profile.role !== 'admin') {
+    redirect('/painel')
+  }
+
+  return {
+    userId,
+    fullName:profile.full_name?.trim() || 'Administrador',
+  }
+}
