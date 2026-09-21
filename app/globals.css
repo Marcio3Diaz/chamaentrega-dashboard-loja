@@ -18625,3 +18625,38 @@ html[data-theme="light"] .store-switcher-avatar{
 .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image img{
   display:none !important;
 }
+
+/* ChamaEntrega official plans promo asset 2026-09-21 */
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+  min-height:550px !important;
+  border:1px solid rgba(247,185,22,.28) !important;
+  border-radius:20px !important;
+  background:#070d11 url('/images/planos-card-direita-oficial.webp') center center / cover no-repeat !important;
+}
+
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image::before,
+.ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image::after{
+  display:none !important;
+  content:none !important;
+}
+
+@media(max-width:1380px){
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:510px !important;
+  }
+}
+
+@media(max-width:1100px){
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:620px !important;
+    background-size:contain !important;
+    background-color:#070d11 !important;
+  }
+}
+
+@media(max-width:620px){
+  .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
+    min-height:500px !important;
+    background-size:cover !important;
+  }
+}
