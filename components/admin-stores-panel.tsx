@@ -3,7 +3,10 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
-import { setStoreActiveAdminAction } from '@/app/(admin)/admin/actions'
+import {
+  setStoreModerationStatusAdminAction,
+  type ModerationStatus,
+} from '@/app/(admin)/admin/actions'
 
 export type AdminStoreRow = {
   id:string
@@ -14,6 +17,10 @@ export type AdminStoreRow = {
   state:string|null
   address:string
   isActive:boolean
+  moderationStatus:ModerationStatus
+  moderationReason:string|null
+  moderatedAt:string|null
+  approvedAt:string|null
   createdAt:string
   ownerName:string
   walletBalance:number
@@ -22,6 +29,22 @@ export type AdminStoreRow = {
   completedDeliveries:number
   activeDeliveries:number
   deliveryVolume:number
+}
+
+const statusLabel:Record<ModerationStatus,string> = {
+  pending:'Aguardando aprovação',
+  active:'Ativa',
+  suspended:'Suspensa',
+  banned:'Banida',
+  rejected:'Rejeitada',
+}
+
+const statusHelp:Record<ModerationStatus,string> = {
+  pending:'Cadastro novo aguardando análise da plataforma.',
+  active:'Cadastro aprovado e autorizado a operar.',
+  suspended:'Operação temporariamente bloqueada pelo ChamaEntrega.',
+  banned:'Cadastro bloqueado administrativamente.',
+  rejected:'Cadastro não aprovado pela plataforma.',
 }
 
 function money(value:number) {
@@ -45,10 +68,27 @@ export function AdminStoresPanel({
   initialStores:AdminStoreRow[]
 }) {
   const [search,setSearch] = useState('')
-  const [statusFilter,setStatusFilter] = useState<'all'|'active'|'paused'>('all')
+  const [statusFilter,setStatusFilter] = useState<'all'|ModerationStatus>('all')
   const [sort,setSort] = useState<'recent'|'name'|'deliveries'|'balance'>('recent')
   const [message,setMessage] = useState('')
+  const [workingId,setWorkingId] = useState<string|null>(null)
   const [pending,startTransition] = useTransition()
+
+  const counts = useMemo(() => {
+    const result:Record<ModerationStatus,number> = {
+      pending:0,
+      active:0,
+      suspended:0,
+      banned:0,
+      rejected:0,
+    }
+
+    for (const store of initialStores) {
+      result[store.moderationStatus] += 1
+    }
+
+    return result
+  },[initialStores])
 
   const stores = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -64,8 +104,7 @@ export function AdminStoresPanel({
 
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'active' && store.isActive) ||
-        (statusFilter === 'paused' && !store.isActive)
+        store.moderationStatus === statusFilter
 
       return matchesSearch && matchesStatus
     })
@@ -78,18 +117,127 @@ export function AdminStoresPanel({
     })
   },[initialStores,search,statusFilter,sort])
 
-  const activeCount = initialStores.filter(store => store.isActive).length
-  const pausedCount = initialStores.length-activeCount
+  function moderate(store:AdminStoreRow,status:ModerationStatus) {
+    if (pending || workingId) return
 
-  function toggle(store:AdminStoreRow) {
+    let reason:string|undefined
+    const destructive = status === 'suspended' || status === 'banned' || status === 'rejected'
+
+    if (destructive) {
+      const label =
+        status === 'suspended'
+          ? 'suspender'
+          : status === 'banned'
+            ? 'banir'
+            : 'rejeitar'
+
+      const confirmed = window.confirm(
+        `Deseja realmente ${label} o cadastro de "${store.name}"?`
+      )
+      if (!confirmed) return
+
+      const answer = window.prompt(
+        'Informe o motivo administrativo. Ele ficará registrado no histórico:',
+        store.moderationReason ?? '',
+      )
+      if (answer === null) return
+      reason = answer.trim() || undefined
+    } else {
+      const action = store.moderationStatus === 'pending'
+        ? 'aprovar'
+        : 'ativar novamente'
+
+      if (!window.confirm(`Deseja ${action} "${store.name}"?`)) return
+    }
+
     setMessage('')
+    setWorkingId(store.id)
+
     startTransition(async () => {
-      const result = await setStoreActiveAdminAction(store.id,!store.isActive)
+      const result = await setStoreModerationStatusAdminAction(
+        store.id,
+        status,
+        reason,
+      )
       setMessage(result.message)
-      if (result.ok) window.location.reload()
+      setWorkingId(null)
+
+      if (result.ok) {
+        window.location.reload()
+      }
     })
   }
 
+  function renderActions(store:AdminStoreRow) {
+    const busy = pending && workingId === store.id
+
+    if (store.moderationStatus === 'pending') {
+      return (
+        <>
+          <button
+            type="button"
+            className="admin-row-button success"
+            onClick={() => moderate(store,'active')}
+            disabled={busy}
+          >
+            <Icon name="check" size={14}/>
+            Aprovar
+          </button>
+          <button
+            type="button"
+            className="admin-row-button warning"
+            onClick={() => moderate(store,'rejected')}
+            disabled={busy}
+          >
+            Rejeitar
+          </button>
+          <button
+            type="button"
+            className="admin-row-button danger"
+            onClick={() => moderate(store,'banned')}
+            disabled={busy}
+          >
+            Banir
+          </button>
+        </>
+      )
+    }
+
+    if (store.moderationStatus === 'active') {
+      return (
+        <>
+          <button
+            type="button"
+            className="admin-row-button warning"
+            onClick={() => moderate(store,'suspended')}
+            disabled={busy}
+          >
+            Suspender
+          </button>
+          <button
+            type="button"
+            className="admin-row-button danger"
+            onClick={() => moderate(store,'banned')}
+            disabled={busy}
+          >
+            Banir
+          </button>
+        </>
+      )
+    }
+
+    return (
+      <button
+        type="button"
+        className="admin-row-button success"
+        onClick={() => moderate(store,'active')}
+        disabled={busy}
+      >
+        <Icon name="check" size={14}/>
+        Ativar
+      </button>
+    )
+  }
 
   return (
     <div className="admin-stores-panel">
@@ -106,7 +254,7 @@ export function AdminStoresPanel({
           ) : null}
         </div>
 
-        <div className="admin-store-filter-chips">
+        <div className="admin-store-filter-chips moderation-filter-chips">
           <button
             type="button"
             className={statusFilter==='all' ? 'active' : ''}
@@ -116,17 +264,31 @@ export function AdminStoresPanel({
           </button>
           <button
             type="button"
-            className={statusFilter==='active' ? 'active' : ''}
-            onClick={() => setStatusFilter('active')}
+            className={statusFilter==='pending' ? 'active pending' : ''}
+            onClick={() => setStatusFilter('pending')}
           >
-            Ativas <span>{activeCount}</span>
+            Pendentes <span>{counts.pending}</span>
           </button>
           <button
             type="button"
-            className={statusFilter==='paused' ? 'active' : ''}
-            onClick={() => setStatusFilter('paused')}
+            className={statusFilter==='active' ? 'active' : ''}
+            onClick={() => setStatusFilter('active')}
           >
-            Pausadas <span>{pausedCount}</span>
+            Ativas <span>{counts.active}</span>
+          </button>
+          <button
+            type="button"
+            className={statusFilter==='suspended' ? 'active suspended' : ''}
+            onClick={() => setStatusFilter('suspended')}
+          >
+            Suspensas <span>{counts.suspended}</span>
+          </button>
+          <button
+            type="button"
+            className={statusFilter==='banned' ? 'active banned' : ''}
+            onClick={() => setStatusFilter('banned')}
+          >
+            Banidas <span>{counts.banned}</span>
           </button>
         </div>
 
@@ -143,6 +305,11 @@ export function AdminStoresPanel({
 
       <div className="admin-store-result-line">
         <strong>{stores.length}</strong> operação{stores.length===1?'':'ões'} encontrada{stores.length===1?'':'s'}
+        {counts.pending > 0 ? (
+          <span className="admin-pending-summary">
+            <i/>{counts.pending} aguardando aprovação
+          </span>
+        ) : null}
         {(search || statusFilter !== 'all') ? (
           <button
             type="button"
@@ -161,7 +328,7 @@ export function AdminStoresPanel({
 
       <div className="admin-store-list">
         {stores.map(store => (
-          <article className="admin-store-row" key={store.id}>
+          <article className="admin-store-row moderation-store-row" key={store.id}>
             <div className="admin-store-identity">
               <span className="admin-store-logo">
                 {store.logoUrl
@@ -191,33 +358,26 @@ export function AdminStoresPanel({
               <span>{store.activeDeliveries} ativas · {store.completedDeliveries} concluídas</span>
             </div>
 
-            <div className="admin-store-stat">
-              <small>Volume</small>
-              <strong>{money(store.deliveryVolume)}</strong>
-              <span>taxas movimentadas</span>
+            <div className="admin-store-stat moderation-state-cell">
+              <small>Cadastro</small>
+              <span className={`admin-moderation-status ${store.moderationStatus}`}>
+                <i/>{statusLabel[store.moderationStatus]}
+              </span>
+              <span title={store.moderationReason ?? statusHelp[store.moderationStatus]}>
+                {store.moderationReason ?? statusHelp[store.moderationStatus]}
+              </span>
             </div>
 
-            <div className="admin-store-actions">
-              <span className={store.isActive ? 'admin-status active' : 'admin-status paused'}>
-                <i/>{store.isActive ? 'Ativa' : 'Pausada'}
-              </span>
-
+            <div className="admin-store-actions moderation-actions">
               <Link
                 href={`/admin/lojas/${store.id}`}
                 className="admin-row-button admin-row-link admin-row-primary"
               >
                 <Icon name="chevron" size={14}/>
-                Abrir gestão
+                Detalhes
               </Link>
 
-              <button
-                type="button"
-                className={store.isActive ? 'admin-row-button danger' : 'admin-row-button success'}
-                onClick={() => toggle(store)}
-                disabled={pending}
-              >
-                {store.isActive ? 'Pausar' : 'Ativar'}
-              </button>
+              {renderActions(store)}
             </div>
           </article>
         ))}
