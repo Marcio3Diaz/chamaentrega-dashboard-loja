@@ -28,6 +28,7 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims
   const pathname = request.nextUrl.pathname
   const publicRoute =
+    pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/cadastro') ||
     pathname.startsWith('/auth') ||
