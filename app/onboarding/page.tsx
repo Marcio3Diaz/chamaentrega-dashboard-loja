@@ -28,7 +28,7 @@ export default async function OnboardingPage() {
   }
 
   if (stores?.length) {
-    redirect('/')
+    redirect('/painel')
   }
 
   return (
