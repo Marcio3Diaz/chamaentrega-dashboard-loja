@@ -1,8 +1,7 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { requireAdmin, ACTIVE_STORE_COOKIE } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
 export type AdminActionResult = {
@@ -40,7 +39,6 @@ export async function setStoreActiveAdminAction(
 
   revalidatePath('/admin')
   revalidatePath('/admin/lojas')
-  revalidatePath('/painel')
 
   return {
     ok:true,
@@ -48,36 +46,3 @@ export async function setStoreActiveAdminAction(
   }
 }
 
-export async function selectStoreForAdminAction(
-  storeId:string,
-):Promise<AdminActionResult> {
-  await requireAdmin()
-  const normalized = storeId.trim()
-
-  if (!normalized) {
-    return { ok:false,message:'Loja inválida.' }
-  }
-
-  const supabase = await createClient()
-  const { data:store,error } = await supabase
-    .from('stores')
-    .select('id')
-    .eq('id',normalized)
-    .maybeSingle()
-
-  if (error || !store) {
-    return { ok:false,message:'Loja não encontrada.' }
-  }
-
-  const cookieStore = await cookies()
-  cookieStore.set(ACTIVE_STORE_COOKIE,normalized,{
-    httpOnly:true,
-    sameSite:'lax',
-    secure:process.env.NODE_ENV === 'production',
-    path:'/',
-    maxAge:60*60*24*365,
-  })
-
-  revalidatePath('/painel','layout')
-  return { ok:true,message:'Loja selecionada.' }
-}
