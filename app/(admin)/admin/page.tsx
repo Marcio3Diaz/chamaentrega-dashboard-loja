@@ -308,11 +308,11 @@ export default async function AdminOverviewPage() {
               <Icon name="chevron" size={16}/>
             </Link>
 
-            <Link href="/admin/financeiro" className={reservedWalletBalance ? 'info' : 'ok'}>
+            <Link href="/admin/financeiro" className={accruedPlatformRevenue ? 'info' : 'ok'}>
               <span><Icon name="money" size={18}/></span>
               <div>
-                <strong>{money(reservedWalletBalance)} em saldo reservado</strong>
-                <small>Valores protegidos em corridas ativas.</small>
+                <strong>{money(accruedPlatformRevenue)} de receita a receber</strong>
+                <small>Comissões e cobranças pendentes da plataforma.</small>
               </div>
               <Icon name="chevron" size={16}/>
             </Link>
