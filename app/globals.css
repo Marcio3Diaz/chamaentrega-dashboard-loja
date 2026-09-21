@@ -10031,3 +10031,216 @@ html[data-theme="light"] .map-tracking-status {
 .dispatch-insights{display:grid;gap:7px;padding:0 11px 11px}.dispatch-insights>div{display:grid;grid-template-columns:28px 1fr;gap:8px;padding:8px;border-radius:10px;background:#10151a;color:#ffbd12}.dispatch-insights span{color:#79848f;font-size:7px;line-height:1.4}.dispatch-insights strong{display:block;margin-bottom:2px;color:#dfe4e9;font-size:8px}.dispatch-actions{margin-top:auto;display:grid;gap:7px;padding:0 11px 11px}.dispatch-actions button,.dispatch-actions a{min-height:40px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:10px;font-size:8px;font-weight:950}.dispatch-actions button{border:0;background:linear-gradient(135deg,#ffad00,#ffd13a);color:#111}.dispatch-actions button:disabled{opacity:.4}.dispatch-actions a{border:1px solid rgba(255,255,255,.1);background:#11161b;color:#dce2e8}.dispatch-auto-note{margin:0 11px 11px;display:grid;grid-template-columns:8px 1fr;gap:8px;padding:9px;border:1px solid rgba(32,210,122,.14);border-radius:10px;background:rgba(32,210,122,.05)}.dispatch-auto-note i{width:7px;height:7px;border-radius:50%;background:#20d27a}.dispatch-auto-note span{color:#7f9188;font-size:7px}.dispatch-auto-note strong{display:block;color:#47e58d;font-size:8px}
 html[data-theme="light"] .dispatch-hero,html[data-theme="light"] .dispatch-queue,html[data-theme="light"] .dispatch-map-card,html[data-theme="light"] .dispatch-suggestion,html[data-theme="light"] .dispatch-metrics article{background:#fff;border-color:#dfe3e7}html[data-theme="light"] .dispatch-hero{background:linear-gradient(135deg,#fff,#fff9e9)}html[data-theme="light"] .dispatch-hero h1,html[data-theme="light"] .dispatch-panel-head h2,html[data-theme="light"] .dispatch-metrics strong,html[data-theme="light"] .dispatch-order-copy strong,html[data-theme="light"] .dispatch-route-row strong,html[data-theme="light"] .dispatch-summary strong,html[data-theme="light"] .dispatch-courier strong{color:#12171b}html[data-theme="light"] .dispatch-order,html[data-theme="light"] .dispatch-summary>div,html[data-theme="light"] .dispatch-insights>div,html[data-theme="light"] .dispatch-actions a,html[data-theme="light"] .dispatch-auto{background:#f6f8f9;border-color:#e0e4e7}
 @media(max-width:1250px){.dispatch-workspace{grid-template-columns:320px minmax(0,1fr)}.dispatch-suggestion{grid-column:1/-1;min-height:auto}.dispatch-metrics{grid-template-columns:1fr 1fr}}@media(max-width:900px){.dispatch-workspace{grid-template-columns:1fr}.dispatch-suggestion{grid-column:auto}.dispatch-hero{align-items:flex-start;flex-direction:column}}@media(max-width:620px){.dispatch-hero h1{font-size:30px}.dispatch-metrics{grid-template-columns:1fr}.dispatch-route-map{min-height:280px}}
+
+
+/* =================================================================
+   NOVA ENTREGA — geocodificação + precificação automática
+   ================================================================= */
+.geo-address-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+}
+.geo-locate-button{
+  min-height:44px;
+  padding:0 15px;
+  border:1px solid rgba(255,184,0,.22);
+  border-radius:10px;
+  background:rgba(255,184,0,.09);
+  color:#ffbd12;
+  font-size:8px;
+  font-weight:950;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.geo-locate-button:hover:not(:disabled){
+  background:rgba(255,184,0,.15);
+  border-color:rgba(255,184,0,.36);
+}
+.geo-locate-button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.geo-result{
+  display:flex;
+  align-items:stretch;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.geo-status{
+  min-height:58px;
+  flex:1 1 360px;
+  display:grid;
+  grid-template-columns:10px minmax(0,1fr);
+  gap:9px;
+  align-items:center;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:11px;
+  background:#10151a;
+}
+.geo-status>i{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#68737e;
+}
+.geo-status.ok{
+  border-color:rgba(32,210,122,.18);
+  background:rgba(32,210,122,.045);
+}
+.geo-status.ok>i{
+  background:#20d27a;
+  box-shadow:0 0 9px rgba(32,210,122,.65);
+}
+.geo-status span{
+  min-width:0;
+  color:#7e8994;
+  font-size:8px;
+  line-height:1.4;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.geo-status strong{
+  display:block;
+  margin-bottom:2px;
+  color:#e7ebef;
+  font-size:9px;
+}
+.geo-result>div:not(.geo-status){
+  min-width:125px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:9px 11px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:11px;
+  background:#10151a;
+}
+.geo-result small{
+  color:#77828d;
+  font-size:7px;
+}
+.geo-result>div:not(.geo-status) strong{
+  margin-top:3px;
+  color:#fff;
+  font-size:12px;
+}
+.geo-warning{
+  border-color:rgba(255,184,0,.18)!important;
+  background:rgba(255,184,0,.05)!important;
+}
+.pricing-section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:14px;
+}
+.pricing-section-head h2{
+  margin:0;
+}
+.pricing-section-head p{
+  margin:5px 0 0;
+  color:#7f8a95;
+  font-size:8px;
+}
+.pricing-rule{
+  min-width:220px;
+  display:grid;
+  grid-template-columns:auto auto;
+  column-gap:8px;
+  align-items:end;
+  padding:9px 11px;
+  border:1px solid rgba(255,184,0,.16);
+  border-radius:11px;
+  background:rgba(255,184,0,.05);
+}
+.pricing-rule span{
+  color:#8b96a1;
+  font-size:7px;
+}
+.pricing-rule strong{
+  color:#ffbd12;
+  font-size:16px;
+}
+.pricing-rule small{
+  grid-column:1/-1;
+  margin-top:3px;
+  color:#7d8792;
+  font-size:7px;
+}
+.field-help{
+  margin-top:5px;
+  color:#747f8a;
+  font-size:7px;
+}
+
+/* =================================================================
+   DESPACHO — envio real da rota ao app
+   ================================================================= */
+.dispatch-actions .dispatch-send{
+  border:1px solid rgba(32,210,122,.25)!important;
+  background:linear-gradient(135deg,#17c86f,#43e997)!important;
+  color:#07110c!important;
+  box-shadow:0 8px 22px rgba(32,210,122,.14);
+}
+.dispatch-actions .dispatch-send:disabled{
+  opacity:.35;
+  box-shadow:none;
+}
+.dispatch-result{
+  margin:0 11px 11px;
+  display:grid;
+  grid-template-columns:8px minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:10px;
+  font-size:8px;
+  font-weight:750;
+}
+.dispatch-result i{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+}
+.dispatch-result.success{
+  border:1px solid rgba(32,210,122,.18);
+  background:rgba(32,210,122,.06);
+  color:#5be99c;
+}
+.dispatch-result.success i{
+  background:#20d27a;
+  box-shadow:0 0 8px rgba(32,210,122,.65);
+}
+.dispatch-result.error{
+  border:1px solid rgba(255,86,96,.18);
+  background:rgba(255,86,96,.06);
+  color:#ff8a91;
+}
+.dispatch-result.error i{
+  background:#ff5660;
+}
+
+html[data-theme="light"] .geo-status,
+html[data-theme="light"] .geo-result>div:not(.geo-status){
+  border-color:#e0e4e7;
+  background:#f7f9fa;
+}
+html[data-theme="light"] .geo-status strong,
+html[data-theme="light"] .geo-result>div:not(.geo-status) strong{
+  color:#151a1f;
+}
+html[data-theme="light"] .pricing-rule{
+  background:#fff8e7;
+  border-color:#f1dfad;
+}
+
+@media(max-width:760px){
+  .geo-address-row{grid-template-columns:1fr}
+  .geo-locate-button{width:100%}
+  .pricing-section-head{flex-direction:column}
+  .pricing-rule{width:100%;min-width:0}
+}
