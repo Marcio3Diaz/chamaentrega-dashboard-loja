@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/icon'
 import {
@@ -147,6 +148,13 @@ export function AdminStoresPanel({
               <span className={store.isActive ? 'admin-status active' : 'admin-status paused'}>
                 <i/>{store.isActive ? 'Ativa' : 'Pausada'}
               </span>
+
+              <Link
+                href={`/admin/lojas/${store.id}`}
+                className="admin-row-button admin-row-link"
+              >
+                Detalhes
+              </Link>
 
               <button
                 type="button"
