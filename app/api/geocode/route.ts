@@ -1,0 +1,72 @@
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+type GeocodeRequest = {
+  address?: string
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json() as GeocodeRequest
+    const address = String(body.address ?? '').trim()
+
+    if (address.length < 6) {
+      return NextResponse.json(
+        { error: 'Informe um endereço mais completo.' },
+        { status: 400 },
+      )
+    }
+
+    const url = new URL('https://nominatim.openstreetmap.org/search')
+    url.searchParams.set('format', 'jsonv2')
+    url.searchParams.set('limit', '1')
+    url.searchParams.set('countrycodes', 'br')
+    url.searchParams.set('addressdetails', '1')
+    url.searchParams.set('q', address)
+
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Language': 'pt-BR,pt;q=0.9',
+        'User-Agent': 'ChamaEntrega/1.0',
+      },
+    })
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'O serviço de localização não respondeu.' },
+        { status: 502 },
+      )
+    }
+
+    const results = await response.json() as Array<{
+      lat?: string
+      lon?: string
+      display_name?: string
+    }>
+
+    const first = results[0]
+    const latitude = Number(first?.lat)
+    const longitude = Number(first?.lon)
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return NextResponse.json(
+        { error: 'Endereço não localizado. Inclua número, bairro e cidade.' },
+        { status: 404 },
+      )
+    }
+
+    return NextResponse.json({
+      latitude,
+      longitude,
+      displayName: String(first?.display_name ?? address),
+    })
+  } catch {
+    return NextResponse.json(
+      { error: 'Não foi possível localizar o endereço.' },
+      { status: 500 },
+    )
+  }
+}
