@@ -10244,3 +10244,66 @@ html[data-theme="light"] .pricing-rule{
   .pricing-section-head{flex-direction:column}
   .pricing-rule{width:100%;min-width:0}
 }
+
+
+/* Configurações — precificação automática */
+.settings-pricing-preview{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  margin:0 0 18px;
+  padding:14px;
+  border:1px solid rgba(255,184,0,.14);
+  border-radius:14px;
+  background:linear-gradient(135deg,rgba(255,184,0,.06),rgba(255,184,0,.018));
+}
+.settings-pricing-preview>div:not(.pricing-preview-plus){
+  min-height:76px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:11px;
+  background:#10151a;
+}
+.settings-pricing-preview small{
+  color:#7d8792;
+  font-size:7px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.settings-pricing-preview strong{
+  margin-top:4px;
+  color:#ffbd12;
+  font-size:20px;
+}
+.settings-pricing-preview span{
+  margin-top:2px;
+  color:#8a949f;
+  font-size:8px;
+}
+.settings-pricing-preview .pricing-preview-plus{
+  display:grid;
+  place-items:center;
+  color:#ffbd12;
+  font-size:22px;
+  font-weight:900;
+}
+html[data-theme="light"] .settings-pricing-preview>div:not(.pricing-preview-plus){
+  background:#fff;
+  border-color:#e2e5e8;
+}
+html[data-theme="light"] .settings-pricing-preview{
+  background:#fff9ea;
+  border-color:#f1dfad;
+}
+@media(max-width:720px){
+  .settings-pricing-preview{
+    grid-template-columns:1fr;
+  }
+  .settings-pricing-preview .pricing-preview-plus{
+    min-height:20px;
+  }
+}
