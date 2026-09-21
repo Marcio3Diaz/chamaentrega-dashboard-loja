@@ -27,17 +27,22 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
   const pathname = request.nextUrl.pathname
+
+  const isAdminLogin = pathname === '/admin/login'
   const publicRoute =
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/cadastro') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/forgot-password') ||
-    pathname.startsWith('/reset-password')
+    pathname.startsWith('/reset-password') ||
+    isAdminLogin
 
   if (!user && !publicRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = pathname.startsWith('/admin')
+      ? '/admin/login'
+      : '/login'
     return NextResponse.redirect(url)
   }
 
