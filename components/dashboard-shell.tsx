@@ -90,12 +90,7 @@ export function DashboardShell({
         </Link>
 
         <div className="store-switcher">
-          <button
-            type="button"
-            className="store-chip premium-store-chip store-switcher-trigger"
-            onClick={() => setStoreMenuOpen(open => !open)}
-            aria-expanded={storeMenuOpen}
-          >
+          <div className="store-chip premium-store-chip store-switcher-trigger">
             <span className="store-switcher-logo-wrap">
               <StoreLogoUpload
                 storeId={storeId}
@@ -105,12 +100,21 @@ export function DashboardShell({
                 variant="sidebar"
               />
             </span>
-            <span className="store-copy">
-              <strong>{storeName}</strong>
-              <small><i />{storeActive ? 'Loja ativa' : 'Loja inativa'}</small>
-            </span>
-            <span className={storeMenuOpen ? 'store-chevron open' : 'store-chevron'}>⌄</span>
-          </button>
+
+            <button
+              type="button"
+              className="store-switcher-selector"
+              onClick={() => setStoreMenuOpen(open => !open)}
+              aria-expanded={storeMenuOpen}
+              aria-label="Escolher loja ativa"
+            >
+              <span className="store-copy">
+                <strong>{storeName}</strong>
+                <small><i />{storeActive ? 'Loja ativa' : 'Loja inativa'}</small>
+              </span>
+              <span className={storeMenuOpen ? 'store-chevron open' : 'store-chevron'}>⌄</span>
+            </button>
+          </div>
 
           {storeMenuOpen ? (
             <div className="store-switcher-menu">
