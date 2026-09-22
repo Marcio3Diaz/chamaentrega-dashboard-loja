@@ -3,7 +3,15 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '@/components/icon'
 
-const steps = [
+type Step = {
+  n: string
+  title: string
+  text: string
+  kind?: 'marketplaces'
+  icon?: string
+}
+
+const steps: Step[] = [
   {
     n:'1',
     title:'Sua loja já vende no iFood ou 99Food?',
@@ -40,10 +48,10 @@ const steps = [
     text:'Com mais restaurantes e entregadores conectados, nasce uma rede regional de apoio com mais disponibilidade para todos.',
     icon:'chart',
   },
-] as const
+]
 
 export function PublicHowSteps() {
-  const [activeStep, setActiveStep] = useState<(typeof steps)[number] | null>(null)
+  const [activeStep, setActiveStep] = useState<Step | null>(null)
 
   useEffect(() => {
     if (!activeStep) return
