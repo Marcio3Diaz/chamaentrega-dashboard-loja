@@ -13,11 +13,11 @@ export function LoginForm() {
     <form action={action}>
       <div className="field">
         <label htmlFor="email">E-mail</label>
-        <input id="email" name="email" type="email" autoComplete="email" placeholder="loja@exemplo.com" required />
+        <input id="email" name="email" type="email" autoComplete="email" maxLength={254} placeholder="loja@exemplo.com" required />
       </div>
       <div className="field">
         <label htmlFor="password">Senha</label>
-        <input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+        <input id="password" name="password" type="password" autoComplete="current-password" maxLength={128} placeholder="••••••••" required />
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -4 }}>
         <Link href="/forgot-password" className="subtle" style={{ color: 'var(--gold)', fontWeight: 800 }}>
