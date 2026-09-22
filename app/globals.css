@@ -19275,3 +19275,10 @@ html[data-theme="light"] .store-switcher-avatar{
     line-height:1.5;
   }
 }
+
+/* ChamaEntrega image aspect-ratio safeguards 2026-09-22 */
+.ce-logo img,
+.ce-footer-brand img,
+.ce-network-riders img{
+  height:auto;
+}
