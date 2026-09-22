@@ -1,45 +1,18 @@
-'use client'
-
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 export function PublicHeader() {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (!open) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
-  const closeMenu = () => setOpen(false)
-
   return (
     <header className="ce-header">
-      <Link href="/" className="ce-logo" aria-label="ChamaEntrega" onClick={closeMenu}>
-        <Image
+      <a href="/" className="ce-logo" aria-label="ChamaEntrega">
+        <img
           src="/brand/chamaentrega-logo-official.webp"
           alt="ChamaEntrega"
           width={176}
           height={59}
-          sizes="(max-width: 620px) 155px, 176px"
-          priority
+          fetchPriority="high"
+          decoding="async"
         />
-      </Link>
+      </a>
 
       <nav className="ce-desktop-nav" aria-label="Navegação principal">
         <a href="#como-usar">Como funciona</a>
@@ -49,50 +22,55 @@ export function PublicHeader() {
       </nav>
 
       <div className="ce-header-actions">
-        <Link href="/login" prefetch={false} className="ce-link-button">
+        <a href="/login" className="ce-link-button">
           Entrar
-        </Link>
-        <Link href="/cadastro" prefetch={false} className="ce-primary-button">
+        </a>
+        <a href="/cadastro" className="ce-primary-button">
           Criar minha loja <Icon name="arrow" size={15}/>
-        </Link>
+        </a>
       </div>
 
-      <button
-        type="button"
-        className={`ce-mobile-menu-button ${open ? 'is-open' : ''}`}
-        aria-label={open ? 'Fechar menu' : 'Abrir menu'}
-        aria-expanded={open}
-        aria-controls="ce-mobile-nav"
-        onClick={() => setOpen(value => !value)}
+      <a
+        href="#ce-mobile-menu"
+        className="ce-mobile-menu-button"
+        aria-label="Abrir menu"
+        aria-controls="ce-mobile-menu"
       >
         <span />
         <span />
         <span />
-      </button>
+      </a>
 
-      {open ? (
-        <div className="ce-mobile-menu-layer" onMouseDown={closeMenu}>
-          <nav
-            id="ce-mobile-nav"
-            className="ce-mobile-nav"
-            aria-label="Menu mobile"
-            onMouseDown={event => event.stopPropagation()}
-          >
+      <div id="ce-mobile-menu" className="ce-mobile-menu-layer">
+        <a
+          href="#conteudo"
+          className="ce-mobile-menu-dismiss"
+          aria-label="Fechar menu"
+        />
+
+        <nav
+          id="ce-mobile-nav"
+          className="ce-mobile-nav"
+          aria-label="Menu mobile"
+        >
+          <div className="ce-mobile-nav-head">
             <div className="ce-mobile-nav-kicker">NAVEGAÇÃO</div>
-            <a href="#como-usar" onClick={closeMenu}>Como funciona <Icon name="arrow" size={15}/></a>
-            <a href="#recursos" onClick={closeMenu}>Recursos <Icon name="arrow" size={15}/></a>
-            <a href="#planos" onClick={closeMenu}>Planos <Icon name="arrow" size={15}/></a>
-            <a href="#faq" onClick={closeMenu}>Dúvidas frequentes <Icon name="arrow" size={15}/></a>
+            <a href="#conteudo" className="ce-mobile-menu-close" aria-label="Fechar menu">×</a>
+          </div>
 
-            <div className="ce-mobile-nav-actions">
-              <Link href="/login" prefetch={false} onClick={closeMenu}>Entrar no portal</Link>
-              <Link href="/cadastro" prefetch={false} className="primary" onClick={closeMenu}>
-                Criar minha loja <Icon name="arrow" size={15}/>
-              </Link>
-            </div>
-          </nav>
-        </div>
-      ) : null}
+          <a href="#como-usar">Como funciona <Icon name="arrow" size={15}/></a>
+          <a href="#recursos">Recursos <Icon name="arrow" size={15}/></a>
+          <a href="#planos">Planos <Icon name="arrow" size={15}/></a>
+          <a href="#faq">Dúvidas frequentes <Icon name="arrow" size={15}/></a>
+
+          <div className="ce-mobile-nav-actions">
+            <a href="/login">Entrar no portal</a>
+            <a href="/cadastro" className="primary">
+              Criar minha loja <Icon name="arrow" size={15}/>
+            </a>
+          </div>
+        </nav>
+      </div>
     </header>
   )
 }
