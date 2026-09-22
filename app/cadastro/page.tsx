@@ -8,6 +8,8 @@ export default function CadastroPage() {
         <Link href="/login" className="signup-brand" aria-label="ChamaEntrega">
           <img
             src="/brand/chamaentrega-logo-official.webp"
+            width={420}
+            height={140}
             alt="ChamaEntrega — Chamou, Chegou"
           />
         </Link>
