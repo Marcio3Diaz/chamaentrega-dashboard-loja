@@ -37,6 +37,8 @@ export default async function OnboardingPage() {
       <header className="onboarding-topbar">
         <img
           src="/brand/chamaentrega-logo-official.webp"
+          width={420}
+          height={140}
           alt="ChamaEntrega — Chamou, Chegou"
         />
         <div>
