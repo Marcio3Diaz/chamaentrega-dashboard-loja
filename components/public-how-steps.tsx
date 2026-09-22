@@ -80,7 +80,6 @@ export function PublicHowSteps() {
               type="button"
               className="ce-how-step-button"
               onClick={() => setActiveStep(step)}
-              aria-label={`Abrir explicação do passo ${step.n}: ${step.title}`}
             >
               <div className="ce-step-number">{step.n}</div>
 
