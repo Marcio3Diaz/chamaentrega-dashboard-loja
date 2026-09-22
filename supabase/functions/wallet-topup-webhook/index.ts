@@ -62,7 +62,7 @@ const loadWooviPublicKeys = async () => {
   }
 };
 
-const verifyRsaSignature = async (rawBody: Uint8Array, signature: string) => {
+const verifyRsaSignature = async (rawBody: Uint8Array<ArrayBuffer>, signature: string) => {
   const signatureBytes = fromBase64(signature);
   const keys = await loadWooviPublicKeys();
 
@@ -79,7 +79,7 @@ const verifyRsaSignature = async (rawBody: Uint8Array, signature: string) => {
 };
 
 const verifyLegacyHmac = async (
-  rawBody: Uint8Array,
+  rawBody: Uint8Array<ArrayBuffer>,
   signature: string,
   secret: string,
 ) => {
