@@ -52,6 +52,7 @@ const steps: Step[] = [
     n:'6',
     title:'Quanto mais lojas, maior a rede',
     text:'Com mais restaurantes e entregadores conectados, nasce uma rede regional de apoio com mais disponibilidade para todos.',
+    detail:'O verdadeiro potencial do ChamaEntrega aparece quando a rede começa a crescer dentro da própria região. Cada nova loja que entra pode convidar entregadores de confiança, e cada novo profissional aprovado amplia a disponibilidade para todos os participantes. Isso cria um efeito de rede: mais restaurantes geram mais oportunidades de entrega, o que atrai e mantém mais entregadores ativos; ao mesmo tempo, uma base maior de profissionais torna a entrega própria mais viável para os restaurantes. Em vez de cada estabelecimento tentar resolver sozinho a falta de entregadores, a região passa a construir uma estrutura compartilhada, mantendo a autonomia de cada loja. Quanto maior e mais ativa for essa rede local, maiores são as chances de encontrar um entregador disponível nos horários de maior movimento, reduzir tempo de espera e fortalecer uma alternativa de logística própria para os negócios da região.',
     icon:'chart',
   },
 ]
