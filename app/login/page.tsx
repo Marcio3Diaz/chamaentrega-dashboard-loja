@@ -16,6 +16,8 @@ export default async function LoginPage() {
         <div className="login-brand official-login-brand">
           <img
             src="/brand/chamaentrega-logo-official.webp"
+            width={420}
+            height={140}
             alt="ChamaEntrega — Chamou, Chegou"
             className="official-login-logo"
           />
