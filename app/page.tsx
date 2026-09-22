@@ -1,8 +1,52 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
 import { PublicNetworkBenefits } from '@/components/public-network-benefits'
 import { createClient } from '@/lib/supabase/server'
+
+
+export const metadata: Metadata = {
+  title: 'Rede de Entregadores e Logística para Restaurantes',
+  description:
+    'Organize sua entrega própria, construa sua rede de entregadores e reduza a dependência dos marketplaces com o ChamaEntrega.',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+const publicSiteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+  'http://localhost:3000'
+
+const publicJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'ChamaEntrega',
+  url: publicSiteUrl,
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description:
+    'Plataforma para restaurantes organizarem entrega própria, rede de entregadores, despacho, acompanhamento e operação logística.',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Essencial',
+      price: '49.90',
+      priceCurrency: 'BRL',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Profissional',
+      price: '99.90',
+      priceCurrency: 'BRL',
+    },
+  ],
+}
 
 const resources = [
   ['store','Portal da Loja','Gestão completa da sua operação de entregas.'],
@@ -52,6 +96,9 @@ export default async function PublicHomePage() {
 
   return (
     <main className="ce-showcase">
+      <script type="application/ld+json">
+        {JSON.stringify(publicJsonLd)}
+      </script>
       <header className="ce-header">
         <Link href="/" className="ce-logo" aria-label="ChamaEntrega">
           <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega"/>
