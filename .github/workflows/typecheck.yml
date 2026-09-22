@@ -76,6 +76,32 @@ jobs:
           const healthBody = await health.json()
           assert(healthBody.status === 'ok', 'Healthcheck retornou status inesperado')
 
+          const oversizedBody = JSON.stringify({
+            address:'Rua ' + 'x'.repeat(9 * 1024),
+          })
+          const oversizedStream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode(oversizedBody))
+              controller.close()
+            },
+          })
+          const oversizedResponse = await fetch(
+            'http://127.0.0.1:3000/api/geocode',
+            {
+              method:'POST',
+              headers:{
+                'content-type':'application/json',
+                'origin':'http://127.0.0.1:3000',
+              },
+              body:oversizedStream,
+              duplex:'half',
+            },
+          )
+          assert(
+            oversizedResponse.status === 413,
+            'API aceitou payload chunked maior que o limite',
+          )
+
           const robots = await get('/robots.txt')
           assert(robots.ok, 'robots.txt indisponível')
           const robotsBody = await robots.text()
