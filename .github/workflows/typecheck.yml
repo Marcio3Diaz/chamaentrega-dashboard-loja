@@ -172,8 +172,12 @@ jobs:
 
           const home = await get('/')
           assert(home.ok, 'Home não respondeu 2xx')
-          const homeCache = home.headers.get('cache-control') ?? ''
+          const homeCache = home.headers.get('cache-control')?.toLowerCase() ?? ''
           console.log('cache-control (/): ' + homeCache)
+          assert(
+            homeCache.includes('s-maxage=') && !homeCache.includes('no-store'),
+            'Home deixou de ser cacheável como conteúdo público estático',
+          )
           const homeBody = await home.text()
 
           assert(
