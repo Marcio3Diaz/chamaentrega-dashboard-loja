@@ -1,45 +1,7 @@
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
+import { PublicHowSteps } from '@/components/public-how-steps'
 import { createClient } from '@/lib/supabase/server'
-
-const howSteps = [
-  {
-    n:'1',
-    title:'Sua loja já vende no iFood ou 99Food?',
-    text:'Se hoje você usa o modelo sob demanda, pode começar a estruturar uma base própria de entregadores para reduzir dependência operacional.',
-    kind:'marketplaces',
-  },
-  {
-    n:'2',
-    title:'Convide seus entregadores',
-    text:'Convide profissionais que já conhecem sua operação para baixar o ChamaEntrega e solicitar entrada na rede da sua loja.',
-    icon:'users',
-  },
-  {
-    n:'3',
-    title:'Use seu cardápio digital',
-    text:'Ative seu próprio canal de pedidos e, quando fizer sentido para sua operação, trabalhe com entrega própria.',
-    icon:'box',
-  },
-  {
-    n:'4',
-    title:'Aprove a entrada na sua rede',
-    text:'Os entregadores solicitam entrada na rede particular do restaurante e a loja decide quem aprovar pelo painel.',
-    icon:'user',
-  },
-  {
-    n:'5',
-    title:'Compartilhe força na região',
-    text:'Lojas próximas também podem convidar entregadores, e os mesmos profissionais podem participar de várias redes parceiras.',
-    icon:'route',
-  },
-  {
-    n:'6',
-    title:'Quanto mais lojas, maior a rede',
-    text:'Com mais restaurantes e entregadores conectados, nasce uma rede regional de apoio com mais disponibilidade para todos.',
-    icon:'chart',
-  },
-]
 
 const resources = [
   ['store','Portal da Loja','Gestão completa da sua operação de entregas.'],
@@ -171,27 +133,7 @@ export default async function PublicHomePage() {
           <em>Em poucos passos,<br/>sua operação evolui!</em>
         </div>
 
-        <div className="ce-how-grid">
-          {howSteps.map(step => (
-            <article key={step.n}>
-              <div className="ce-step-number">{step.n}</div>
-
-              <div className="ce-step-icon">
-                {step.kind === 'marketplaces' ? (
-                  <div className="ce-marketplace-logos">
-                    <img src="/integrations/ifood.svg" alt="iFood"/>
-                    <img src="/integrations/99food.svg" alt="99Food"/>
-                  </div>
-                ) : (
-                  <Icon name={step.icon ?? 'box'} size={29}/>
-                )}
-              </div>
-
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </article>
-          ))}
-        </div>
+        <PublicHowSteps />
       </section>
 
       <section className="ce-network">
