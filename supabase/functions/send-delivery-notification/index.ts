@@ -1,4 +1,6 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.116.0'
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.116.0'
+
+type SupabaseAdmin = SupabaseClient<any, 'public', 'public', any, any>
 
 type JsonRecord = Record<string, unknown>
 
@@ -303,7 +305,7 @@ function eventVersion(record: JsonRecord): string {
 }
 
 async function resolveStore(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseAdmin,
   storeId: string,
 ): Promise<{ name: string; logoUrl: string }> {
   if (!storeId) {
@@ -328,7 +330,7 @@ async function resolveStore(
 }
 
 async function availableCourierIds(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseAdmin,
 ): Promise<string[]> {
   const { data, error } = await supabaseAdmin
     .from('couriers')
@@ -359,7 +361,7 @@ function statusLabel(status: string): string {
 
 async function buildDeliveryPlan(
   payload: WebhookPayload,
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseAdmin,
 ): Promise<PushPlan | null> {
   if (payload.type !== 'INSERT' && payload.type !== 'UPDATE') {
     return null
@@ -466,7 +468,7 @@ async function buildDeliveryPlan(
 
 async function buildChatPlan(
   payload: WebhookPayload,
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseAdmin,
 ): Promise<PushPlan | null> {
   if (payload.type !== 'INSERT' || !payload.record) {
     return null
@@ -670,7 +672,7 @@ function buildTestPlan(payload: WebhookPayload): PushPlan | null {
 
 async function buildPushPlan(
   payload: WebhookPayload,
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseAdmin,
 ): Promise<PushPlan | null> {
   const testPlan = buildTestPlan(payload)
 
