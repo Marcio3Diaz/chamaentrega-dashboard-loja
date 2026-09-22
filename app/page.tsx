@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
 import { PublicNetworkBenefits } from '@/components/public-network-benefits'
+import { PublicHeader } from '@/components/public-header'
 
 
 export const metadata: Metadata = {
@@ -94,27 +95,7 @@ export default function PublicHomePage() {
       <script type="application/ld+json">
         {JSON.stringify(publicJsonLd)}
       </script>
-      <header className="ce-header">
-        <Link href="/" className="ce-logo" aria-label="ChamaEntrega">
-          <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega"/>
-        </Link>
-
-        <nav>
-          <a href="#como-usar">Como funciona</a>
-          <a href="#recursos">Recursos</a>
-          <a href="#planos">Planos</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-
-        <div className="ce-header-actions">
-          <Link href="/login" className="ce-link-button">
-            Entrar
-          </Link>
-          <Link href="/cadastro" className="ce-primary-button">
-            Criar minha loja <Icon name="arrow" size={15}/>
-          </Link>
-        </div>
-      </header>
+      <PublicHeader />
 
       <section className="ce-hero">
         <div className="ce-hero-copy">
@@ -203,9 +184,9 @@ export default function PublicHomePage() {
           <div className="ce-store-node n2"><strong>Restaurante B</strong><small>Rede de entregadores</small></div>
           <div className="ce-store-node n3"><strong>Restaurante C</strong><small>Rede de entregadores</small></div>
           <div className="ce-network-riders">
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt=""/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt=""/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt=""/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
           </div>
           <div className="ce-network-caption">
             <strong>Entregadores da região</strong>
@@ -327,7 +308,7 @@ export default function PublicHomePage() {
       <footer className="ce-footer">
         <div className="ce-footer-main">
           <div className="ce-footer-brand">
-            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega"/>
+            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega" loading="lazy" decoding="async"/>
             <p>
               Tecnologia para um delivery mais organizado, independente e conectado.
               Mais controle para sua loja e uma rede regional mais forte.
