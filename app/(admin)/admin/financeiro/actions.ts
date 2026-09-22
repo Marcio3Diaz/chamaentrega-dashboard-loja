@@ -147,6 +147,7 @@ export async function registerSubscriptionPaymentAction(formData:FormData) {
       ADMIN_MFA_REQUIRED:'Confirme o MFA administrativo para continuar.',
       SUBSCRIPTION_NOT_FOUND:'Assinatura não encontrada.',
       SUBSCRIPTION_AMOUNT_REQUIRED:'Defina um valor mensal antes de registrar o pagamento.',
+      PAYMENT_ALREADY_REGISTERED:'Este pagamento acabou de ser registrado. Aguarde antes de tentar novamente.',
     }
 
     throw new Error(
