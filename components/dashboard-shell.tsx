@@ -95,6 +95,8 @@ export function DashboardShell({
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
             src="/brand/chamaentrega-logo-official.webp"
+            width={420}
+            height={140}
             alt="ChamaEntrega — Chamou, Chegou"
             className="official-brand-logo"
           />
