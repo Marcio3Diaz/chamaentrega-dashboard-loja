@@ -11,16 +11,16 @@ module.exports = {
     },
     assert: {
       assertions: {
-        // Hard regression gates. The normal score is currently much higher,
-        // but these limits avoid flaky failures from one slower CI run.
-        'categories:performance': ['error', { minScore: 0.8 }],
-        'categories:accessibility': ['error', { minScore: 0.95 }],
-        'categories:best-practices': ['error', { minScore: 0.95 }],
-        'categories:seo': ['error', { minScore: 0.95 }],
-        'first-contentful-paint': ['error', { maxNumericValue: 1800 }],
-        'largest-contentful-paint': ['error', { maxNumericValue: 3500 }],
-        'total-blocking-time': ['error', { maxNumericValue: 600 }],
-        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
+        // Regression gates based on the current measured baseline.
+        // They leave room for CI variance while blocking material regressions.
+        'categories:performance': ['error', { minScore: 0.9 }],
+        'categories:accessibility': ['error', { minScore: 0.98 }],
+        'categories:best-practices': ['error', { minScore: 0.98 }],
+        'categories:seo': ['error', { minScore: 0.98 }],
+        'first-contentful-paint': ['error', { maxNumericValue: 1500 }],
+        'largest-contentful-paint': ['error', { maxNumericValue: 3000 }],
+        'total-blocking-time': ['error', { maxNumericValue: 300 }],
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.05 }],
       },
     },
     upload: {
