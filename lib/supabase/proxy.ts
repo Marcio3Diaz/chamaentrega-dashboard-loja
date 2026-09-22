@@ -8,6 +8,7 @@ export async function updateSession(request: NextRequest) {
     pathname === '/'
     || pathname === '/robots.txt'
     || pathname === '/sitemap.xml'
+    || pathname === '/api/health'
   ) {
     return NextResponse.next({ request })
   }
@@ -45,6 +46,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password') ||
+    pathname.startsWith('/api/') ||
     isAdminLogin
 
   if (!user && !publicRoute) {
