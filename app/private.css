@@ -14630,6 +14630,13 @@ html[data-theme="light"] .store-switcher-avatar{
   font-size:8.5px;
   font-weight:900;
 }
+.subscription-payment-list button:disabled{
+  cursor:not-allowed;
+  border-color:rgba(139,153,162,.12);
+  background:rgba(139,153,162,.05);
+  color:#70808a;
+  opacity:.85;
+}
 .platform-revenue-events-card{
   margin-top:14px;
 }
