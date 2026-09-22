@@ -80,6 +80,24 @@ jobs:
           console.log('tbt_ms=' + ms('total-blocking-time'))
           console.log('speed_index_ms=' + ms('speed-index'))
           console.log('cls=' + cls.toFixed(3))
+
+          for (const categoryId of ['seo','best-practices','performance','accessibility']) {
+            const refs = report.categories[categoryId]?.auditRefs ?? []
+            const failed = refs
+              .map(ref => report.audits[ref.id])
+              .filter(audit =>
+                audit
+                && audit.scoreDisplayMode !== 'notApplicable'
+                && audit.score != null
+                && audit.score < 1
+              )
+              .map(audit => audit.id + ':' + audit.title.replace(/\s+/g,' ').trim())
+
+            if (failed.length) {
+              console.log('LIGHTHOUSE_ISSUES_' + categoryId.toUpperCase().replace('-','_'))
+              failed.forEach(item => console.log('- ' + item))
+            }
+          }
           NODE
 
       - name: Upload Lighthouse raw report
