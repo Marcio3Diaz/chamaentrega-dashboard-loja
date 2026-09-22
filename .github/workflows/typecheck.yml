@@ -73,14 +73,39 @@ jobs:
 
           const robots = await get('/robots.txt')
           assert(robots.ok, 'robots.txt indisponível')
-          assert((await robots.text()).includes('Sitemap:'), 'robots.txt sem Sitemap')
+          const robotsBody = await robots.text()
+          assert(robotsBody.includes('Sitemap:'), 'robots.txt sem Sitemap')
+          assert(
+            robotsBody.includes('https://example.com/sitemap.xml'),
+            'robots.txt aponta para sitemap incorreto',
+          )
 
           const sitemap = await get('/sitemap.xml')
           assert(sitemap.ok, 'sitemap.xml indisponível')
-          assert((await sitemap.text()).includes('<urlset'), 'sitemap.xml inválido')
+          const sitemapBody = await sitemap.text()
+          assert(sitemapBody.includes('<urlset'), 'sitemap.xml inválido')
+          assert(
+            sitemapBody.includes('https://example.com'),
+            'sitemap.xml não usa a URL pública configurada',
+          )
 
           const home = await get('/')
           assert(home.ok, 'Home não respondeu 2xx')
+          const homeBody = await home.text()
+
+          assert(
+            /<link[^>]+rel="canonical"[^>]+href="https:\/\/example\.com\/?"/i.test(homeBody)
+              || /<link[^>]+href="https:\/\/example\.com\/? "[^>]+rel="canonical"/i.test(homeBody)
+              || (homeBody.includes('rel="canonical"') && homeBody.includes('https://example.com')),
+            'Home sem canonical público válido',
+          )
+
+          for (const schemaType of ['Organization','WebSite','SoftwareApplication','FAQPage']) {
+            assert(
+              homeBody.includes(schemaType),
+              'JSON-LD ausente para ' + schemaType,
+            )
+          }
 
           const requiredHomeHeaders = {
             'x-content-type-options':'nosniff',
