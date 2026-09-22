@@ -2,6 +2,16 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  if (
+    pathname === '/'
+    || pathname === '/robots.txt'
+    || pathname === '/sitemap.xml'
+  ) {
+    return NextResponse.next({ request })
+  }
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -26,7 +36,6 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
-  const pathname = request.nextUrl.pathname
 
   const isAdminLogin = pathname === '/admin/login'
   const publicRoute =
