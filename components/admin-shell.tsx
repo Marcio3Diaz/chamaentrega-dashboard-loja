@@ -29,6 +29,8 @@ export function AdminShell({
         <Link href="/admin" className="admin-brand">
           <img
             src="/brand/chamaentrega-logo-official.webp"
+            width={420}
+            height={140}
             alt="ChamaEntrega"
           />
           <span>ADMIN</span>
