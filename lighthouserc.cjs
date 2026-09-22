@@ -11,13 +11,16 @@ module.exports = {
     },
     assert: {
       assertions: {
-        'categories:performance': ['warn', { minScore: 0.7 }],
-        'categories:accessibility': ['warn', { minScore: 0.9 }],
-        'categories:best-practices': ['warn', { minScore: 0.9 }],
-        'categories:seo': ['warn', { minScore: 0.9 }],
-        'first-contentful-paint': ['warn', { maxNumericValue: 2500 }],
-        'largest-contentful-paint': ['warn', { maxNumericValue: 4000 }],
-        'cumulative-layout-shift': ['warn', { maxNumericValue: 0.1 }],
+        // Hard regression gates. The normal score is currently much higher,
+        // but these limits avoid flaky failures from one slower CI run.
+        'categories:performance': ['error', { minScore: 0.8 }],
+        'categories:accessibility': ['error', { minScore: 0.95 }],
+        'categories:best-practices': ['error', { minScore: 0.95 }],
+        'categories:seo': ['error', { minScore: 0.95 }],
+        'first-contentful-paint': ['error', { maxNumericValue: 1800 }],
+        'largest-contentful-paint': ['error', { maxNumericValue: 3500 }],
+        'total-blocking-time': ['error', { maxNumericValue: 600 }],
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
       },
     },
     upload: {
