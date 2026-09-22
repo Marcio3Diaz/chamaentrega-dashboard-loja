@@ -210,6 +210,28 @@ jobs:
           console.log('content-security-policy-report-only: ' + csp)
           assert(csp && csp.includes("default-src 'self'"), 'CSP Report-Only ausente')
 
+          for (const maliciousNext of [
+            '//evil.example',
+            '/%5Cevil.example',
+          ]) {
+            const callback = await get(
+              '/auth/callback?next=' + encodeURIComponent(maliciousNext),
+            )
+            assert(
+              [307,308].includes(callback.status),
+              'Callback inválido não retornou redirecionamento seguro',
+            )
+
+            const location = callback.headers.get('location') ?? ''
+            const target = new URL(location, 'http://127.0.0.1:3000')
+
+            assert(
+              target.origin === 'http://127.0.0.1:3000'
+                && target.pathname === '/forgot-password',
+              'Callback permitiu destino externo ou inesperado',
+            )
+          }
+
           const dashboardRedirect = await get('/painel')
           assert(
             [307,308].includes(dashboardRedirect.status),
