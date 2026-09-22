@@ -50,41 +50,64 @@ jobs:
           const dir = '.lighthouseci'
           const files = fs.readdirSync(dir).filter(name => name.endsWith('.json'))
 
-          let report = null
+          const reports = []
           for (const name of files) {
             try {
               const data = JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'))
-              if (data.categories && data.audits) {
-                report = data
-                break
-              }
+              if (data.categories && data.audits) reports.push(data)
             } catch {}
           }
 
-          if (!report) {
+          if (!reports.length) {
             console.log('LIGHTHOUSE_SUMMARY unavailable')
             process.exit(0)
           }
 
-          const pct = key => Math.round((report.categories[key]?.score ?? 0) * 100)
-          const ms = key => Math.round(report.audits[key]?.numericValue ?? 0)
-          const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0
+          const median = values => {
+            const sorted = [...values].sort((a,b) => a-b)
+            const mid = Math.floor(sorted.length / 2)
+            return sorted.length % 2
+              ? sorted[mid]
+              : (sorted[mid - 1] + sorted[mid]) / 2
+          }
+
+          const pct = (report,key) => Math.round((report.categories[key]?.score ?? 0) * 100)
+          const metric = (report,key) => report.audits[key]?.numericValue ?? 0
+
+          const summaries = reports.map(report => ({
+            report,
+            performance:pct(report,'performance'),
+            accessibility:pct(report,'accessibility'),
+            bestPractices:pct(report,'best-practices'),
+            seo:pct(report,'seo'),
+            fcp:metric(report,'first-contentful-paint'),
+            lcp:metric(report,'largest-contentful-paint'),
+            tbt:metric(report,'total-blocking-time'),
+            speedIndex:metric(report,'speed-index'),
+            cls:metric(report,'cumulative-layout-shift'),
+          }))
+
+          const representative = [...summaries].sort(
+            (a,b) => Math.abs(a.performance - median(summaries.map(x => x.performance)))
+              - Math.abs(b.performance - median(summaries.map(x => x.performance)))
+          )[0]
 
           console.log('LIGHTHOUSE_SUMMARY')
-          console.log('performance=' + pct('performance'))
-          console.log('accessibility=' + pct('accessibility'))
-          console.log('best_practices=' + pct('best-practices'))
-          console.log('seo=' + pct('seo'))
-          console.log('fcp_ms=' + ms('first-contentful-paint'))
-          console.log('lcp_ms=' + ms('largest-contentful-paint'))
-          console.log('tbt_ms=' + ms('total-blocking-time'))
-          console.log('speed_index_ms=' + ms('speed-index'))
-          console.log('cls=' + cls.toFixed(3))
+          console.log('runs=' + summaries.length)
+          console.log('performance=' + Math.round(median(summaries.map(x => x.performance))))
+          console.log('accessibility=' + Math.round(median(summaries.map(x => x.accessibility))))
+          console.log('best_practices=' + Math.round(median(summaries.map(x => x.bestPractices))))
+          console.log('seo=' + Math.round(median(summaries.map(x => x.seo))))
+          console.log('fcp_ms=' + Math.round(median(summaries.map(x => x.fcp))))
+          console.log('lcp_ms=' + Math.round(median(summaries.map(x => x.lcp))))
+          console.log('tbt_ms=' + Math.round(median(summaries.map(x => x.tbt))))
+          console.log('speed_index_ms=' + Math.round(median(summaries.map(x => x.speedIndex))))
+          console.log('cls=' + median(summaries.map(x => x.cls)).toFixed(3))
 
           for (const categoryId of ['seo','best-practices','performance','accessibility']) {
-            const refs = report.categories[categoryId]?.auditRefs ?? []
+            const refs = representative.report.categories[categoryId]?.auditRefs ?? []
             const failed = refs
-              .map(ref => report.audits[ref.id])
+              .map(ref => representative.report.audits[ref.id])
               .filter(audit =>
                 audit
                 && audit.scoreDisplayMode !== 'notApplicable'
