@@ -20,7 +20,7 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - CSS público separado dos estilos privados.
 - `package-lock.json` versionado.
 - Dependabot configurado.
-- APIs internas sensíveis validam sessão, origem do navegador, Content-Type e tamanho de payload.
+- APIs internas sensíveis validam sessão, origem do navegador, Content-Type e tamanho real do payload, inclusive quando `Content-Length` está ausente.
 - MFA/TOTP obrigatório na Central Administrativa: senha sozinha não abre `/admin`.
 - Cadastro do autenticador e desafio AAL2 implementados em `/admin/mfa/setup` e `/admin/mfa`.
 - Token de acesso do WhatsApp armazenado no Supabase Vault; não existe mais coluna de token em texto puro.
@@ -40,14 +40,18 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Criação de entregas valida UUIDs, coordenadas, formas de pagamento, comprimentos e limites numéricos antes do banco.
 - Registro manual de pagamento de assinatura é transacional no PostgreSQL e protegido contra duplicidade em janela curta.
 - RPC de pagamento administrativo exige MFA AAL2 no próprio banco.
-- Todas as 5 Edge Functions implantadas estão versionadas no GitHub e alinhadas com o código do Supabase.
+- Todas as 5 Edge Functions implantadas estão versionadas no GitHub e alinhadas byte a byte com o código do Supabase.
+- Edge Functions checks executa `deno check` em todas as funções a cada alteração em `supabase/functions/**`.
 - `create-wallet-topup` exige JWT no gateway e também valida a sessão internamente.
 - Webhooks Pix, WhatsApp e Push validam assinatura/segredo antes de usar credenciais administrativas.
 - Edge Functions públicas possuem limites de payload; chamadas externas críticas possuem timeout.
 - A função que credita carteira é idempotente, usa bloqueio de linha e só pode ser executada por `service_role`.
 - Quality Checks e Lighthouse CI usam permissões explícitas `contents: read`.
 - FAQ visível e JSON-LD compartilham a mesma fonte de dados para evitar divergência de SEO.
-- Histórico de migrations está sincronizado 1:1 entre GitHub e Supabase.
+- Histórico de migrations está sincronizado 1:1 entre GitHub e Supabase: 46 versões em cada lado na auditoria atual.
+
+- Páginas públicas de Privacidade e Segurança e Termos de Uso já existem, possuem canonical e entram no sitemap.
+- O rodapé não exibe mais redes sociais ou canais de contato fictícios enquanto os dados oficiais não forem definidos.
 
 ## Antes de apontar um domínio
 
@@ -87,8 +91,8 @@ Validar somente quando houver um ambiente público:
 
 Antes do lançamento:
 
-- Informar contatos reais no footer.
-- Adicionar links reais para Instagram/WhatsApp/e-mail.
+- Informar os contatos reais no footer.
+- Adicionar links reais para Instagram/WhatsApp/e-mail somente depois de definidos os canais oficiais.
 - Revisar título e descrição usando o domínio e posicionamento comercial definitivos.
 - Cadastrar o domínio no Google Search Console.
 - Enviar `/sitemap.xml` no Search Console.
@@ -100,6 +104,7 @@ O CI deve permanecer verde em:
 
 - Quality checks
 - CodeQL
+- Edge Functions checks
 - Lighthouse audit
 
 Alterações que reduzam significativamente Lighthouse, quebrem o build ou introduzam vulnerabilidades de nível alto devem ser corrigidas antes de merge/deploy.
