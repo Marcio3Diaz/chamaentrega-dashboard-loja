@@ -5,6 +5,7 @@ type Json = Record<string, unknown>;
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
 const FUNCTION_NAME = "whatsapp-webhook";
+const MAX_WEBHOOK_BYTES = 1024 * 1024;
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
@@ -673,7 +674,16 @@ Deno.serve(async (request: Request) => {
       return new Response("webhook not configured", { status: 503 });
     }
 
+    const contentLength = Number(request.headers.get("content-length") ?? "0");
+    if (Number.isFinite(contentLength) && contentLength > MAX_WEBHOOK_BYTES) {
+      return new Response("payload too large", { status: 413 });
+    }
+
     const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BYTES) {
+      return new Response("payload too large", { status: 413 });
+    }
+
     const receivedSignature = request.headers.get("x-hub-signature-256")?.trim() ?? "";
 
     if (!receivedSignature) {
