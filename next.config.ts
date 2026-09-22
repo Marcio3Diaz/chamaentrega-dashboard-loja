@@ -1,5 +1,21 @@
 import type { NextConfig } from 'next'
 
+const cspReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https:",
+  "style-src 'self' 'unsafe-inline' https://unpkg.com",
+  "script-src 'self' 'unsafe-inline' https://unpkg.com https://connect.facebook.net",
+  "connect-src 'self' https: wss:",
+  "frame-src https://www.facebook.com https://web.facebook.com",
+  "worker-src 'self' blob:",
+  "media-src 'self' https:",
+].join('; ')
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -15,10 +31,18 @@ const securityHeaders = [
 ]
 
 if (process.env.NODE_ENV === 'production') {
-  securityHeaders.push({
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
-  })
+  securityHeaders.push(
+    {
+      key: 'Strict-Transport-Security',
+      value: 'max-age=63072000; includeSubDomains; preload',
+    },
+    {
+      // Report-only first: validates the policy in the real environment
+      // without risking the map, Supabase or Meta Embedded Signup.
+      key: 'Content-Security-Policy-Report-Only',
+      value: cspReportOnly,
+    },
+  )
 }
 
 const noIndexSources = [
