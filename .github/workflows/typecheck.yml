@@ -106,6 +106,13 @@ jobs:
             'Área de login sem X-Robots-Tag noindex',
           )
 
+          const loginCache = login.headers.get('cache-control')
+          console.log('cache-control (/login): ' + loginCache)
+          assert(
+            loginCache?.toLowerCase().includes('no-store'),
+            'Área de login pode ser armazenada em cache',
+          )
+
           console.log('SMOKE_TEST_OK')
           NODE
 
