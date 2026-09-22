@@ -11,11 +11,16 @@ export async function adminLoginAction(
   _: AdminLoginState,
   formData: FormData,
 ): Promise<AdminLoginState> {
-  const email = String(formData.get('email') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
 
-  if (!email || !password) {
-    return { error: 'Informe e-mail e senha.' }
+  if (
+    !email
+    || !password
+    || email.length > 254
+    || password.length > 128
+  ) {
+    return { error: 'E-mail ou senha inválidos.' }
   }
 
   const supabase = await createClient()
