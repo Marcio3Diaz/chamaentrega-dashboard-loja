@@ -19978,3 +19978,194 @@ html[data-theme="light"] .store-switcher-avatar{
     font-size:30px!important;
   }
 }
+
+/* ChamaEntrega mobile navigation and render performance 2026-09-22 */
+.ce-mobile-menu-button{
+  display:none;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:5px;
+  cursor:pointer;
+  transition:border-color .18s ease,background .18s ease,transform .18s ease;
+}
+
+.ce-mobile-menu-button span{
+  width:19px;
+  height:2px;
+  border-radius:999px;
+  background:#dce4e8;
+  transition:transform .2s ease,opacity .2s ease,background .2s ease;
+}
+
+.ce-mobile-menu-button:hover{
+  border-color:rgba(255,189,18,.34);
+  background:rgba(255,189,18,.06);
+}
+
+.ce-mobile-menu-button.is-open span{
+  background:#ffbd12;
+}
+
+.ce-mobile-menu-button.is-open span:nth-child(1){
+  transform:translateY(7px) rotate(45deg);
+}
+
+.ce-mobile-menu-button.is-open span:nth-child(2){
+  opacity:0;
+}
+
+.ce-mobile-menu-button.is-open span:nth-child(3){
+  transform:translateY(-7px) rotate(-45deg);
+}
+
+.ce-mobile-menu-layer{
+  display:none;
+}
+
+@media(max-width:980px){
+  .ce-header{
+    grid-template-columns:1fr auto auto!important;
+    gap:10px!important;
+  }
+
+  .ce-header .ce-desktop-nav{
+    display:none!important;
+  }
+
+  .ce-mobile-menu-button{
+    display:flex;
+  }
+
+  .ce-mobile-menu-layer{
+    position:fixed;
+    inset:82px 0 0;
+    z-index:49;
+    display:block;
+    background:rgba(2,6,9,.74);
+    backdrop-filter:blur(8px);
+    animation:ceMobileMenuFade .18s ease both;
+  }
+
+  .ce-mobile-nav{
+    margin-left:auto;
+    width:min(390px,100%);
+    height:100%;
+    display:flex!important;
+    flex-direction:column;
+    justify-content:flex-start!important;
+    gap:0!important;
+    padding:28px 22px 24px;
+    border-left:1px solid rgba(255,189,18,.15);
+    background:
+      radial-gradient(circle at 80% 8%,rgba(255,189,18,.10),transparent 25%),
+      linear-gradient(180deg,#0a1318 0%,#050a0d 100%);
+    box-shadow:-24px 0 55px rgba(0,0,0,.28);
+    animation:ceMobileMenuSlide .22s cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  .ce-mobile-nav-kicker{
+    margin-bottom:12px;
+    color:#ffbd12;
+    font-size:9px;
+    font-weight:950;
+    letter-spacing:.16em;
+  }
+
+  .ce-mobile-nav>a{
+    min-height:58px;
+    display:flex!important;
+    align-items:center;
+    justify-content:space-between;
+    padding:0!important;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    color:#e7ecef!important;
+    font-size:15px!important;
+    font-weight:800!important;
+  }
+
+  .ce-mobile-nav>a::after{
+    display:none!important;
+  }
+
+  .ce-mobile-nav-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:auto;
+    padding-top:24px;
+  }
+
+  .ce-mobile-nav-actions a{
+    min-height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    color:#e7ecef;
+    font-size:12px;
+    font-weight:850;
+  }
+
+  .ce-mobile-nav-actions a.primary{
+    gap:8px;
+    border-color:#ffbd12;
+    background:linear-gradient(180deg,#ffca31,#ffb20c);
+    color:#111;
+  }
+}
+
+@media(max-width:620px){
+  .ce-header{
+    grid-template-columns:1fr auto!important;
+    gap:8px!important;
+  }
+
+  .ce-header-actions{
+    display:none!important;
+  }
+
+  .ce-mobile-menu-layer{
+    inset:72px 0 0;
+  }
+
+  .ce-mobile-nav{
+    width:100%;
+    border-left:0;
+    padding:24px 20px 20px;
+  }
+
+  .ce-mobile-nav>a{
+    min-height:56px;
+    font-size:14px!important;
+  }
+}
+
+/* Reduz trabalho de renderização abaixo da primeira dobra sem alterar o visual. */
+.ce-how,
+.ce-network,
+.ce-resources,
+.ce-plans,
+.ce-testimonials,
+.ce-faq,
+.ce-footer{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 700px;
+}
+
+@keyframes ceMobileMenuFade{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+@keyframes ceMobileMenuSlide{
+  from{opacity:0;transform:translateX(22px)}
+  to{opacity:1;transform:translateX(0)}
+}
