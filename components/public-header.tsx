@@ -30,7 +30,7 @@ export function PublicHeader() {
 
   return (
     <header className="ce-header">
-      <Link href="/" className="ce-logo" aria-label="ChamaEntrega" onClick={closeMenu}>
+      <Link href="/" prefetch={false} className="ce-logo" aria-label="ChamaEntrega" onClick={closeMenu}>
         <Image
           src="/brand/chamaentrega-logo-official.webp"
           alt="ChamaEntrega"
