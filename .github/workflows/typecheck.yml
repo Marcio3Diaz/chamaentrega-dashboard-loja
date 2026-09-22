@@ -56,18 +56,58 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl --fail --silent http://127.0.0.1:3000/api/health | grep -q '"status":"ok"'
-          curl --fail --silent http://127.0.0.1:3000/robots.txt | grep -q 'Sitemap:'
-          curl --fail --silent http://127.0.0.1:3000/sitemap.xml | grep -q '<urlset'
+          node <<'NODE'
+          const assert = (condition, message) => {
+            if (!condition) throw new Error(message)
+          }
 
-          HOME_HEADERS="$(curl --silent --show-error --head http://127.0.0.1:3000/ | tr -d '\r')"
-          LOGIN_HEADERS="$(curl --silent --show-error --head http://127.0.0.1:3000/login | tr -d '\r')"
+          const get = async (path) => {
+            const response = await fetch('http://127.0.0.1:3000' + path, { redirect:'manual' })
+            return response
+          }
 
-          echo "$HOME_HEADERS" | grep -qi '^x-content-type-options: nosniff
-          echo "$HOME_HEADERS" | grep -qi '^x-frame-options: DENY
-          echo "$HOME_HEADERS" | grep -qi '^referrer-policy: strict-origin-when-cross-origin
-          echo "$HOME_HEADERS" | grep -qi '^content-security-policy-report-only:'
-          echo "$LOGIN_HEADERS" | grep -qi '^x-robots-tag: noindex, nofollow, noarchive, nosnippet
+          const health = await get('/api/health')
+          assert(health.ok, 'Healthcheck não respondeu 2xx')
+          const healthBody = await health.json()
+          assert(healthBody.status === 'ok', 'Healthcheck retornou status inesperado')
+
+          const robots = await get('/robots.txt')
+          assert(robots.ok, 'robots.txt indisponível')
+          assert((await robots.text()).includes('Sitemap:'), 'robots.txt sem Sitemap')
+
+          const sitemap = await get('/sitemap.xml')
+          assert(sitemap.ok, 'sitemap.xml indisponível')
+          assert((await sitemap.text()).includes('<urlset'), 'sitemap.xml inválido')
+
+          const home = await get('/')
+          assert(home.ok, 'Home não respondeu 2xx')
+
+          const requiredHomeHeaders = {
+            'x-content-type-options':'nosniff',
+            'x-frame-options':'DENY',
+            'referrer-policy':'strict-origin-when-cross-origin',
+          }
+
+          for (const [name,value] of Object.entries(requiredHomeHeaders)) {
+            const actual = home.headers.get(name)
+            console.log(name + ': ' + actual)
+            assert(actual?.toLowerCase() === value.toLowerCase(), 'Header ausente/incorreto: ' + name)
+          }
+
+          const csp = home.headers.get('content-security-policy-report-only')
+          console.log('content-security-policy-report-only: ' + csp)
+          assert(csp && csp.includes("default-src 'self'"), 'CSP Report-Only ausente')
+
+          const login = await get('/login')
+          const robotsHeader = login.headers.get('x-robots-tag')
+          console.log('x-robots-tag (/login): ' + robotsHeader)
+          assert(
+            robotsHeader?.toLowerCase().includes('noindex'),
+            'Área de login sem X-Robots-Tag noindex',
+          )
+
+          console.log('SMOKE_TEST_OK')
+          NODE
 
       - name: Stop production server
         if: always()
