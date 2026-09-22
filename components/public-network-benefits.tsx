@@ -63,7 +63,6 @@ export function PublicNetworkBenefits(){
               type="button"
               className="ce-network-benefit-button"
               onClick={() => setActive(benefit)}
-              aria-label={`Ver detalhes sobre ${benefit.title}`}
             >
               <span className="ce-network-benefit-index">0{index + 1}</span>
 
