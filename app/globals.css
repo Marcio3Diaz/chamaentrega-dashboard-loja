@@ -18572,3 +18572,12 @@ html[data-theme="light"] .store-switcher-avatar{
 .ce-network-riders img{
   height:auto;
 }
+
+/* ChamaEntrega static logo aspect-ratio safeguards 2026-09-22 */
+.official-brand-logo,
+.admin-brand img,
+.official-login-logo,
+.signup-brand img,
+.onboarding-topbar img{
+  height:auto;
+}
