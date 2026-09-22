@@ -185,9 +185,9 @@ export default function PublicHomePage() {
           <div className="ce-store-node n2"><strong>Restaurante B</strong><small>Rede de entregadores</small></div>
           <div className="ce-store-node n3"><strong>Restaurante C</strong><small>Rede de entregadores</small></div>
           <div className="ce-network-riders">
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" loading="lazy" decoding="async"/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
+            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
           </div>
           <div className="ce-network-caption">
             <strong>Entregadores da região</strong>
@@ -309,7 +309,7 @@ export default function PublicHomePage() {
       <footer className="ce-footer">
         <div className="ce-footer-main">
           <div className="ce-footer-brand">
-            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega" loading="lazy" decoding="async"/>
+            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega" width={420} height={140} loading="lazy" decoding="async"/>
             <p>
               Tecnologia para um delivery mais organizado, independente e conectado.
               Mais controle para sua loja e uma rede regional mais forte.
