@@ -1,6 +1,16 @@
+import type { Metadata } from 'next'
 import '../private.css'
 import Link from 'next/link'
 import { SignupStoreForm } from './signup-form'
+
+export const metadata: Metadata = {
+  title: 'Criar conta da loja',
+  description: 'Crie o acesso da sua loja ao ChamaEntrega.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function CadastroPage() {
   return (
