@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'http://localhost:3000'
 
@@ -66,7 +67,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <style id="global-base-styles" dangerouslySetInnerHTML={{ __html: globalBaseStyles }} />
-        <script id="theme-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        <Script id="theme-bootstrap" strategy="beforeInteractive">
+          {themeBootstrap}
+        </Script>
       </head>
       <body>{children}</body>
     </html>
