@@ -25,6 +25,33 @@ const publicSiteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
   'http://localhost:3000'
 
+const faqItems = [
+  {
+    question:'O que é o ChamaEntrega?',
+    answer:'É uma plataforma para lojas organizarem sua operação de entregas, sua rede de entregadores e o acompanhamento das corridas.',
+  },
+  {
+    question:'Como funciona a rede de entregadores?',
+    answer:'Cada loja pode aprovar sua própria rede. O mesmo entregador pode solicitar participação em outras redes próximas.',
+  },
+  {
+    question:'Preciso sair do iFood ou 99Food para usar?',
+    answer:'Não. A loja pode continuar usando seus canais atuais e estruturar gradualmente uma operação própria de entrega.',
+  },
+  {
+    question:'Posso ter mais de uma loja?',
+    answer:'Sim. Os planos superiores suportam múltiplas operações e gestão por unidade.',
+  },
+  {
+    question:'O entregador pode pedir entrada na minha rede?',
+    answer:'Sim. A solicitação aparece para a loja, que decide se aprova ou não aquele profissional.',
+  },
+  {
+    question:'A assinatura inclui o valor das entregas?',
+    answer:'Não. A assinatura dá acesso à plataforma. A operação de entrega tem cobrança separada conforme a regra comercial definida.',
+  },
+]
+
 const publicJsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -79,56 +106,14 @@ const publicJsonLd = {
     {
       '@type': 'FAQPage',
       '@id': `${publicSiteUrl}#faq`,
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'O que é o ChamaEntrega?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'É uma plataforma para lojas organizarem sua operação de entregas, sua rede de entregadores e o acompanhamento das corridas.',
-          },
+      mainEntity: faqItems.map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
         },
-        {
-          '@type': 'Question',
-          name: 'Como funciona a rede de entregadores?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Cada loja pode aprovar sua própria rede. O mesmo entregador pode solicitar participação em outras redes próximas.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Preciso sair do iFood ou 99Food para usar?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Não. A loja pode continuar usando seus canais atuais e estruturar gradualmente uma operação própria de entrega.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Posso ter mais de uma loja?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Sim. Os planos superiores suportam múltiplas operações e gestão por unidade.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'O entregador pode pedir entrada na minha rede?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Sim. A solicitação aparece para a loja, que decide se aprova ou não aquele profissional.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'A assinatura inclui o valor das entregas?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Não. A assinatura dá acesso à plataforma. A operação de entrega tem cobrança separada conforme a regra comercial definida.',
-          },
-        },
-      ],
+      })),
     },
   ],
 }
@@ -364,30 +349,12 @@ export default function PublicHomePage() {
         </div>
 
         <div className="ce-faq-grid">
-          <details>
-            <summary>O que é o ChamaEntrega?<Icon name="plus" size={16}/></summary>
-            <p>É uma plataforma para lojas organizarem sua operação de entregas, sua rede de entregadores e o acompanhamento das corridas.</p>
-          </details>
-          <details>
-            <summary>Como funciona a rede de entregadores?<Icon name="plus" size={16}/></summary>
-            <p>Cada loja pode aprovar sua própria rede. O mesmo entregador pode solicitar participação em outras redes próximas.</p>
-          </details>
-          <details>
-            <summary>Preciso sair do iFood ou 99Food para usar?<Icon name="plus" size={16}/></summary>
-            <p>Não. A loja pode continuar usando seus canais atuais e estruturar gradualmente uma operação própria de entrega.</p>
-          </details>
-          <details>
-            <summary>Posso ter mais de uma loja?<Icon name="plus" size={16}/></summary>
-            <p>Sim. Os planos superiores suportam múltiplas operações e gestão por unidade.</p>
-          </details>
-          <details>
-            <summary>O entregador pode pedir entrada na minha rede?<Icon name="plus" size={16}/></summary>
-            <p>Sim. A solicitação aparece para a loja, que decide se aprova ou não aquele profissional.</p>
-          </details>
-          <details>
-            <summary>A assinatura inclui o valor das entregas?<Icon name="plus" size={16}/></summary>
-            <p>Não. A assinatura dá acesso à plataforma. A operação de entrega tem cobrança separada conforme a regra comercial definida.</p>
-          </details>
+          {faqItems.map(item => (
+            <details key={item.question}>
+              <summary>{item.question}<Icon name="plus" size={16}/></summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
         </div>
       </section>
 
