@@ -1,4 +1,4 @@
-name: Typecheck
+name: Quality checks
 
 on:
   push:
@@ -6,9 +6,14 @@ on:
   pull_request:
 
 jobs:
-  typecheck:
+  quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NEXT_PUBLIC_SITE_URL: https://example.com
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,7 +24,13 @@ jobs:
           node-version: '22.13.0'
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --no-fund
+
+      - name: Security audit
+        run: npm audit --audit-level=high
 
       - name: TypeScript
         run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
