@@ -9,10 +9,17 @@ export async function loginAction(
   _: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
 
-  if (!email || !password) return { error: 'Informe e-mail e senha.' }
+  if (
+    !email
+    || !password
+    || email.length > 254
+    || password.length > 128
+  ) {
+    return { error: 'E-mail ou senha inválidos.' }
+  }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
