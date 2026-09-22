@@ -36,6 +36,42 @@ function boundedNumber(
   return parsed >= min && parsed < maxExclusive ? parsed : null
 }
 
+type SupabaseActionError = {
+  code?: string
+  message?: string
+  details?: string
+  hint?: string
+}
+
+function currentSupabaseProjectRef() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  if (!configuredUrl) return 'not-configured'
+
+  try {
+    return new URL(configuredUrl).hostname.split('.')[0] || 'unknown'
+  } catch {
+    return 'invalid-url'
+  }
+}
+
+function safeCreateDeliveryError(error: SupabaseActionError | null) {
+  const message = error?.message?.trim() ?? ''
+
+  if (
+    message.startsWith('Saldo insuficiente') ||
+    message.startsWith('Carteira da loja não encontrada')
+  ) {
+    return message
+  }
+
+  if (error?.code === '42501') {
+    return 'Sua sessão não tem permissão para criar entregas nesta loja.'
+  }
+
+  const suffix = error?.code ? ` (código ${error.code})` : ''
+  return `Não foi possível criar a entrega${suffix}. Confira o servidor e tente novamente.`
+}
+
 export async function createDeliveryAction(
   _: CreateState,
   formData: FormData,
@@ -193,8 +229,28 @@ export async function createDeliveryAction(
     .single()
 
   if (error || !delivery) {
-    return { error:'Não foi possível criar a entrega. Confira os dados e tente novamente.' }
+    const actionError = error as SupabaseActionError | null
+
+    console.error('[createDeliveryAction] delivery insert failed', {
+      storeId: store.id,
+      storeName: store.name,
+      published,
+      projectRef: currentSupabaseProjectRef(),
+      code: actionError?.code ?? null,
+      message: actionError?.message ?? null,
+      details: actionError?.details ?? null,
+      hint: actionError?.hint ?? null,
+    })
+
+    return { error:safeCreateDeliveryError(actionError) }
   }
+
+  console.info('[createDeliveryAction] delivery created', {
+    deliveryId: delivery.id,
+    storeId: store.id,
+    published,
+    projectRef: currentSupabaseProjectRef(),
+  })
 
   if (storeOrderId) {
     const { data:linkedOrder,error:linkError } = await supabase
