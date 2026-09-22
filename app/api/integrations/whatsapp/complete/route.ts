@@ -14,7 +14,11 @@ function numericId(value: unknown) {
 }
 
 async function graphJson(url: string, init: RequestInit) {
-  const response = await fetch(url,{ ...init,cache:'no-store' })
+  const response = await fetch(url,{
+    ...init,
+    cache:'no-store',
+    signal:init.signal ?? AbortSignal.timeout(10000),
+  })
   const data = await response.json().catch(() => ({})) as Record<string,unknown>
 
   if (!response.ok) {
@@ -46,8 +50,17 @@ export async function POST(request: Request) {
   const wabaId = numericId(body.wabaId)
   const phoneNumberId = numericId(body.phoneNumberId)
 
-  if (!storeId || !code || !wabaId || !phoneNumberId) {
-    return NextResponse.json({ error:'invalid_signup_payload' },{ status:400 })
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(storeId)
+    || code.length < 8
+    || code.length > 4096
+    || !wabaId
+    || !phoneNumberId
+  ) {
+    return NextResponse.json(
+      { error:'invalid_signup_payload' },
+      { status:400,headers:{ 'cache-control':'no-store' } },
+    )
   }
 
   const { data: store } = await supabase
@@ -137,6 +150,8 @@ export async function POST(request: Request) {
       connected:true,
       displayPhoneNumber:String(phone.display_phone_number ?? ''),
       verifiedName:String(phone.verified_name ?? ''),
+    },{
+      headers:{ 'cache-control':'no-store' },
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -144,7 +159,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       error:'meta_connection_failed',
-      message,
-    },{ status:502 })
+      message:'Não foi possível concluir a conexão com o WhatsApp. Tente novamente.',
+    },{
+      status:502,
+      headers:{ 'cache-control':'no-store' },
+    })
   }
 }
