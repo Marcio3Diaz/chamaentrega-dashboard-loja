@@ -35,14 +35,28 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Bucket de documentos de verificação privado, limitado a 8 MB e a imagens permitidas.
 - Políticas antigas duplicadas de Storage removidas.
 - Índices adicionados às chaves estrangeiras apontadas pelo advisor do Supabase.
+- Callback de autenticação limitado somente a `/onboarding` e `/reset-password`, sem destinos arbitrários.
+- Cadastro não revela se um e-mail já possui conta, reduzindo enumeração de usuários.
+- Criação de entregas valida UUIDs, coordenadas, formas de pagamento, comprimentos e limites numéricos antes do banco.
+- Registro manual de pagamento de assinatura é transacional no PostgreSQL e protegido contra duplicidade em janela curta.
+- RPC de pagamento administrativo exige MFA AAL2 no próprio banco.
+- Todas as 5 Edge Functions implantadas estão versionadas no GitHub e alinhadas com o código do Supabase.
+- `create-wallet-topup` exige JWT no gateway e também valida a sessão internamente.
+- Webhooks Pix, WhatsApp e Push validam assinatura/segredo antes de usar credenciais administrativas.
+- Edge Functions públicas possuem limites de payload; chamadas externas críticas possuem timeout.
+- A função que credita carteira é idempotente, usa bloqueio de linha e só pode ser executada por `service_role`.
+- Quality Checks e Lighthouse CI usam permissões explícitas `contents: read`.
+- FAQ visível e JSON-LD compartilham a mesma fonte de dados para evitar divergência de SEO.
+- Histórico de migrations está sincronizado 1:1 entre GitHub e Supabase.
 
 ## Antes de apontar um domínio
 
 - Definir `NEXT_PUBLIC_SITE_URL=https://dominio-real`.
 - Confirmar domínio permitido no Supabase Auth.
 - Confirmar URLs de callback de autenticação e recuperação de senha.
-- Configurar variáveis da Meta/WhatsApp somente no ambiente do servidor.
+- Configurar variáveis da Meta/WhatsApp, Woovi, Firebase e segredos de webhooks somente no ambiente do servidor.
 - Nunca copiar chaves privadas ou segredos para variáveis `NEXT_PUBLIC_*`.
+- Usar `supabase/functions/.env.example` somente como referência de nomes; manter os valores reais nos Secrets do Supabase.
 - Validar o CSP Report-Only no ambiente real antes de convertê-lo em política bloqueante.
 - Entrar uma vez com cada conta administrativa e concluir o cadastro do autenticador TOTP.
 
