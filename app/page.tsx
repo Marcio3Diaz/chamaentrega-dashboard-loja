@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import './public.css'
-import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
 import { PublicNetworkBenefits } from '@/components/public-network-benefits'
@@ -114,9 +112,9 @@ export default function PublicHomePage() {
           </p>
 
           <div className="ce-hero-actions">
-            <Link href="/cadastro" prefetch={false} className="ce-primary-button big">
+            <a href="/cadastro" className="ce-primary-button big">
               Criar minha loja <Icon name="arrow" size={16}/>
-            </Link>
+            </a>
             <a href="#como-usar" className="ce-secondary-button">Conhecer a plataforma</a>
           </div>
 
@@ -247,9 +245,9 @@ export default function PublicHomePage() {
                   ))}
                 </ul>
 
-                <Link href="/cadastro" prefetch={false}>
+                <a href="/cadastro">
                   {plan.cta} <Icon name="arrow" size={17}/>
-                </Link>
+                </a>
               </article>
             ))}
           </div>
@@ -311,12 +309,13 @@ export default function PublicHomePage() {
       <footer className="ce-footer">
         <div className="ce-footer-main">
           <div className="ce-footer-brand">
-            <Image
+            <img
               src="/brand/chamaentrega-logo-official.webp"
               alt="ChamaEntrega"
               width={235}
               height={78}
-              sizes="(max-width: 620px) 205px, (max-width: 980px) 220px, 235px"
+              loading="lazy"
+              decoding="async"
             />
             <p>
               Tecnologia para um delivery mais organizado, independente e conectado.
@@ -335,8 +334,8 @@ export default function PublicHomePage() {
 
           <div>
             <strong>Para lojas</strong>
-            <Link href="/cadastro" prefetch={false}>Criar minha loja</Link>
-            <Link href="/login" prefetch={false}>Portal da loja</Link>
+            <a href="/cadastro">Criar minha loja</a>
+            <a href="/login">Portal da loja</a>
             <a href="#recursos">Carteira</a>
             <a href="#recursos">Rede de entregadores</a>
           </div>
@@ -360,7 +359,7 @@ export default function PublicHomePage() {
           <div className="ce-footer-cta">
             <strong>Pronto para evoluir seu delivery?</strong>
             <p>Junte-se a uma rede de negócios que fazem parte do ChamaEntrega.</p>
-            <Link href="/cadastro" prefetch={false}>Criar minha loja <Icon name="arrow" size={14}/></Link>
+            <a href="/cadastro">Criar minha loja <Icon name="arrow" size={14}/></a>
           </div>
         </div>
 
