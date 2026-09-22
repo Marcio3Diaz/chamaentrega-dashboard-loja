@@ -1,6 +1,3 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 type Benefit = {
@@ -43,81 +40,69 @@ const benefits: Benefit[] = [
 ]
 
 export function PublicNetworkBenefits(){
-  const [active, setActive] = useState<Benefit | null>(null)
-
-  useEffect(() => {
-    if(!active) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if(event.key === 'Escape') setActive(null)
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [active])
-
   return (
     <>
       <div className="ce-testimonials-grid ce-network-benefits-grid">
-        {benefits.map((benefit,index) => (
-          <article key={benefit.code} className="ce-network-benefit-card">
-            <button
-              type="button"
-              className="ce-network-benefit-button"
-              onClick={() => setActive(benefit)}
-            >
-              <span className="ce-network-benefit-index">0{index + 1}</span>
+        {benefits.map((benefit,index) => {
+          const modalId = `ce-benefit-modal-${benefit.code.toLowerCase()}`
+          const titleId = `${modalId}-title`
 
-              <div className="ce-network-benefit-icon">
-                <Icon name={benefit.icon} size={27}/>
-              </div>
+          return (
+            <article key={benefit.code} className="ce-network-benefit-card">
+              <button
+                type="button"
+                className="ce-network-benefit-button"
+                popoverTarget={modalId}
+                aria-haspopup="dialog"
+              >
+                <span className="ce-network-benefit-index">0{index + 1}</span>
 
-              <div className="ce-network-benefit-copy">
-                <strong>{benefit.title}</strong>
-                <p>{benefit.text}</p>
-                <span className="ce-network-benefit-more">
-                  Entender benefício <Icon name="arrow" size={14}/>
-                </span>
-              </div>
-            </button>
-          </article>
-        ))}
+                <div className="ce-network-benefit-icon">
+                  <Icon name={benefit.icon} size={27}/>
+                </div>
+
+                <div className="ce-network-benefit-copy">
+                  <strong>{benefit.title}</strong>
+                  <p>{benefit.text}</p>
+                  <span className="ce-network-benefit-more">
+                    Entender benefício <Icon name="arrow" size={14}/>
+                  </span>
+                </div>
+              </button>
+
+              <section
+                id={modalId}
+                popover="auto"
+                className="ce-benefit-modal"
+                role="dialog"
+                aria-labelledby={titleId}
+              >
+                <button
+                  type="button"
+                  className="ce-benefit-modal-close"
+                  popoverTarget={modalId}
+                  popoverTargetAction="hide"
+                  aria-label="Fechar"
+                >
+                  ×
+                </button>
+
+                <div className="ce-benefit-modal-icon">
+                  <Icon name={benefit.icon} size={30}/>
+                </div>
+                <span className="ce-benefit-modal-kicker">BENEFÍCIO DA REDE</span>
+                <h3 id={titleId}>{benefit.title}</h3>
+                <p>{benefit.detail}</p>
+
+                <div className="ce-benefit-modal-note">
+                  <Icon name="check" size={18}/>
+                  <span>Você mantém o controle da sua própria operação.</span>
+                </div>
+              </section>
+            </article>
+          )
+        })}
       </div>
-
-      {active ? (
-        <div
-          className="ce-benefit-modal-backdrop"
-          role="presentation"
-          onMouseDown={() => setActive(null)}
-        >
-          <section
-            className="ce-benefit-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ce-benefit-modal-title"
-            onMouseDown={event => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="ce-benefit-modal-close"
-              onClick={() => setActive(null)}
-              aria-label="Fechar"
-            >
-              ×
-            </button>
-
-            <div className="ce-benefit-modal-icon">
-              <Icon name={active.icon} size={30}/>
-            </div>
-            <span className="ce-benefit-modal-kicker">BENEFÍCIO DA REDE</span>
-            <h3 id="ce-benefit-modal-title">{active.title}</h3>
-            <p>{active.detail}</p>
-
-            <div className="ce-benefit-modal-note">
-              <Icon name="check" size={18}/>
-              <span>Você mantém o controle da sua própria operação.</span>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </>
   )
 }
