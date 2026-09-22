@@ -4,7 +4,7 @@ module.exports = {
       startServerCommand: 'npm run start',
       startServerReadyPattern: 'Ready',
       url: ['http://127.0.0.1:3000/'],
-      numberOfRuns: 1,
+      numberOfRuns: 3,
       settings: {
         chromeFlags: '--headless --no-sandbox',
       },
