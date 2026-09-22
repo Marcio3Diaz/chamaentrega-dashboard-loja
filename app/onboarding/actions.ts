@@ -10,8 +10,8 @@ export type OnboardingState = {
   error?: string
 }
 
-function text(formData:FormData,key:string) {
-  return String(formData.get(key) ?? '').trim()
+function text(formData:FormData,key:string,maxLength=300) {
+  return String(formData.get(key) ?? '').trim().slice(0,maxLength)
 }
 
 function numberValue(formData:FormData,key:string) {
@@ -25,31 +25,38 @@ export async function createFirstStoreAction(
   _:OnboardingState,
   formData:FormData,
 ):Promise<OnboardingState> {
-  const storeName = text(formData,'store_name')
-  const storePhone = text(formData,'store_phone')
-  const legalName = text(formData,'legal_name')
-  const taxId = text(formData,'tax_id')
-  const zipCode = text(formData,'zip_code')
-  const street = text(formData,'street')
-  const streetNumber = text(formData,'street_number')
-  const complement = text(formData,'complement')
-  const neighborhood = text(formData,'neighborhood')
-  const city = text(formData,'city')
-  const state = text(formData,'state').toUpperCase()
+  const storeName = text(formData,'store_name',120)
+  const storePhone = text(formData,'store_phone',30)
+  const legalName = text(formData,'legal_name',160)
+  const taxId = text(formData,'tax_id',24)
+  const zipCode = text(formData,'zip_code',12)
+  const street = text(formData,'street',180)
+  const streetNumber = text(formData,'street_number',30)
+  const complement = text(formData,'complement',120)
+  const neighborhood = text(formData,'neighborhood',120)
+  const city = text(formData,'city',120)
+  const state = text(formData,'state',2).toUpperCase()
   const latitude = numberValue(formData,'latitude')
   const longitude = numberValue(formData,'longitude')
-  const resolvedAddress = text(formData,'resolved_address')
+  const resolvedAddress = text(formData,'resolved_address',350)
 
   if (storeName.length < 2) {
     return { error:'Informe o nome da loja.' }
   }
 
-  if (!street || !streetNumber || !city || !state) {
-    return { error:'Preencha rua, número, cidade e estado.' }
+  if (!street || !streetNumber || !city || !/^[A-Z]{2}$/.test(state)) {
+    return { error:'Preencha rua, número, cidade e um estado válido.' }
   }
 
-  if (latitude === null || longitude === null) {
-    return { error:'Localize o endereço da loja no mapa antes de continuar.' }
+  if (
+    latitude === null
+    || longitude === null
+    || latitude < -90
+    || latitude > 90
+    || longitude < -180
+    || longitude > 180
+  ) {
+    return { error:'Localize um endereço válido antes de continuar.' }
   }
 
   const address = resolvedAddress || [
@@ -91,7 +98,7 @@ export async function createFirstStoreAction(
     }
 
     return {
-      error:messages[error.message] || error.message || 'Não foi possível criar sua loja.',
+      error:messages[error.message] || 'Não foi possível criar sua loja agora. Tente novamente.',
     }
   }
 
