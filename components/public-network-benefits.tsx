@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 type Benefit = {
@@ -44,15 +44,65 @@ const benefits: Benefit[] = [
 
 export function PublicNetworkBenefits(){
   const [active, setActive] = useState<Benefit | null>(null)
+  const openerRef = useRef<HTMLButtonElement | null>(null)
+  const modalRef = useRef<HTMLElement | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if(!active) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusTimer = window.setTimeout(() => {
+      closeButtonRef.current?.focus()
+    }, 0)
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if(event.key === 'Escape') setActive(null)
+      if(event.key === 'Escape') {
+        event.preventDefault()
+        setActive(null)
+        return
+      }
+
+      if(event.key !== 'Tab') return
+
+      const focusable = Array.from(
+        modalRef.current?.querySelectorAll<HTMLElement>(
+          'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter(element => !element.hasAttribute('disabled'))
+
+      if(focusable.length === 0) {
+        event.preventDefault()
+        closeButtonRef.current?.focus()
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const current = document.activeElement
+
+      if(event.shiftKey && current === first) {
+        event.preventDefault()
+        last.focus()
+      } else if(!event.shiftKey && current === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
+
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      window.setTimeout(() => openerRef.current?.focus(), 0)
+    }
   }, [active])
+
+  const closeModal = () => setActive(null)
 
   return (
     <>
@@ -62,7 +112,11 @@ export function PublicNetworkBenefits(){
             <button
               type="button"
               className="ce-network-benefit-button"
-              onClick={() => setActive(benefit)}
+              onClick={event => {
+                openerRef.current = event.currentTarget
+                setActive(benefit)
+              }}
+              aria-haspopup="dialog"
             >
               <span className="ce-network-benefit-index">0{index + 1}</span>
 
@@ -86,9 +140,10 @@ export function PublicNetworkBenefits(){
         <div
           className="ce-benefit-modal-backdrop"
           role="presentation"
-          onMouseDown={() => setActive(null)}
+          onMouseDown={closeModal}
         >
           <section
+            ref={modalRef}
             className="ce-benefit-modal"
             role="dialog"
             aria-modal="true"
@@ -97,8 +152,9 @@ export function PublicNetworkBenefits(){
           >
             <button
               type="button"
+              ref={closeButtonRef}
               className="ce-benefit-modal-close"
-              onClick={() => setActive(null)}
+              onClick={closeModal}
               aria-label="Fechar"
             >
               ×
