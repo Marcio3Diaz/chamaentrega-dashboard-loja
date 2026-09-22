@@ -1,7 +1,17 @@
+import type { Metadata } from 'next'
 import '../private.css'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
+
+export const metadata: Metadata = {
+  title: 'Entrar no Portal da Loja',
+  description: 'Acesse o painel da sua loja no ChamaEntrega.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function LoginPage() {
   const supabase = await createClient()
