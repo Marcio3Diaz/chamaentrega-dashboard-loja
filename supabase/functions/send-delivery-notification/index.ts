@@ -901,28 +901,35 @@ Deno.serve(async (request: Request) => {
       })
     }
 
-    const tokenIds = tokenRows.map((row) => row.id)
-    const { data: dispatchedRows, error: dispatchQueryError } = await supabaseAdmin
-      .from('courier_push_dispatches')
-      .select('token_id')
-      .eq('event_key', plan.eventKey)
-      .in('token_id', tokenIds)
+    const { data: reservedRows, error: reservationError } = await supabaseAdmin.rpc(
+      'reserve_courier_push_dispatches',
+      {
+        p_event_key: plan.eventKey,
+        p_notification_type: plan.notificationType,
+        p_tokens: tokenRows.map((row) => ({
+          token_id: row.id,
+          courier_id: row.courier_id,
+        })),
+        p_stale_after_seconds: 120,
+      },
+    )
 
-    if (dispatchQueryError) {
-      throw new Error(`Falha ao consultar deduplicação: ${dispatchQueryError.message}`)
+    if (reservationError) {
+      throw new Error(`Falha ao reservar deduplicação: ${reservationError.message}`)
     }
 
-    const alreadyDispatched = new Set(
-      (dispatchedRows ?? []).map((row) => textValue(row.token_id)),
+    const reservedTokenIds = new Set(
+      (reservedRows ?? []).map((row: { token_id?: unknown }) => textValue(row.token_id)),
     )
-    const pendingTokens = tokenRows.filter((row) => !alreadyDispatched.has(row.id))
+    const pendingTokens = tokenRows.filter((row) => reservedTokenIds.has(row.id))
+    const alreadyDispatchedCount = tokenRows.length - pendingTokens.length
 
     if (pendingTokens.length === 0) {
       return jsonResponse({
         ok: true,
         skipped: true,
         duplicate: true,
-        reason: 'Este evento já foi enviado para todos os tokens ativos.',
+        reason: 'Este evento já foi enviado ou está sendo processado para todos os tokens ativos.',
         event_key: plan.eventKey,
       })
     }
@@ -940,6 +947,24 @@ Deno.serve(async (request: Request) => {
 
     const successfulResults = results.filter((result) => result.ok)
     const invalidResults = results.filter(isUnregisteredToken)
+    const failedResults = results.filter((result) => !result.ok)
+
+    if (failedResults.length > 0) {
+      const failedTokenIds = failedResults.map((result) => result.tokenId)
+      const { error: releaseError } = await supabaseAdmin
+        .from('courier_push_dispatches')
+        .delete()
+        .eq('event_key', plan.eventKey)
+        .in('token_id', failedTokenIds)
+        .is('fcm_message_name', null)
+
+      if (releaseError) {
+        console.warn(
+          `${FUNCTION_NAME}: falha ao liberar reservas de push não enviados.`,
+          releaseError.message,
+        )
+      }
+    }
 
     if (successfulResults.length > 0) {
       const dispatchRows = successfulResults.map((result) => ({
@@ -997,7 +1022,7 @@ Deno.serve(async (request: Request) => {
       notification_type: plan.notificationType,
       target_couriers: plan.targetCourierIds.length,
       tokens_found: tokenRows.length,
-      tokens_already_sent: alreadyDispatched.size,
+      tokens_already_sent: alreadyDispatchedCount,
       attempted: pendingTokens.length,
       sent: successfulResults.length,
       failed,
