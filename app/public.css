@@ -2356,7 +2356,11 @@
 .ce-step-modal{
   position:relative;
   width:min(620px,100%);
-  overflow:hidden;
+  max-height:calc(100dvh - 48px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
   padding:34px 34px 30px;
   border:1px solid rgba(255,189,18,.30);
   border-radius:22px;
@@ -2485,6 +2489,7 @@
   }
 
   .ce-step-modal{
+    max-height:calc(100dvh - 28px);
     padding:28px 20px 22px;
     border-radius:20px 20px 14px 14px;
   }
@@ -2736,7 +2741,11 @@
 .ce-benefit-modal{
   position:relative;
   width:min(610px,100%);
-  overflow:hidden;
+  max-height:calc(100dvh - 48px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
   padding:34px 34px 30px;
   border:1px solid rgba(255,189,18,.32);
   border-radius:24px;
@@ -3004,6 +3013,7 @@
   }
 
   .ce-benefit-modal{
+    max-height:calc(100dvh - 28px);
     padding:28px 20px 24px;
     border-radius:22px 22px 14px 14px;
   }
