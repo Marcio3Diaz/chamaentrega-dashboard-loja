@@ -111,6 +111,13 @@ jobs:
             'robots.txt aponta para sitemap incorreto',
           )
 
+          for (const blockedPath of ['/admin','/painel','/login','/cadastro','/api']) {
+            assert(
+              robotsBody.includes('Disallow: ' + blockedPath),
+              'robots.txt não bloqueia ' + blockedPath,
+            )
+          }
+
           const sitemap = await get('/sitemap.xml')
           assert(sitemap.ok, 'sitemap.xml indisponível')
           const sitemapBody = await sitemap.text()
@@ -152,6 +159,15 @@ jobs:
           assert(
             !publicImage.headers.get('location'),
             'Imagem pública WebP não pode redirecionar para autenticação',
+          )
+          const publicImageCache = publicImage.headers.get('cache-control')?.toLowerCase() ?? ''
+          assert(
+            publicImageCache.includes('max-age=604800'),
+            'Imagem pública sem política de cache esperada',
+          )
+          assert(
+            publicImageCache.includes('stale-while-revalidate=86400'),
+            'Imagem pública sem stale-while-revalidate esperado',
           )
 
           const home = await get('/')
