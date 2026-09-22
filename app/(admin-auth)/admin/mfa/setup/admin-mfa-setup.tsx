@@ -50,7 +50,10 @@ export function AdminMfaSetup() {
         return
       }
 
-      const unverified = factors?.totp?.filter(item => item.status === 'unverified') ?? []
+      const unverified = factors?.all?.filter(
+        factor => factor.factor_type === 'totp' && factor.status === 'unverified',
+      ) ?? []
+
       for (const factor of unverified) {
         await supabase.auth.mfa.unenroll({ factorId:factor.id })
       }
