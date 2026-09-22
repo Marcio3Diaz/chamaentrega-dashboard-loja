@@ -402,9 +402,9 @@ export default function PublicHomePage() {
           <div>
             <strong>Suporte</strong>
             <a href="#faq">Central de ajuda</a>
-            <a href="#faq">Fale conosco</a>
             <a href="#planos">Planos e condições</a>
-            <a href="#faq">Privacidade e segurança</a>
+            <Link href="/privacidade" prefetch={false}>Privacidade e segurança</Link>
+            <Link href="/termos" prefetch={false}>Termos de uso</Link>
           </div>
 
           <div className="ce-footer-cta">
@@ -417,7 +417,10 @@ export default function PublicHomePage() {
         <div className="ce-footer-bottom">
           <span>© 2026 ChamaEntrega. Todos os direitos reservados.</span>
           <strong>Chamou, chegou.</strong>
-          <div><span>Instagram</span><span>Facebook</span><span>WhatsApp</span></div>
+          <div>
+            <Link href="/privacidade" prefetch={false}>Privacidade</Link>
+            <Link href="/termos" prefetch={false}>Termos</Link>
+          </div>
         </div>
       </footer>
     </main>
