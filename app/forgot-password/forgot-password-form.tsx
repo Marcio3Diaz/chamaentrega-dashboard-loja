@@ -5,7 +5,7 @@ import { FormEvent, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState('marcio3drop@gmail.com')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
@@ -22,7 +22,7 @@ export function ForgotPasswordForm() {
 
     setSending(false)
     if (resetError) {
-      setError(resetError.message)
+      setError('Não foi possível enviar o link agora. Aguarde um momento e tente novamente.')
       return
     }
 
