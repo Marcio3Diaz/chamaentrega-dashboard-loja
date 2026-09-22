@@ -22,6 +22,7 @@ export async function signupStoreAction(
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
   const confirmPassword = String(formData.get('confirm_password') ?? '')
+  const consent = formData.get('consent') === 'accepted'
 
   if (fullName.length < 3) {
     return { error:'Informe o nome do responsável.' }
@@ -37,6 +38,10 @@ export async function signupStoreAction(
 
   if (password !== confirmPassword) {
     return { error:'As senhas não conferem.' }
+  }
+
+  if (!consent) {
+    return { error:'Confirme o consentimento para criar a conta comercial.' }
   }
 
   const headersList = await headers()
