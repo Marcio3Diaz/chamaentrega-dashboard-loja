@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
 import { PublicNetworkBenefits } from '@/components/public-network-benefits'
-import { createClient } from '@/lib/supabase/server'
 
 
 export const metadata: Metadata = {
@@ -89,11 +88,7 @@ const plans = [
   },
 ]
 
-export default async function PublicHomePage() {
-  const supabase = await createClient()
-  const { data:claimsData } = await supabase.auth.getClaims()
-  const signedIn = Boolean(claimsData?.claims?.sub)
-
+export default function PublicHomePage() {
   return (
     <main className="ce-showcase">
       <script type="application/ld+json">
@@ -112,8 +107,8 @@ export default async function PublicHomePage() {
         </nav>
 
         <div className="ce-header-actions">
-          <Link href={signedIn ? '/painel' : '/login'} className="ce-link-button">
-            {signedIn ? 'Abrir painel' : 'Entrar'}
+          <Link href="/login" className="ce-link-button">
+            Entrar
           </Link>
           <Link href="/cadastro" className="ce-primary-button">
             Criar minha loja <Icon name="arrow" size={15}/>
