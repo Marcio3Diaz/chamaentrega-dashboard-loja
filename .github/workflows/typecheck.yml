@@ -34,3 +34,45 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Start production server
+        shell: bash
+        run: |
+          npm run start > /tmp/chamaentrega-next.log 2>&1 &
+          echo $! > /tmp/chamaentrega-next.pid
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/chamaentrega-next.log
+          exit 1
+
+      - name: Smoke test production server
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl --fail --silent http://127.0.0.1:3000/api/health | grep -q '"status":"ok"'
+          curl --fail --silent http://127.0.0.1:3000/robots.txt | grep -q 'Sitemap:'
+          curl --fail --silent http://127.0.0.1:3000/sitemap.xml | grep -q '<urlset'
+
+          HOME_HEADERS="$(curl --silent --show-error --head http://127.0.0.1:3000/ | tr -d '\r')"
+          LOGIN_HEADERS="$(curl --silent --show-error --head http://127.0.0.1:3000/login | tr -d '\r')"
+
+          echo "$HOME_HEADERS" | grep -qi '^x-content-type-options: nosniff
+          echo "$HOME_HEADERS" | grep -qi '^x-frame-options: DENY
+          echo "$HOME_HEADERS" | grep -qi '^referrer-policy: strict-origin-when-cross-origin
+          echo "$HOME_HEADERS" | grep -qi '^content-security-policy-report-only:'
+          echo "$LOGIN_HEADERS" | grep -qi '^x-robots-tag: noindex, nofollow, noarchive, nosnippet
+
+      - name: Stop production server
+        if: always()
+        shell: bash
+        run: |
+          if [ -f /tmp/chamaentrega-next.pid ]; then
+            kill "$(cat /tmp/chamaentrega-next.pid)" 2>/dev/null || true
+          fi
