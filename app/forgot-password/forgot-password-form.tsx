@@ -16,9 +16,16 @@ export function ForgotPasswordForm() {
     setMessage('')
     setError('')
 
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail || normalizedEmail.length > 254) {
+      setSending(false)
+      setError('Informe um e-mail válido.')
+      return
+    }
+
     const supabase = createClient()
     const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo })
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
 
     setSending(false)
     if (resetError) {
@@ -39,6 +46,7 @@ export function ForgotPasswordForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
+          maxLength={254}
           required
         />
       </div>
