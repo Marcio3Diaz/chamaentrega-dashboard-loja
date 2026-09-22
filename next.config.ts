@@ -62,6 +62,8 @@ const noIndexSources = [
   '/cadastro',
   '/forgot-password',
   '/reset-password',
+  '/auth/:path*',
+  '/api/:path*',
 ]
 
 const nextConfig: NextConfig = {
@@ -105,6 +107,10 @@ const nextConfig: NextConfig = {
           {
             key: 'X-Robots-Tag',
             value: 'noindex, nofollow, noarchive, nosnippet',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'private, no-store, max-age=0, must-revalidate',
           },
         ],
       })),
