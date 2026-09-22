@@ -63,6 +63,27 @@ const revenueLabel:Record<string,string> = {
   adjustment:'Ajuste',
 }
 
+
+type AdminFinanceSummary = {
+  booked_revenue:number|string|null
+  paid_revenue:number|string|null
+  receivable_revenue:number|string|null
+  month_revenue:number|string|null
+  delivery_revenue:number|string|null
+  subscription_revenue:number|string|null
+  completed_delivery_count:number|string|null
+  completed_fee_volume:number|string|null
+}
+
+type AdminStoreFinanceSummary = {
+  store_id:string
+  completed_deliveries:number|string|null
+  delivery_base:number|string|null
+  commission:number|string|null
+  subscription_revenue:number|string|null
+  total_revenue:number|string|null
+}
+
 export default async function AdminFinancePage() {
   const supabase = await createClient()
   const [
@@ -110,7 +131,8 @@ export default async function AdminFinancePage() {
     throw new Error('Não foi possível carregar os totais financeiros.')
   }
 
-  const financeSummary = financeSummaryResult.data?.[0] ?? {
+  const financeSummaryRows = (financeSummaryResult.data ?? []) as AdminFinanceSummary[]
+  const financeSummary:AdminFinanceSummary = financeSummaryRows[0] ?? {
     booked_revenue:0,
     paid_revenue:0,
     receivable_revenue:0,
@@ -120,7 +142,9 @@ export default async function AdminFinancePage() {
     completed_delivery_count:0,
     completed_fee_volume:0,
   }
-  const storeFinanceSummary = storeFinanceSummaryResult.data ?? []
+  const storeFinanceSummary = (
+    storeFinanceSummaryResult.data ?? []
+  ) as AdminStoreFinanceSummary[]
 
   const storeMap = new Map(stores.map(store => [store.id,store]))
   const subscriptionMap = new Map(subscriptions.map(subscription => [subscription.store_id,subscription]))
