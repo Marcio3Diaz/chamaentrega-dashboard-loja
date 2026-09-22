@@ -195,6 +195,14 @@ export default function PublicHomePage() {
         </div>
 
         <div className="ce-hero-art">
+          <Image
+            src="/images/dashboard-hero-courier.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 980px) 100vw, 54vw"
+            className="ce-hero-background"
+          />
           <div className="ce-owner-card">
             <small>VISÃO DA LOJA</small>
             <strong>Mais controle para o negócio</strong>
@@ -254,9 +262,9 @@ export default function PublicHomePage() {
           <div className="ce-store-node n2"><strong>Restaurante B</strong><small>Rede de entregadores</small></div>
           <div className="ce-store-node n3"><strong>Restaurante C</strong><small>Rede de entregadores</small></div>
           <div className="ce-network-riders">
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
-            <span><img src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} loading="lazy" decoding="async"/></span>
+            <span><Image src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} sizes="38px"/></span>
+            <span><Image src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} sizes="38px"/></span>
+            <span><Image src="/brand/chamaentrega-flame-official.webp" alt="" width={96} height={96} sizes="38px"/></span>
           </div>
           <div className="ce-network-caption">
             <strong>Entregadores da região</strong>
