@@ -15,8 +15,8 @@ export function ResetPasswordForm() {
     event.preventDefault()
     setError('')
 
-    if (password.length < 10) {
-      setError('A nova senha precisa ter pelo menos 10 caracteres.')
+    if (password.length < 10 || password.length > 128) {
+      setError('A nova senha deve ter entre 10 e 128 caracteres.')
       return
     }
     if (password !== confirmPassword) {
@@ -57,6 +57,7 @@ export function ResetPasswordForm() {
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
           minLength={10}
+          maxLength={128}
           required
         />
       </div>
@@ -69,6 +70,7 @@ export function ResetPasswordForm() {
           onChange={(event) => setConfirmPassword(event.target.value)}
           autoComplete="new-password"
           minLength={10}
+          maxLength={128}
           required
         />
       </div>
