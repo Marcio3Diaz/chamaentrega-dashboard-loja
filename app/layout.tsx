@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import './globals.css'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'http://localhost:3000'
 
 export const metadata: Metadata = {
-  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+  metadataBase: new URL(siteUrl),
   applicationName: 'ChamaEntrega',
   title: {
     default: 'ChamaEntrega | Rede de Entregadores e Logística para Restaurantes',
