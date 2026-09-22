@@ -29,6 +29,26 @@ function dateInput(value:string|null|undefined) {
   return new Date(value).toISOString().slice(0,10)
 }
 
+function saoPauloDateKey(value:string|Date) {
+  const parts = new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/Sao_Paulo',
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+  }).formatToParts(new Date(value))
+
+  const year = parts.find(part => part.type === 'year')?.value ?? ''
+  const month = parts.find(part => part.type === 'month')?.value ?? ''
+  const day = parts.find(part => part.type === 'day')?.value ?? ''
+
+  return `${year}-${month}-${day}`
+}
+
+function subscriptionIsDue(value:string|null|undefined) {
+  if (!value) return true
+  return saoPauloDateKey(value) <= saoPauloDateKey(new Date())
+}
+
 const statusLabel:Record<string,string> = {
   inactive:'Sem plano',
   trialing:'Em teste',
@@ -489,21 +509,27 @@ export default async function AdminFinancePage() {
                 ['active','trialing'].includes(subscription.status) &&
                 Number(subscription.monthly_amount ?? 0) > 0
               )
-              .map(subscription => (
-                <div key={subscription.id}>
-                  <span>
-                    <strong>{storeMap.get(subscription.store_id)?.name ?? 'Loja'}</strong>
-                    <small>
-                      Próxima: {dateTime(subscription.next_billing_at)}
-                    </small>
-                  </span>
-                  <strong>{money(Number(subscription.monthly_amount ?? 0))}</strong>
-                  <form action={registerSubscriptionPaymentAction}>
-                    <input type="hidden" name="subscription_id" value={subscription.id}/>
-                    <button type="submit">Registrar pagamento</button>
-                  </form>
-                </div>
-              ))}
+              .map(subscription => {
+                const isDue = subscriptionIsDue(subscription.next_billing_at)
+
+                return (
+                  <div key={subscription.id}>
+                    <span>
+                      <strong>{storeMap.get(subscription.store_id)?.name ?? 'Loja'}</strong>
+                      <small>
+                        Próxima: {dateTime(subscription.next_billing_at)}
+                      </small>
+                    </span>
+                    <strong>{money(Number(subscription.monthly_amount ?? 0))}</strong>
+                    <form action={registerSubscriptionPaymentAction}>
+                      <input type="hidden" name="subscription_id" value={subscription.id}/>
+                      <button type="submit" disabled={!isDue}>
+                        {isDue ? 'Registrar pagamento' : 'Aguardando vencimento'}
+                      </button>
+                    </form>
+                  </div>
+                )
+              })}
 
             {!subscriptions.some(subscription =>
               ['active','trialing'].includes(subscription.status) &&
