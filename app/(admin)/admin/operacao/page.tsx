@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Icon } from '@/components/icon'
+import { OperationAutoRefresh } from './operation-auto-refresh'
+import './operacao.css'
 
 const activeStatuses = [
   'accepted',
@@ -95,6 +97,7 @@ export default async function AdminLiveOperationPage() {
 
   return (
     <div className="admin-page admin-live-page">
+      <OperationAutoRefresh />
       <section className="admin-page-head admin-live-head">
         <div>
           <div className="admin-eyebrow">CENTRAL OPERACIONAL</div>
