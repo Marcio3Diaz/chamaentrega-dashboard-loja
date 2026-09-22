@@ -45,8 +45,9 @@ export const metadata: Metadata = {
       'Organize sua entrega própria, construa sua rede de entregadores e reduza a dependência dos marketplaces com o ChamaEntrega.',
     images: [
       {
-        url: '/images/chamaentrega-dashboard-banner.avif',
+        url: '/images/chamaentrega-dashboard-banner.webp',
         alt: 'ChamaEntrega',
+        type: 'image/webp',
       },
     ],
   },
@@ -55,7 +56,7 @@ export const metadata: Metadata = {
     title: 'ChamaEntrega | Rede de Entregadores e Logística para Restaurantes',
     description:
       'Organize sua entrega própria, construa sua rede de entregadores e reduza a dependência dos marketplaces com o ChamaEntrega.',
-    images: ['/images/chamaentrega-dashboard-banner.avif'],
+    images: ['/images/chamaentrega-dashboard-banner.webp'],
   },
 }
 
