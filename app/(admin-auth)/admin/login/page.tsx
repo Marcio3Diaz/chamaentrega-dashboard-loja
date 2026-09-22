@@ -1,3 +1,4 @@
+import '../../../private.css'
 import { AdminLoginForm } from './admin-login-form'
 
 export default function AdminLoginPage() {
