@@ -119,6 +119,25 @@ jobs:
             sitemapBody.includes('https://example.com'),
             'sitemap.xml não usa a URL pública configurada',
           )
+          assert(
+            sitemapBody.includes('https://example.com/privacidade'),
+            'sitemap.xml não inclui a página de privacidade',
+          )
+          assert(
+            sitemapBody.includes('https://example.com/termos'),
+            'sitemap.xml não inclui a página de termos',
+          )
+
+          for (const legalPath of ['/privacidade','/termos']) {
+            const legal = await get(legalPath)
+            assert(legal.ok, legalPath + ' não respondeu 2xx')
+            const legalBody = await legal.text()
+            assert(
+              legalBody.includes('rel="canonical"')
+                && legalBody.includes('https://example.com' + legalPath),
+              legalPath + ' está sem canonical público correto',
+            )
+          }
 
           const publicImage = await get('/images/chamaentrega-dashboard-banner.avif')
           assert(publicImage.ok, 'Imagem pública AVIF não respondeu 2xx')
