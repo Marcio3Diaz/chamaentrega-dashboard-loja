@@ -65,15 +65,13 @@ const revenueLabel:Record<string,string> = {
 
 export default async function AdminFinancePage() {
   const supabase = await createClient()
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(),now.getMonth(),1).toISOString()
-
   const [
     settingsResult,
     subscriptionsResult,
     eventsResult,
     storesResult,
-    deliveriesResult,
+    financeSummaryResult,
+    storeFinanceSummaryResult,
   ] = await Promise.all([
     supabase
       .from('platform_billing_settings')
@@ -93,10 +91,8 @@ export default async function AdminFinancePage() {
       .from('stores')
       .select('id,name,logo_url,is_active,city,state,created_at')
       .order('name'),
-    supabase
-      .from('deliveries')
-      .select('id,store_id,status,delivery_fee,completed_at,created_at')
-      .eq('status','completed'),
+    supabase.rpc('get_admin_finance_summary'),
+    supabase.rpc('get_admin_store_finance_summary'),
   ])
 
   const settings = settingsResult.data ?? {
@@ -109,30 +105,40 @@ export default async function AdminFinancePage() {
   const subscriptions = subscriptionsResult.data ?? []
   const events = eventsResult.data ?? []
   const stores = storesResult.data ?? []
-  const deliveries = deliveriesResult.data ?? []
+
+  if (financeSummaryResult.error || storeFinanceSummaryResult.error) {
+    throw new Error('Não foi possível carregar os totais financeiros.')
+  }
+
+  const financeSummary = financeSummaryResult.data?.[0] ?? {
+    booked_revenue:0,
+    paid_revenue:0,
+    receivable_revenue:0,
+    month_revenue:0,
+    delivery_revenue:0,
+    subscription_revenue:0,
+    completed_delivery_count:0,
+    completed_fee_volume:0,
+  }
+  const storeFinanceSummary = storeFinanceSummaryResult.data ?? []
 
   const storeMap = new Map(stores.map(store => [store.id,store]))
   const subscriptionMap = new Map(subscriptions.map(subscription => [subscription.store_id,subscription]))
+  const storeFinanceMap = new Map(
+    storeFinanceSummary.map(row => [row.store_id,row]),
+  )
 
-  const validEvents = events.filter(event => event.status !== 'void')
-  const paidEvents = validEvents.filter(event => event.status === 'paid')
-  const accruedEvents = validEvents.filter(event => event.status === 'accrued')
-  const bookedRevenue = validEvents.reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-  const paidRevenue = paidEvents.reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-  const receivableRevenue = accruedEvents.reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-  const monthRevenue = validEvents
-    .filter(event => new Date(event.occurred_at).getTime() >= new Date(monthStart).getTime())
-    .reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-  const deliveryRevenue = validEvents
-    .filter(event => event.revenue_type === 'delivery_commission')
-    .reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-  const subscriptionRevenue = validEvents
-    .filter(event => event.revenue_type === 'subscription')
-    .reduce((sum,event) => sum+Number(event.amount ?? 0),0)
+  const bookedRevenue = Number(financeSummary.booked_revenue ?? 0)
+  const paidRevenue = Number(financeSummary.paid_revenue ?? 0)
+  const receivableRevenue = Number(financeSummary.receivable_revenue ?? 0)
+  const monthRevenue = Number(financeSummary.month_revenue ?? 0)
+  const deliveryRevenue = Number(financeSummary.delivery_revenue ?? 0)
+  const subscriptionRevenue = Number(financeSummary.subscription_revenue ?? 0)
+  const completedFeeVolume = Number(financeSummary.completed_fee_volume ?? 0)
+  const completedDeliveryCount = Number(financeSummary.completed_delivery_count ?? 0)
 
   const activeSubscriptions = subscriptions.filter(subscription => subscription.status === 'active')
   const mrr = activeSubscriptions.reduce((sum,subscription) => sum+Number(subscription.monthly_amount ?? 0),0)
-  const completedFeeVolume = deliveries.reduce((sum,delivery) => sum+Number(delivery.delivery_fee ?? 0),0)
   const currentRate = Number(settings.delivery_commission_percent ?? 0)
   const projectedCommission = settings.commission_enabled
     ? completedFeeVolume*currentRate/100
@@ -140,24 +146,16 @@ export default async function AdminFinancePage() {
 
   const storeRows = stores.map(store => {
     const subscription = subscriptionMap.get(store.id)
-    const storeDeliveries = deliveries.filter(delivery => delivery.store_id === store.id)
-    const deliveryBase = storeDeliveries.reduce((sum,delivery) => sum+Number(delivery.delivery_fee ?? 0),0)
-    const storeEvents = validEvents.filter(event => event.store_id === store.id)
-    const commission = storeEvents
-      .filter(event => event.revenue_type === 'delivery_commission')
-      .reduce((sum,event) => sum+Number(event.amount ?? 0),0)
-    const subscriptionRevenue = storeEvents
-      .filter(event => event.revenue_type === 'subscription')
-      .reduce((sum,event) => sum+Number(event.amount ?? 0),0)
+    const summary = storeFinanceMap.get(store.id)
 
     return {
       store,
       subscription,
-      completedDeliveries:storeDeliveries.length,
-      deliveryBase,
-      commission,
-      subscriptionRevenue,
-      totalRevenue:commission+subscriptionRevenue,
+      completedDeliveries:Number(summary?.completed_deliveries ?? 0),
+      deliveryBase:Number(summary?.delivery_base ?? 0),
+      commission:Number(summary?.commission ?? 0),
+      subscriptionRevenue:Number(summary?.subscription_revenue ?? 0),
+      totalRevenue:Number(summary?.total_revenue ?? 0),
     }
   }).sort((a,b) => b.totalRevenue-a.totalRevenue)
 
@@ -221,7 +219,7 @@ export default async function AdminFinancePage() {
           <div>
             <small>Receita por entregas</small>
             <strong>{money(deliveryRevenue)}</strong>
-            <em>{deliveries.length} entregas concluídas</em>
+            <em>{completedDeliveryCount} entregas concluídas</em>
           </div>
         </article>
       </section>
