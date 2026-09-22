@@ -1,5 +1,15 @@
+import type { Metadata } from 'next'
 import '../private.css'
 import { ForgotPasswordForm } from './forgot-password-form'
+
+export const metadata: Metadata = {
+  title: 'Recuperar senha',
+  description: 'Solicite um link seguro para recuperar o acesso ao ChamaEntrega.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function ForgotPasswordPage() {
   return (
