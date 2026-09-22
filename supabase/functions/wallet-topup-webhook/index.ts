@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const WOOVI_PUBLIC_KEYS_URL = "https://api.woovi.com/api/v1/webhook/public-keys";
+const MAX_WEBHOOK_BYTES = 1024 * 1024;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -29,6 +30,7 @@ const loadWooviPublicKeys = async () => {
   try {
     const response = await fetch(WOOVI_PUBLIC_KEYS_URL, {
       headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) throw new Error("public keys request failed");
 
@@ -122,7 +124,15 @@ Deno.serve(async (req: Request) => {
     return new Response("webhook backend not configured", { status: 503 });
   }
 
+  const contentLength = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(contentLength) && contentLength > MAX_WEBHOOK_BYTES) {
+    return new Response("payload too large", { status: 413 });
+  }
+
   const rawBody = new Uint8Array(await req.arrayBuffer());
+  if (rawBody.byteLength > MAX_WEBHOOK_BYTES) {
+    return new Response("payload too large", { status: 413 });
+  }
   const rsaSignature = req.headers.get("x-webhook-signature") ?? "";
   const hmacSignature = req.headers.get("x-openpix-signature") ?? "";
   const webhookSecret = Deno.env.get("WOOVI_WEBHOOK_SECRET") ?? "";
