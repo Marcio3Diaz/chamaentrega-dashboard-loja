@@ -31,6 +31,7 @@ const steps: Step[] = [
     n:'3',
     title:'Use seu cardápio digital',
     text:'Ative seu próprio canal de pedidos e, quando fizer sentido para sua operação, trabalhe com entrega própria.',
+    detail:'Ter um cardápio digital próprio é um passo importante para ganhar mais autonomia na sua operação. Em vez de depender apenas dos marketplaces para receber pedidos, você pode criar um canal direto com seus clientes, divulgar seu próprio link nas redes sociais, no WhatsApp e em materiais da loja e concentrar parte das vendas em um ambiente que pertence ao seu negócio. Quando o pedido entrar pelo seu canal próprio e estiver pronto para sair, o ChamaEntrega pode apoiar a etapa da entrega, conectando sua loja aos entregadores disponíveis da sua rede. Assim, você começa a construir uma operação mais independente, mantém contato direto com seus clientes e passa a ter mais controle sobre pedidos, relacionamento e logística. A ideia não é abandonar os marketplaces de uma vez, mas criar um segundo caminho de vendas que possa crescer gradualmente junto com a sua rede de entregadores.',
     icon:'box',
   },
   {
