@@ -33,23 +33,34 @@ export async function requireStore(): Promise<{
     redirect('/login?error=acesso')
   }
 
-  const [{ data: ownedStores, error: ownedError }, { data: memberships, error: membershipError }] =
-    await Promise.all([
-      supabase
-        .from('stores')
-        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
-        .eq('owner_id', userId),
-      supabase
-        .from('store_members')
-        .select('store_id')
-        .eq('user_id', userId)
-        .eq('status', 'active'),
-    ])
+  const { data: ownedStores, error: ownedError } = await supabase
+    .from('stores')
+    .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
+    .eq('owner_id', userId)
 
-  if (ownedError || membershipError) redirect('/login?error=loja')
+  if (ownedError) redirect('/login?error=loja')
+
+  /*
+   * Quem é proprietário já tem acesso garantido às próprias lojas.
+   * Evitamos consultar store_members nesse caso porque uma falha de RLS
+   * na tabela de vínculos não deve derrubar o acesso do dono da loja.
+   */
+  let memberships: { store_id: string }[] = []
+
+  if (!(ownedStores?.length)) {
+    const { data, error } = await supabase
+      .from('store_members')
+      .select('store_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+
+    if (error) redirect('/login?error=loja')
+
+    memberships = data ?? []
+  }
 
   const ownedIds = new Set((ownedStores ?? []).map(store => store.id))
-  const memberIds = (memberships ?? [])
+  const memberIds = memberships
     .map(member => member.store_id)
     .filter(storeId => !ownedIds.has(storeId))
 
