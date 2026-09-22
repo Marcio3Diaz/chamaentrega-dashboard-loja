@@ -19239,3 +19239,39 @@ html[data-theme="light"] .store-switcher-avatar{
   outline:2px solid #ffbd12;
   outline-offset:2px;
 }
+
+/* ChamaEntrega mobile legibility pass 2026-09-22 */
+@media(max-width:980px){
+  .ce-eyebrow,
+  .ce-plans-kicker,
+  .ce-plans.ce-plans-premium .ce-plan-tag,
+  .ce-proof span,
+  .ce-owner-card small,
+  .ce-owner-card strong,
+  .ce-live-card,
+  .ce-hero-status span,
+  .ce-how-grid p,
+  .ce-how-step-more,
+  .ce-network-copy p,
+  .ce-network-note span,
+  .ce-store-node strong,
+  .ce-store-node small,
+  .ce-network-caption strong,
+  .ce-network-caption small,
+  .ce-resource-grid p,
+  .ce-testimonials-caption,
+  .ce-network-benefit-copy p,
+  .ce-network-benefit-more,
+  .ce-section-title.compact>a,
+  .ce-faq-grid details p,
+  .ce-footer-brand p,
+  .ce-footer-brand>span,
+  .ce-footer-main>div>a,
+  .ce-footer-cta p,
+  .ce-footer-cta a,
+  .ce-footer-bottom,
+  .ce-mobile-nav-kicker{
+    font-size:12px!important;
+    line-height:1.5;
+  }
+}
