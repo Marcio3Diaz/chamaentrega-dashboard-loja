@@ -2,11 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const menuRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -14,15 +16,53 @@ export function PublicHeader() {
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
+    const focusTimer = window.setTimeout(() => {
+      menuRef.current?.querySelector<HTMLElement>('a[href],button:not([disabled])')?.focus()
+    }, 0)
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusable = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      )
+
+      if (focusable.length === 0) {
+        event.preventDefault()
+        menuButtonRef.current?.focus({ preventScroll:true })
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const current = document.activeElement
+
+      if (event.shiftKey && current === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && current === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     document.addEventListener('keydown', onKeyDown)
 
     return () => {
+      window.clearTimeout(focusTimer)
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', onKeyDown)
+      window.setTimeout(() => {
+        menuButtonRef.current?.focus({ preventScroll:true })
+      }, 0)
     }
   }, [open])
 
@@ -58,6 +98,7 @@ export function PublicHeader() {
       </div>
 
       <button
+        ref={menuButtonRef}
         type="button"
         className={`ce-mobile-menu-button ${open ? 'is-open' : ''}`}
         aria-label={open ? 'Fechar menu' : 'Abrir menu'}
@@ -73,6 +114,7 @@ export function PublicHeader() {
       {open ? (
         <div className="ce-mobile-menu-layer" onMouseDown={closeMenu}>
           <nav
+            ref={menuRef}
             id="ce-mobile-nav"
             className="ce-mobile-nav"
             aria-label="Menu mobile"
