@@ -49,6 +49,7 @@ type SendResult = {
 }
 
 const FUNCTION_NAME = 'send-delivery-notification'
+const MAX_WEBHOOK_BYTES = 512 * 1024
 const APP_PACKAGE = 'com.marciodiaz.logistica.entregador'
 const NEW_DELIVERY_CHANNEL_ID = 'chamaentrega_new_delivery_v1'
 const URGENT_CHANNEL_ID = 'entregaplus_urgent_deliveries'
@@ -216,6 +217,7 @@ async function getFirebaseAccessToken(
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       assertion,
     }),
+    signal: AbortSignal.timeout(10_000),
   })
 
   const responseText = await response.text()
@@ -742,6 +744,7 @@ async function sendToToken(
           },
         },
       }),
+      signal: AbortSignal.timeout(10_000),
     },
   )
 
@@ -826,7 +829,23 @@ Deno.serve(async (request: Request) => {
       return jsonResponse({ error: 'Não autorizado.' }, 401)
     }
 
-    const payload = await request.json() as WebhookPayload
+    const contentLength = Number(request.headers.get('content-length') ?? '0')
+    if (Number.isFinite(contentLength) && contentLength > MAX_WEBHOOK_BYTES) {
+      return jsonResponse({ error: 'Payload muito grande.' }, 413)
+    }
+
+    const rawBody = await request.text()
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BYTES) {
+      return jsonResponse({ error: 'Payload muito grande.' }, 413)
+    }
+
+    let payload: WebhookPayload
+    try {
+      payload = JSON.parse(rawBody) as WebhookPayload
+    } catch {
+      return jsonResponse({ error: 'JSON inválido.' }, 400)
+    }
+
     const supabaseAdmin = createClient(
       getRequiredEnv('SUPABASE_URL'),
       getSupabaseAdminKey(),
