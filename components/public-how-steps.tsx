@@ -45,6 +45,7 @@ const steps: Step[] = [
     n:'5',
     title:'Compartilhe força na região',
     text:'Lojas próximas também podem convidar entregadores, e os mesmos profissionais podem participar de várias redes parceiras.',
+    detail:'O ChamaEntrega foi pensado para transformar uma dificuldade comum em força coletiva. Em vez de cada restaurante tentar manter sozinho uma equipe completa de entregadores, as lojas da mesma região podem fortalecer um ecossistema em comum. Cada estabelecimento continua com sua própria rede e decide quem aprovar, mas os profissionais podem fazer parte de diferentes redes parceiras, aumentando as chances de haver alguém disponível quando uma entrega surgir. Na prática, o entregador que hoje atende uma loja vizinha também pode solicitar entrada na sua rede, assim como os profissionais convidados por você podem trabalhar com outros estabelecimentos da região. Quanto mais lojas participarem e mais entregadores forem convidados, maior tende a ser a disponibilidade local. O objetivo é criar uma rede regional mais equilibrada, com mais oportunidades para os entregadores e mais alternativas para os restaurantes, sem tirar de cada loja o controle sobre sua própria operação.',
     icon:'route',
   },
   {
