@@ -1,5 +1,15 @@
+import type { Metadata } from 'next'
 import '../../../private.css'
 import { AdminLoginForm } from './admin-login-form'
+
+export const metadata: Metadata = {
+  title: 'Central Administrativa',
+  description: 'Acesso restrito à administração do ChamaEntrega.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function AdminLoginPage() {
   return (
