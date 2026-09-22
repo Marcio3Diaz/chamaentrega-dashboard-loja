@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import './public.css'
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
@@ -310,7 +311,13 @@ export default function PublicHomePage() {
       <footer className="ce-footer">
         <div className="ce-footer-main">
           <div className="ce-footer-brand">
-            <img src="/brand/chamaentrega-logo-official.webp" alt="ChamaEntrega" width={420} height={140} loading="lazy" decoding="async"/>
+            <Image
+              src="/brand/chamaentrega-logo-official.webp"
+              alt="ChamaEntrega"
+              width={235}
+              height={78}
+              sizes="(max-width: 620px) 205px, (max-width: 980px) 220px, 235px"
+            />
             <p>
               Tecnologia para um delivery mais organizado, independente e conectado.
               Mais controle para sua loja e uma rede regional mais forte.
