@@ -24,6 +24,7 @@ const steps: Step[] = [
     n:'2',
     title:'Convide seus entregadores',
     text:'Convide profissionais que já conhecem sua operação para baixar o ChamaEntrega e solicitar entrada na rede da sua loja.',
+    detail:'No dia a dia, sua loja já tem contato com diversos entregadores que trabalham por plataformas como iFood e 99Food. Aproveite essa proximidade para convidar, de forma direta e voluntária, os profissionais que demonstraram confiança, responsabilidade e bom atendimento para fazer parte da sua rede no ChamaEntrega. Sabemos que manter uma operação própria de entregas ficou mais difícil: há falta de profissionais disponíveis e muitos entregadores preferem trabalhar com liberdade, atendendo diferentes estabelecimentos, em vez de permanecer fixos em uma única loja. A proposta do ChamaEntrega é justamente se adaptar a essa nova realidade. Você constrói sua própria rede, sem exigir exclusividade, e passa a fazer parte de um ecossistema regional em que outros restaurantes também podem convidar bons profissionais. Com isso, mais entregadores ficam disponíveis na sua região, enquanto cada loja continua escolhendo quem pode entrar em sua rede. É uma forma mais flexível de organizar a entrega própria, ampliar a disponibilidade e reduzir a dependência de uma equipe fixa.',
     icon:'users',
   },
   {
