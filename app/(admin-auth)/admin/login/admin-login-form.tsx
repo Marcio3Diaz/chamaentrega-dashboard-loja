@@ -24,6 +24,7 @@ export function AdminLoginForm() {
           name="email"
           type="email"
           autoComplete="email"
+          maxLength={254}
           placeholder="admin@chamaentrega.com.br"
           required
         />
@@ -36,6 +37,7 @@ export function AdminLoginForm() {
           name="password"
           type="password"
           autoComplete="current-password"
+          maxLength={128}
           placeholder="••••••••"
           required
         />
