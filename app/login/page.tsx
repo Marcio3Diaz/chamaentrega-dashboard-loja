@@ -1,3 +1,4 @@
+import '../private.css'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
