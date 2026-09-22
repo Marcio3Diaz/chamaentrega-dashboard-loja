@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { acceptsJson, bodyWithinLimit, isTrustedBrowserOrigin } from '@/lib/security/origin'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,18 @@ type GeocodeRequest = {
 
 export async function POST(request: Request) {
   try {
+    if (!isTrustedBrowserOrigin(request)) {
+      return NextResponse.json({ error: 'Origem não autorizada.' }, { status: 403 })
+    }
+
+    if (!acceptsJson(request)) {
+      return NextResponse.json({ error: 'Envie os dados em JSON.' }, { status: 415 })
+    }
+
+    if (!bodyWithinLimit(request, 8 * 1024)) {
+      return NextResponse.json({ error: 'Requisição muito grande.' }, { status: 413 })
+    }
+
     const supabase = await createClient()
     const { data: claimsData } = await supabase.auth.getClaims()
 
