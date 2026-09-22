@@ -28,12 +28,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error:'unauthorized' },{ status:401 })
   }
 
-  let body:{ storeId?:string } = {}
-  try { body = await request.json() } catch {}
+  const storeId = String(parsed.data.storeId ?? '').trim()
 
-  const storeId = String(body.storeId ?? '').trim()
-  if (!storeId) {
-    return NextResponse.json({ error:'store_required' },{ status:400 })
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(storeId)
+  ) {
+    return NextResponse.json({ error:'invalid_store_id' },{ status:400 })
   }
 
   const { data: store } = await supabase
