@@ -146,7 +146,10 @@ Deno.serve(async (req: Request) => {
       valid = await verifyLegacyHmac(rawBody, hmacSignature, webhookSecret);
     }
   } catch (error) {
-    console.error("wallet webhook signature verification failed", error);
+    console.error(
+      "wallet webhook signature verification failed",
+      error instanceof Error ? error.message.slice(0, 500) : "signature_verification_failed",
+    );
     return new Response("signature verification unavailable", { status: 503 });
   }
 
@@ -185,7 +188,11 @@ Deno.serve(async (req: Request) => {
   });
 
   if (error) {
-    console.error("wallet topup completion failed", error);
+    console.error(
+      "wallet topup completion failed",
+      error.code ?? "unknown",
+      error.message,
+    );
     return new Response("processing failed", { status: 500 });
   }
 
