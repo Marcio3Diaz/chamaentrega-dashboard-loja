@@ -17,6 +17,7 @@ export function SignupStoreForm() {
           <input
             name="full_name"
             autoComplete="name"
+            maxLength={120}
             placeholder="Ex.: João da Silva"
             required
           />
@@ -27,6 +28,7 @@ export function SignupStoreForm() {
           <input
             name="phone"
             autoComplete="tel"
+            maxLength={30}
             placeholder="(21) 99999-9999"
           />
         </label>
@@ -37,6 +39,7 @@ export function SignupStoreForm() {
             name="email"
             type="email"
             autoComplete="email"
+            maxLength={254}
             placeholder="voce@sualoja.com.br"
             required
           />
@@ -50,6 +53,7 @@ export function SignupStoreForm() {
             autoComplete="new-password"
             placeholder="Mínimo 10 caracteres"
             minLength={10}
+            maxLength={128}
             required
           />
         </label>
@@ -62,6 +66,7 @@ export function SignupStoreForm() {
             autoComplete="new-password"
             placeholder="Repita sua senha"
             minLength={10}
+            maxLength={128}
             required
           />
         </label>
