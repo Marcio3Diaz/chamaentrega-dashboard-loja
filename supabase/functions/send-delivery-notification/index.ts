@@ -1005,6 +1005,6 @@ Deno.serve(async (request: Request) => {
     const message = error instanceof Error ? error.message : String(error)
     console.error(`${FUNCTION_NAME}: erro não tratado.`, message)
 
-    return jsonResponse({ error: message }, 500)
+    return jsonResponse({ error: 'processing_failed' }, 500)
   }
 })
