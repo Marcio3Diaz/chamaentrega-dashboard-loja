@@ -1,6 +1,3 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 type Step = {
@@ -58,86 +55,72 @@ const steps: Step[] = [
 ]
 
 export function PublicHowSteps() {
-  const [activeStep, setActiveStep] = useState<Step | null>(null)
-
-  useEffect(() => {
-    if (!activeStep) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActiveStep(null)
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [activeStep])
-
   return (
     <>
       <div className="ce-how-grid">
-        {steps.map(step => (
-          <article key={step.n} className="ce-how-step-card">
-            <button
-              type="button"
-              className="ce-how-step-button"
-              onClick={() => setActiveStep(step)}
-            >
-              <div className="ce-step-number">{step.n}</div>
+        {steps.map(step => {
+          const modalId = `ce-step-modal-${step.n}`
+          const titleId = `ce-step-modal-title-${step.n}`
 
-              <div className="ce-step-icon">
-                {step.kind === 'marketplaces' ? (
-                  <div className="ce-marketplace-logos">
-                    <img src="/integrations/ifood.svg" alt="iFood" width={64} height={64}/>
-                    <img src="/integrations/99food.svg" alt="99Food" width={64} height={64}/>
-                  </div>
-                ) : (
-                  <Icon name={step.icon ?? 'box'} size={31}/>
-                )}
-              </div>
+          return (
+            <article key={step.n} className="ce-how-step-card">
+              <button
+                type="button"
+                className="ce-how-step-button"
+                popoverTarget={modalId}
+                aria-haspopup="dialog"
+              >
+                <div className="ce-step-number">{step.n}</div>
 
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
+                <div className="ce-step-icon">
+                  {step.kind === 'marketplaces' ? (
+                    <div className="ce-marketplace-logos">
+                      <img src="/integrations/ifood.svg" alt="iFood" width={64} height={64}/>
+                      <img src="/integrations/99food.svg" alt="99Food" width={64} height={64}/>
+                    </div>
+                  ) : (
+                    <Icon name={step.icon ?? 'box'} size={31}/>
+                  )}
+                </div>
 
-              <span className="ce-how-step-more">
-                Ver explicação <Icon name="arrow" size={15}/>
-              </span>
-            </button>
-          </article>
-        ))}
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+
+                <span className="ce-how-step-more">
+                  Ver explicação <Icon name="arrow" size={15}/>
+                </span>
+              </button>
+
+              <section
+                id={modalId}
+                popover="auto"
+                className="ce-step-modal"
+                role="dialog"
+                aria-labelledby={titleId}
+              >
+                <button
+                  type="button"
+                  className="ce-step-modal-close"
+                  popoverTarget={modalId}
+                  popoverTargetAction="hide"
+                  aria-label="Fechar explicação"
+                >
+                  ×
+                </button>
+
+                <div className="ce-step-modal-badge">PASSO {step.n}</div>
+                <h3 id={titleId}>{step.title}</h3>
+                <p className="ce-step-modal-summary">{step.text}</p>
+
+                <div className="ce-step-modal-content">
+                  <strong>Explicação detalhada</strong>
+                  <p>{step.detail ?? 'O conteúdo completo deste passo será inserido aqui com o texto que você definir.'}</p>
+                </div>
+              </section>
+            </article>
+          )
+        })}
       </div>
-
-      {activeStep ? (
-        <div
-          className="ce-step-modal-backdrop"
-          role="presentation"
-          onMouseDown={() => setActiveStep(null)}
-        >
-          <section
-            className="ce-step-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ce-step-modal-title"
-            onMouseDown={event => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="ce-step-modal-close"
-              onClick={() => setActiveStep(null)}
-              aria-label="Fechar explicação"
-            >
-              ×
-            </button>
-
-            <div className="ce-step-modal-badge">PASSO {activeStep.n}</div>
-            <h3 id="ce-step-modal-title">{activeStep.title}</h3>
-            <p className="ce-step-modal-summary">{activeStep.text}</p>
-
-            <div className="ce-step-modal-content">
-              <strong>Explicação detalhada</strong>
-              <p>{activeStep.detail ?? 'O conteúdo completo deste passo será inserido aqui com o texto que você definir.'}</p>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </>
   )
 }
