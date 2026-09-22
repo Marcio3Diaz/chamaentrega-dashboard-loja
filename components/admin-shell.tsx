@@ -7,6 +7,7 @@ import { Icon } from '@/components/icon'
 
 const nav = [
   ['/admin','Visão geral','home'],
+  ['/admin/operacao','Operação ao vivo','map'],
   ['/admin/lojas','Lojas','store'],
   ['/admin/entregadores','Entregadores','user'],
   ['/admin/corridas','Corridas','route'],
