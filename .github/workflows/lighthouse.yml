@@ -40,3 +40,51 @@ jobs:
 
       - name: Audit home with Lighthouse CI
         run: npx --yes @lhci/cli@0.15.1 autorun
+
+      - name: Print Lighthouse scores
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs')
+          const path = require('path')
+          const dir = '.lighthouseci'
+          const files = fs.readdirSync(dir).filter(name => name.endsWith('.json'))
+
+          let report = null
+          for (const name of files) {
+            try {
+              const data = JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'))
+              if (data.categories && data.audits) {
+                report = data
+                break
+              }
+            } catch {}
+          }
+
+          if (!report) {
+            console.log('LIGHTHOUSE_SUMMARY unavailable')
+            process.exit(0)
+          }
+
+          const pct = key => Math.round((report.categories[key]?.score ?? 0) * 100)
+          const ms = key => Math.round(report.audits[key]?.numericValue ?? 0)
+          const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0
+
+          console.log('LIGHTHOUSE_SUMMARY')
+          console.log('performance=' + pct('performance'))
+          console.log('accessibility=' + pct('accessibility'))
+          console.log('best_practices=' + pct('best-practices'))
+          console.log('seo=' + pct('seo'))
+          console.log('fcp_ms=' + ms('first-contentful-paint'))
+          console.log('lcp_ms=' + ms('largest-contentful-paint'))
+          console.log('tbt_ms=' + ms('total-blocking-time'))
+          console.log('speed_index_ms=' + ms('speed-index'))
+          console.log('cls=' + cls.toFixed(3))
+          NODE
+
+      - name: Upload Lighthouse raw report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci
+          retention-days: 7
