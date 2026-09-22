@@ -19807,3 +19807,174 @@ html[data-theme="light"] .store-switcher-avatar{
     font-size:13px;
   }
 }
+
+/* ChamaEntrega compact network benefits correction 2026-09-21 */
+.ce-testimonials{
+  padding:30px clamp(28px,4vw,66px) 30px!important;
+}
+
+.ce-testimonials .ce-section-title{
+  margin-bottom:16px!important;
+}
+
+.ce-testimonials .ce-section-title h2{
+  font-size:clamp(32px,2.5vw,46px)!important;
+  line-height:1.05!important;
+  letter-spacing:-1.5px!important;
+}
+
+.ce-testimonials .ce-section-title p{
+  font-size:12.5px!important;
+  line-height:1.5!important;
+}
+
+.ce-testimonials-caption{
+  padding:7px 11px!important;
+  font-size:9px!important;
+}
+
+.ce-network-benefits-grid{
+  gap:10px!important;
+}
+
+.ce-testimonials-grid article.ce-network-benefit-card{
+  display:block!important;
+  grid-template-columns:none!important;
+  min-height:138px!important;
+  border-radius:14px!important;
+}
+
+.ce-network-benefit-button{
+  min-height:138px!important;
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr)!important;
+  grid-template-rows:1fr!important;
+  gap:12px!important;
+  align-items:start!important;
+  padding:16px 15px!important;
+}
+
+.ce-network-benefit-index{
+  top:10px!important;
+  right:11px!important;
+  font-size:19px!important;
+  color:rgba(255,189,18,.18)!important;
+}
+
+.ce-network-benefit-icon{
+  grid-column:1!important;
+  grid-row:1!important;
+  width:42px!important;
+  height:42px!important;
+  border-radius:12px!important;
+}
+
+.ce-network-benefit-icon svg{
+  width:21px!important;
+  height:21px!important;
+}
+
+.ce-network-benefit-copy{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-width:0!important;
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+
+.ce-network-benefit-copy strong{
+  max-width:none!important;
+  margin:0 25px 4px 0!important;
+  font-size:15.5px!important;
+  line-height:1.16!important;
+  letter-spacing:-.2px!important;
+  white-space:normal!important;
+}
+
+.ce-network-benefit-copy p{
+  max-width:none!important;
+  margin:0!important;
+  color:#8f9ea6!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+  white-space:normal!important;
+}
+
+.ce-network-benefit-more{
+  margin-top:9px!important;
+  padding-top:0!important;
+  font-size:9px!important;
+}
+
+.ce-network-benefit-more svg{
+  width:12px!important;
+  height:12px!important;
+}
+
+.ce-network-benefit-card:hover{
+  transform:translateY(-3px)!important;
+}
+
+.ce-faq{
+  padding:26px clamp(28px,4vw,66px) 30px!important;
+}
+
+.ce-faq .ce-section-title h2{
+  font-size:clamp(32px,2.5vw,46px)!important;
+}
+
+.ce-faq-grid summary{
+  min-height:52px!important;
+  font-size:12.5px!important;
+}
+
+.ce-faq-grid details p{
+  font-size:11.5px!important;
+}
+
+@media(max-width:1280px){
+  .ce-network-benefits-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  .ce-testimonials-grid article.ce-network-benefit-card,
+  .ce-network-benefit-button{
+    min-height:126px!important;
+  }
+}
+
+@media(max-width:720px){
+  .ce-testimonials{
+    padding:28px 20px!important;
+  }
+
+  .ce-testimonials .ce-section-title h2{
+    font-size:30px!important;
+  }
+
+  .ce-network-benefits-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .ce-testimonials-grid article.ce-network-benefit-card,
+  .ce-network-benefit-button{
+    min-height:118px!important;
+  }
+
+  .ce-network-benefit-copy strong{
+    font-size:15px!important;
+  }
+
+  .ce-network-benefit-copy p{
+    font-size:10.5px!important;
+  }
+
+  .ce-faq{
+    padding:26px 20px 30px!important;
+  }
+
+  .ce-faq .ce-section-title h2{
+    font-size:30px!important;
+  }
+}
