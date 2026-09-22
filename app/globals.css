@@ -301,7 +301,7 @@ body { background: #07090c; }
   overflow:hidden;
   background:
     linear-gradient(90deg,rgba(7,9,12,1) 0%,rgba(7,9,12,.18) 25%,rgba(7,9,12,.05) 64%,rgba(7,9,12,.72) 100%),
-    url('/images/dashboard-hero-courier.png') center center / cover no-repeat;
+    url('/images/dashboard-hero-courier.webp') center center / cover no-repeat;
 }
 .hero-visual:after {
   content:"";
@@ -370,7 +370,7 @@ body { background: #07090c; }
     inset: 0 210px 0 43%;
     background:
       linear-gradient(90deg,rgba(7,9,12,1) 0%,rgba(7,9,12,.18) 18%,rgba(7,9,12,.06) 68%,rgba(7,9,12,.64) 100%),
-      url('/images/dashboard-hero-courier.png') left center / auto 100% no-repeat;
+      url('/images/dashboard-hero-courier.webp') left center / auto 100% no-repeat;
   }
   .hero-quote { right: 0; top: 39px; font-size: 20px; line-height: 1.17; }
   .hero-cta { right: 28px; min-width: 190px; height: 56px; font-size: 13px; }
@@ -696,7 +696,7 @@ body { background: #07090c; }
         rgba(7,9,12,.03) 68%,
         rgba(7,9,12,.58) 100%
       ),
-      url('/images/dashboard-hero-courier.png') center center / cover no-repeat !important;
+      url('/images/dashboard-hero-courier.webp') center center / cover no-repeat !important;
   }
 
   .hero-quote {
@@ -1012,7 +1012,7 @@ body { background: #07090c; }
     opacity: 1 !important;
     background:
       linear-gradient(90deg,#07090c 0%,rgba(7,9,12,.22) 18%,rgba(7,9,12,.02) 72%,rgba(7,9,12,.68) 100%),
-      url('/images/dashboard-hero-courier.png') center 45% / cover no-repeat !important;
+      url('/images/dashboard-hero-courier.webp') center 45% / cover no-repeat !important;
   }
 
   .target-hero-visual:after {
@@ -1255,7 +1255,7 @@ body { background: #07090c; }
   .target-hero-visual {
     background:
       linear-gradient(90deg,#07090c 0%,rgba(7,9,12,.15) 45%,rgba(7,9,12,.65) 100%),
-      url('/images/dashboard-hero-courier.png') center center / cover no-repeat !important;
+      url('/images/dashboard-hero-courier.webp') center center / cover no-repeat !important;
   }
 }
 
@@ -13630,7 +13630,7 @@ html[data-theme="light"] .store-switcher-avatar{
   background:
     linear-gradient(90deg,rgba(8,15,19,1) 0%,rgba(8,15,19,.08) 28%,rgba(8,15,19,.0) 72%,rgba(8,15,19,.5) 100%),
     linear-gradient(0deg,rgba(7,15,20,.20),rgba(7,15,20,.03)),
-    url('/images/dashboard-hero-courier.png') center 45% / cover no-repeat;
+    url('/images/dashboard-hero-courier.webp') center 45% / cover no-repeat;
   filter:saturate(.95) contrast(1.03) brightness(.80);
 }
 .admin-v2-hero-art:after{
@@ -16972,7 +16972,7 @@ html[data-theme="light"] .store-switcher-avatar{
   background:
     linear-gradient(90deg,#05090c 0%,rgba(5,9,12,.10) 24%,rgba(5,9,12,.02) 74%,rgba(5,9,12,.32) 100%),
     linear-gradient(0deg,rgba(5,9,12,.22),rgba(5,9,12,.04)),
-    url('/images/dashboard-hero-courier.png') 58% 42% / cover no-repeat;
+    url('/images/dashboard-hero-courier.webp') 58% 42% / cover no-repeat;
 }
 .ce-hero-art:before{
   content:"";
@@ -17210,7 +17210,7 @@ html[data-theme="light"] .store-switcher-avatar{
   background:
     linear-gradient(90deg,#0b1217 0%,rgba(11,18,23,.12) 18%,rgba(11,18,23,.03) 70%,rgba(11,18,23,.25) 100%),
     linear-gradient(0deg,rgba(5,9,12,.16),rgba(5,9,12,.08)),
-    url('/images/chamaentrega-dashboard-banner.png') center / cover no-repeat;
+    url('/images/chamaentrega-dashboard-banner.avif') center / cover no-repeat;
 }
 .ce-network-art:before{
   content:"";
@@ -17438,7 +17438,7 @@ html[data-theme="light"] .store-switcher-avatar{
   border-radius:13px;
   background:
     linear-gradient(0deg,rgba(5,9,12,.90) 0%,rgba(5,9,12,.05) 58%),
-    url('/images/dashboard-hero-courier.png') center 35% / cover no-repeat;
+    url('/images/dashboard-hero-courier.webp') center 35% / cover no-repeat;
 }
 .ce-plan-art-copy{
   width:100%;
@@ -17830,7 +17830,7 @@ html[data-theme="light"] .store-switcher-avatar{
   min-height:600px;
   background:
     linear-gradient(90deg,#05090c 0%,rgba(5,9,12,.36) 9%,rgba(5,9,12,.08) 24%,rgba(5,9,12,.01) 75%,rgba(5,9,12,.12) 100%),
-    url('/images/dashboard-hero-courier.png') 54% 48% / cover no-repeat;
+    url('/images/dashboard-hero-courier.webp') 54% 48% / cover no-repeat;
 }
 .ce-hero-art:before{
   display:none;
@@ -17909,7 +17909,7 @@ html[data-theme="light"] .store-switcher-avatar{
   min-height:320px;
   background:
     linear-gradient(90deg,#0b1217 0%,rgba(11,18,23,.15) 11%,rgba(11,18,23,.01) 34%,rgba(11,18,23,.06) 100%),
-    url('/images/chamaentrega-dashboard-banner.png') center 48% / cover no-repeat;
+    url('/images/chamaentrega-dashboard-banner.avif') center 48% / cover no-repeat;
 }
 .ce-network-art:before,
 .ce-store-node,
@@ -17972,8 +17972,8 @@ html[data-theme="light"] .store-switcher-avatar{
   border-radius:10px;
   background:
     linear-gradient(0deg,rgba(5,9,12,.40) 0%,rgba(5,9,12,.02) 44%),
-    url('/images/planos-entregador-chamaentrega.png') center 34% / cover no-repeat,
-    url('/images/dashboard-hero-courier.png') center 35% / cover no-repeat;
+    url('/images/planos-card-direita-oficial.webp') center 34% / cover no-repeat,
+    url('/images/dashboard-hero-courier.webp') center 35% / cover no-repeat;
 }
 .ce-plan-art-copy{
   min-height:100%;
@@ -18540,7 +18540,7 @@ html[data-theme="light"] .store-switcher-avatar{
   z-index:0;
   background:
     linear-gradient(rgba(4,8,11,.38),rgba(4,8,11,.38)),
-    url('/images/planos-card-direita.png') center / cover no-repeat;
+    url('/images/planos-card-direita-oficial.webp') center / cover no-repeat;
   filter:blur(22px);
   opacity:.55;
   transform:scale(1.08);
@@ -18603,9 +18603,9 @@ html[data-theme="light"] .store-switcher-avatar{
 .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image{
   background-color:#070d11;
   background-image:
-    url('/images/planos-card-direita.png'),
-    url('/images/planos-card-direita.webp'),
-    url('/images/ChatGPT Image 21 de set. de 2026, 19_14_44 (3)(1).png');
+    url('/images/planos-card-direita-oficial.webp'),
+    url('/images/planos-card-direita-oficial.webp'),
+    url('/images/planos-card-direita-oficial.webp');
   background-repeat:no-repeat,no-repeat,no-repeat;
   background-position:center,center,center;
   background-size:cover,cover,cover;
@@ -18631,7 +18631,7 @@ html[data-theme="light"] .store-switcher-avatar{
   min-height:550px !important;
   border:1px solid rgba(247,185,22,.28) !important;
   border-radius:20px !important;
-  background:#070d11 url('/images/planos-card-direita-oficial.png') center center / cover no-repeat !important;
+  background:#070d11 url('/images/planos-card-direita-oficial.webp') center center / cover no-repeat !important;
 }
 
 .ce-plans.ce-plans-premium .ce-plan-art.ce-plan-art-image::before,
