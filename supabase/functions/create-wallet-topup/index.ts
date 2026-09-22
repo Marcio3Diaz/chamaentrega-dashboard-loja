@@ -181,7 +181,10 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     // A criação do Pix não deve ficar bloqueada por uma falha temporária
     // no cadastro/consulta do webhook. Registramos o erro e seguimos.
-    console.warn("wallet webhook setup warning", error);
+    console.warn(
+      "wallet webhook setup warning",
+      error instanceof Error ? error.message.slice(0, 500) : "verification_setup_failed",
+    );
   }
 
   const correlationId = `wallet-topup:${storeId}:${crypto.randomUUID()}`;
@@ -234,7 +237,7 @@ Deno.serve(async (req: Request) => {
 
     console.error(
       "wallet topup: provedor recusou criação da cobrança",
-      JSON.stringify(providerData).slice(0, 1500),
+      { status: chargeResponse.status, topup_id: topup.id },
     );
 
     return json({
