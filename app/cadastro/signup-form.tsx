@@ -75,8 +75,9 @@ export function SignupStoreForm() {
       <label className="signup-consent">
         <input type="checkbox" name="consent" value="accepted" required/>
         <span>
-          Concordo em criar uma conta comercial no ChamaEntrega e aceito que os dados
-          da minha loja sejam usados para operar as entregas.
+          Concordo em criar uma conta comercial no ChamaEntrega, aceito os{' '}
+          <Link href="/termos" target="_blank">Termos de Uso</Link> e li a página de{' '}
+          <Link href="/privacidade" target="_blank">Privacidade e Segurança</Link>.
         </span>
       </label>
 
