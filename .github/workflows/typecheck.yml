@@ -94,6 +94,21 @@ jobs:
             'sitemap.xml não usa a URL pública configurada',
           )
 
+          const publicImage = await get('/images/chamaentrega-dashboard-banner.avif')
+          assert(publicImage.ok, 'Imagem pública AVIF não respondeu 2xx')
+          assert(
+            publicImage.status === 200,
+            'Imagem pública AVIF sofreu redirecionamento inesperado',
+          )
+          assert(
+            publicImage.headers.get('content-type')?.toLowerCase().includes('image/avif'),
+            'Imagem pública AVIF retornou Content-Type incorreto',
+          )
+          assert(
+            !publicImage.headers.get('location'),
+            'Imagem pública AVIF não pode redirecionar para autenticação',
+          )
+
           const home = await get('/')
           assert(home.ok, 'Home não respondeu 2xx')
           const homeBody = await home.text()
