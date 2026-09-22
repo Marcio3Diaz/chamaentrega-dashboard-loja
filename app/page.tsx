@@ -27,25 +27,108 @@ const publicSiteUrl =
 
 const publicJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'ChamaEntrega',
-  url: publicSiteUrl,
-  applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web',
-  description:
-    'Plataforma para restaurantes organizarem entrega própria, rede de entregadores, despacho, acompanhamento e operação logística.',
-  offers: [
+  '@graph': [
     {
-      '@type': 'Offer',
-      name: 'Essencial',
-      price: '49.90',
-      priceCurrency: 'BRL',
+      '@type': 'Organization',
+      '@id': `${publicSiteUrl}#organization`,
+      name: 'ChamaEntrega',
+      url: publicSiteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${publicSiteUrl}/brand/chamaentrega-logo-official.webp`,
+      },
     },
     {
-      '@type': 'Offer',
-      name: 'Profissional',
-      price: '99.90',
-      priceCurrency: 'BRL',
+      '@type': 'WebSite',
+      '@id': `${publicSiteUrl}#website`,
+      url: publicSiteUrl,
+      name: 'ChamaEntrega',
+      inLanguage: 'pt-BR',
+      publisher: {
+        '@id': `${publicSiteUrl}#organization`,
+      },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': `${publicSiteUrl}#software`,
+      name: 'ChamaEntrega',
+      url: publicSiteUrl,
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      inLanguage: 'pt-BR',
+      description:
+        'Plataforma para restaurantes organizarem entrega própria, rede de entregadores, despacho, acompanhamento e operação logística.',
+      provider: {
+        '@id': `${publicSiteUrl}#organization`,
+      },
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Essencial',
+          price: '49.90',
+          priceCurrency: 'BRL',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Profissional',
+          price: '99.90',
+          priceCurrency: 'BRL',
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${publicSiteUrl}#faq`,
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'O que é o ChamaEntrega?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'É uma plataforma para lojas organizarem sua operação de entregas, sua rede de entregadores e o acompanhamento das corridas.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Como funciona a rede de entregadores?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Cada loja pode aprovar sua própria rede. O mesmo entregador pode solicitar participação em outras redes próximas.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Preciso sair do iFood ou 99Food para usar?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Não. A loja pode continuar usando seus canais atuais e estruturar gradualmente uma operação própria de entrega.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Posso ter mais de uma loja?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Sim. Os planos superiores suportam múltiplas operações e gestão por unidade.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'O entregador pode pedir entrada na minha rede?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Sim. A solicitação aparece para a loja, que decide se aprova ou não aquele profissional.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'A assinatura inclui o valor das entregas?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Não. A assinatura dá acesso à plataforma. A operação de entrega tem cobrança separada conforme a regra comercial definida.',
+          },
+        },
+      ],
     },
   ],
 }
