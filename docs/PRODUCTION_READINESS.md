@@ -76,6 +76,7 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Manter rotinas administrativas separadas do Portal da Loja.
 - Não criar nova função `SECURITY DEFINER` sem `search_path` explícito, validação de autorização e grants mínimos.
 - Converter o CSP de Report-Only para bloqueante somente depois de observar o site no domínio real.
+- Definir rate limiting durável no gateway/banco para endpoints autenticados que consomem serviços externos (geocodificação, criação de cobrança Pix e conexão WhatsApp), evitando soluções apenas em memória em ambiente serverless.
 
 ## Infraestrutura / hospedagem
 
