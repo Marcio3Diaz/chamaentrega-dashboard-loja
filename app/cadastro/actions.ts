@@ -24,19 +24,19 @@ export async function signupStoreAction(
   const confirmPassword = String(formData.get('confirm_password') ?? '')
   const consent = formData.get('consent') === 'accepted'
 
-  if (fullName.length < 3) {
-    return { error:'Informe o nome do responsável.' }
+  if (fullName.length < 3 || fullName.length > 120) {
+    return { error:'Informe um nome válido para o responsável.' }
   }
 
-  if (!email || !email.includes('@')) {
+  if (!email || email.length > 254 || !email.includes('@')) {
     return { error:'Informe um e-mail válido.' }
   }
 
-  if (password.length < 10) {
-    return { error:'A senha precisa ter pelo menos 10 caracteres.' }
+  if (password.length < 10 || password.length > 128) {
+    return { error:'A senha deve ter entre 10 e 128 caracteres.' }
   }
 
-  if (password !== confirmPassword) {
+  if (confirmPassword.length > 128 || password !== confirmPassword) {
     return { error:'As senhas não conferem.' }
   }
 
