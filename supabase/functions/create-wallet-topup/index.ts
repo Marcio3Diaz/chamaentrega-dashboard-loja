@@ -190,20 +190,28 @@ Deno.serve(async (req: Request) => {
   const correlationId = `wallet-topup:${storeId}:${crypto.randomUUID()}`;
   const cents = Math.round(normalizedAmount * 100);
 
-  const { data: topup, error: topupError } = await admin
-    .from("store_wallet_topups")
-    .insert({
-      wallet_id: wallet.id,
-      store_id: storeId,
-      provider: "woovi",
-      correlation_id: correlationId,
-      amount: normalizedAmount,
-      status: "pending",
-    })
-    .select("id")
-    .single();
+  const { data: reservedTopupId, error: reserveError } = await admin.rpc(
+    "reserve_store_wallet_topup",
+    {
+      p_store_id: storeId,
+      p_wallet_id: wallet.id,
+      p_correlation_id: correlationId,
+      p_amount: normalizedAmount,
+    },
+  );
 
-  if (topupError || !topup) {
+  if (reserveError) {
+    if (reserveError.message?.includes("TOPUP_RATE_LIMITED")) {
+      return json({
+        error: "Muitas tentativas de recarga. Aguarde um minuto e tente novamente.",
+      }, 429);
+    }
+
+    return json({ error: "Não foi possível iniciar a recarga." }, 500);
+  }
+
+  const topupId = String(reservedTopupId ?? "");
+  if (!topupId) {
     return json({ error: "Não foi possível iniciar a recarga." }, 500);
   }
 
@@ -233,11 +241,11 @@ Deno.serve(async (req: Request) => {
         provider_payload: providerData ?? {},
         updated_at: new Date().toISOString(),
       })
-      .eq("id", topup.id);
+      .eq("id", topupId);
 
     console.error(
       "wallet topup: provedor recusou criação da cobrança",
-      { status: chargeResponse.status, topup_id: topup.id },
+      { status: chargeResponse.status, topup_id: topupId },
     );
 
     return json({
@@ -263,10 +271,10 @@ Deno.serve(async (req: Request) => {
       expires_at: expiresAt,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", topup.id);
+    .eq("id", topupId);
 
   return json({
-    topupId: topup.id,
+    topupId: topupId,
     correlationId,
     amount: normalizedAmount,
     brCode,
