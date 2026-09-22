@@ -1,8 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.116.0";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
 
 type Json = Record<string, unknown>;
-type SupabaseAdmin = ReturnType<typeof createClient>;
+type SupabaseAdmin = SupabaseClient<any, "public", "public", any, any>;
 
 const FUNCTION_NAME = "whatsapp-webhook";
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
