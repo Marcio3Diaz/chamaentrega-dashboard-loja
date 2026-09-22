@@ -86,8 +86,8 @@ export function PublicHowSteps() {
               <div className="ce-step-icon">
                 {step.kind === 'marketplaces' ? (
                   <div className="ce-marketplace-logos">
-                    <img src="/integrations/ifood.svg" alt="iFood" width={64} height={64}/>
-                    <img src="/integrations/99food.svg" alt="99Food" width={64} height={64}/>
+                    <img src="/integrations/ifood.svg" alt="iFood" width={64} height={64} loading="lazy" decoding="async"/>
+                    <img src="/integrations/99food.svg" alt="99Food" width={64} height={64} loading="lazy" decoding="async"/>
                   </div>
                 ) : (
                   <Icon name={step.icon ?? 'box'} size={31}/>
