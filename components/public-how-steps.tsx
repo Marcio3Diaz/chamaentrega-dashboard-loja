@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/icon'
 
 type Step = {
@@ -59,17 +59,65 @@ const steps: Step[] = [
 
 export function PublicHowSteps() {
   const [activeStep, setActiveStep] = useState<Step | null>(null)
+  const openerRef = useRef<HTMLButtonElement | null>(null)
+  const modalRef = useRef<HTMLElement | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (!activeStep) return
 
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusTimer = window.setTimeout(() => {
+      closeButtonRef.current?.focus()
+    }, 0)
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActiveStep(null)
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setActiveStep(null)
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusable = Array.from(
+        modalRef.current?.querySelectorAll<HTMLElement>(
+          'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter(element => !element.hasAttribute('disabled'))
+
+      if (focusable.length === 0) {
+        event.preventDefault()
+        closeButtonRef.current?.focus()
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const current = document.activeElement
+
+      if (event.shiftKey && current === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && current === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      window.setTimeout(() => openerRef.current?.focus(), 0)
+    }
   }, [activeStep])
+
+  const closeModal = () => setActiveStep(null)
 
   return (
     <>
@@ -79,7 +127,11 @@ export function PublicHowSteps() {
             <button
               type="button"
               className="ce-how-step-button"
-              onClick={() => setActiveStep(step)}
+              onClick={event => {
+                openerRef.current = event.currentTarget
+                setActiveStep(step)
+              }}
+              aria-haspopup="dialog"
             >
               <div className="ce-step-number">{step.n}</div>
 
@@ -109,9 +161,10 @@ export function PublicHowSteps() {
         <div
           className="ce-step-modal-backdrop"
           role="presentation"
-          onMouseDown={() => setActiveStep(null)}
+          onMouseDown={closeModal}
         >
           <section
+            ref={modalRef}
             className="ce-step-modal"
             role="dialog"
             aria-modal="true"
@@ -120,8 +173,9 @@ export function PublicHowSteps() {
           >
             <button
               type="button"
+              ref={closeButtonRef}
               className="ce-step-modal-close"
-              onClick={() => setActiveStep(null)}
+              onClick={closeModal}
               aria-label="Fechar explicação"
             >
               ×
