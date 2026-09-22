@@ -10711,6 +10711,17 @@ html[data-theme="light"] .store-switcher-avatar{
   height:16px;
   accent-color:#ffb800;
 }
+
+.signup-consent a{
+  color:#d99e00;
+  font-weight:850;
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+
+.signup-consent a:hover{
+  color:#ffbd12;
+}
 .signup-submit{
   width:100%;
   min-height:48px;
