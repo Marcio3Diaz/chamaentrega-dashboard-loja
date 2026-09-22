@@ -643,7 +643,6 @@ Deno.serve(async (request: Request) => {
         return json({
           ok: true,
           function: FUNCTION_NAME,
-          configured: Boolean(verifyToken && env("WHATSAPP_APP_SECRET")),
         });
       }
 
