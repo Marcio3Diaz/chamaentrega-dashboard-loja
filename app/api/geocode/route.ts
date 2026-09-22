@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,12 +9,29 @@ type GeocodeRequest = {
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: claimsData } = await supabase.auth.getClaims()
+
+    if (!claimsData?.claims?.sub) {
+      return NextResponse.json(
+        { error: 'Sessão necessária para localizar endereços.' },
+        { status: 401 },
+      )
+    }
+
     const body = await request.json() as GeocodeRequest
     const address = String(body.address ?? '').trim()
 
     if (address.length < 6) {
       return NextResponse.json(
         { error: 'Informe um endereço mais completo.' },
+        { status: 400 },
+      )
+    }
+
+    if (address.length > 350) {
+      return NextResponse.json(
+        { error: 'Endereço muito longo.' },
         { status: 400 },
       )
     }
@@ -27,8 +45,9 @@ export async function POST(request: Request) {
 
     const response = await fetch(url, {
       cache: 'no-store',
+      signal: AbortSignal.timeout(7000),
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Accept-Language': 'pt-BR,pt;q=0.9',
         'User-Agent': 'ChamaEntrega/1.0',
       },
@@ -63,10 +82,16 @@ export async function POST(request: Request) {
       longitude,
       displayName: String(first?.display_name ?? address),
     })
-  } catch {
+  } catch (error) {
+    const timedOut = error instanceof DOMException && error.name === 'TimeoutError'
+
     return NextResponse.json(
-      { error: 'Não foi possível localizar o endereço.' },
-      { status: 500 },
+      {
+        error: timedOut
+          ? 'O serviço de localização demorou para responder. Tente novamente.'
+          : 'Não foi possível localizar o endereço.',
+      },
+      { status: timedOut ? 504 : 500 },
     )
   }
 }
