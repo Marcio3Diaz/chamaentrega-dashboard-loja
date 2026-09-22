@@ -13,15 +13,28 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Healthcheck em `/api/health`.
 - `robots.txt` e `sitemap.xml`.
 - Canonical, Open Graph, Twitter Card e JSON-LD.
-- Áreas privadas e de autenticação com `noindex`.
+- Áreas privadas e de autenticação com `noindex` e `no-store`.
 - Cabeçalhos de segurança básicos.
 - CSP em modo Report-Only para observar incompatibilidades antes de bloquear conteúdo.
 - Home pública prerenderizada como conteúdo estático.
 - CSS público separado dos estilos privados.
 - `package-lock.json` versionado.
 - Dependabot configurado.
-- Upload de logos limitado por MIME, tamanho e pasta do usuário.
-- APIs internas sensíveis validam sessão e origem do navegador.
+- APIs internas sensíveis validam sessão, origem do navegador, Content-Type e tamanho de payload.
+- MFA/TOTP obrigatório na Central Administrativa: senha sozinha não abre `/admin`.
+- Cadastro do autenticador e desafio AAL2 implementados em `/admin/mfa/setup` e `/admin/mfa`.
+- Token de acesso do WhatsApp armazenado no Supabase Vault; não existe mais coluna de token em texto puro.
+- Tabela de credenciais do WhatsApp sem acesso direto para `anon` ou `authenticated`.
+- Todos os 36 objetos de tabela do schema público com RLS habilitado na auditoria atual.
+- Nenhuma política de leitura de tabela de negócio liberada para `anon`.
+- Nenhuma função do schema `public` executável por `anon`.
+- Funções de trigger internas removidas da superfície RPC.
+- Novas funções do schema público passam a nascer sem `EXECUTE` público por padrão.
+- Privilégios `TRUNCATE`, `REFERENCES` e `TRIGGER` revogados de clientes `anon`/`authenticated`.
+- Bucket de logos limitado a 5 MB e a PNG/JPEG/WebP, com escrita somente na pasta do próprio usuário.
+- Bucket de documentos de verificação privado, limitado a 8 MB e a imagens permitidas.
+- Políticas antigas duplicadas de Storage removidas.
+- Índices adicionados às chaves estrangeiras apontadas pelo advisor do Supabase.
 
 ## Antes de apontar um domínio
 
@@ -31,14 +44,16 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Configurar variáveis da Meta/WhatsApp somente no ambiente do servidor.
 - Nunca copiar chaves privadas ou segredos para variáveis `NEXT_PUBLIC_*`.
 - Validar o CSP Report-Only no ambiente real antes de convertê-lo em política bloqueante.
+- Entrar uma vez com cada conta administrativa e concluir o cadastro do autenticador TOTP.
 
-## Segurança que ainda merece evolução
+## Segurança que ainda exige ação
 
-- Tornar MFA obrigatório para contas administrativas antes do lançamento público.
-- Migrar o token de acesso do WhatsApp para armazenamento criptografado/Vault, evitando segredo em texto puro no banco.
+- **Ativar Leaked Password Protection no Supabase Auth.** O advisor de segurança ainda aponta essa configuração como desabilitada. Ela depende de uma configuração do projeto no Auth, não de migration SQL.
+- Manter revisão periódica das funções `SECURITY DEFINER` expostas a `authenticated`. As RPCs atuais usam `auth.uid()` ou helpers privados de autorização, mas devem ser reavaliadas quando a regra de negócio mudar.
 - Revisar periodicamente as políticas RLS após novas tabelas ou integrações.
 - Manter rotinas administrativas separadas do Portal da Loja.
-- Evitar novas funções `security definer` sem `search_path` explícito e validação de autorização.
+- Não criar nova função `SECURITY DEFINER` sem `search_path` explícito, validação de autorização e grants mínimos.
+- Converter o CSP de Report-Only para bloqueante somente depois de observar o site no domínio real.
 
 ## Infraestrutura / hospedagem
 
