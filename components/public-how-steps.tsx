@@ -38,6 +38,7 @@ const steps: Step[] = [
     n:'4',
     title:'Aprove a entrada na sua rede',
     text:'Os entregadores solicitam entrada na rede particular do restaurante e a loja decide quem aprovar pelo painel.',
+    detail:'Sua rede continua sendo sua. No ChamaEntrega, nenhum entregador entra automaticamente na operação da sua loja: quando um profissional solicitar acesso, você recebe o pedido pelo painel e decide se quer aprová-lo ou não. Isso permite analisar quem já conhece sua operação, quem foi convidado por você e também profissionais que fazem parte da rede de outros restaurantes da região. Com o tempo, sua loja pode construir uma base de entregadores de confiança sem depender de uma equipe fixa. Você mantém o controle sobre quem pode receber suas entregas e, ao mesmo tempo, ganha a possibilidade de ampliar sua rede quando precisar de mais disponibilidade. É a combinação entre autonomia e colaboração: a região compartilha profissionais, mas cada estabelecimento continua tendo sua própria rede e suas próprias aprovações.',
     icon:'user',
   },
   {
