@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
 type Json = Record<string, unknown>;
 type SupabaseAdmin = ReturnType<typeof createClient>;
