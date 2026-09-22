@@ -6,6 +6,7 @@ import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
 import { PublicNetworkBenefits } from '@/components/public-network-benefits'
 import { PublicHeader } from '@/components/public-header'
+import { getSiteUrl } from '@/lib/site-url'
 
 
 export const metadata: Metadata = {
@@ -21,9 +22,7 @@ export const metadata: Metadata = {
   },
 }
 
-const publicSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'http://localhost:3000'
+const publicSiteUrl = getSiteUrl()
 
 const faqItems = [
   {
