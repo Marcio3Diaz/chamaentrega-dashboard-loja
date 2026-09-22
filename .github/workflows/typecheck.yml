@@ -172,6 +172,8 @@ jobs:
 
           const home = await get('/')
           assert(home.ok, 'Home não respondeu 2xx')
+          const homeCache = home.headers.get('cache-control') ?? ''
+          console.log('cache-control (/): ' + homeCache)
           const homeBody = await home.text()
 
           assert(
