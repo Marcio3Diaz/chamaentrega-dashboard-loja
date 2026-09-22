@@ -33,6 +33,8 @@ export function PublicHeader() {
         <img
           src="/brand/chamaentrega-logo-official.webp"
           alt="ChamaEntrega"
+          width={420}
+          height={140}
           decoding="async"
         />
       </Link>
