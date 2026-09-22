@@ -96,7 +96,7 @@ export async function requireStore(): Promise<{
 
 export { ACTIVE_STORE_COOKIE }
 
-export async function requireAdmin(): Promise<{
+export async function requireAdminIdentity(): Promise<{
   userId:string
   fullName:string
 }> {
@@ -113,6 +113,7 @@ export async function requireAdmin(): Promise<{
     .maybeSingle()
 
   if (!profile || profile.role !== 'admin') {
+    await supabase.auth.signOut()
     redirect('/admin/login?error=acesso')
   }
 
@@ -120,4 +121,35 @@ export async function requireAdmin(): Promise<{
     userId,
     fullName:profile.full_name?.trim() || 'Administrador',
   }
+}
+
+export async function requireAdmin(): Promise<{
+  userId:string
+  fullName:string
+}> {
+  const identity = await requireAdminIdentity()
+  const supabase = await createClient()
+
+  const { data:assurance,error:assuranceError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+
+  if (assuranceError) {
+    redirect('/admin/login?error=mfa')
+  }
+
+  if (assurance?.currentLevel !== 'aal2') {
+    const { data:factors,error:factorsError } = await supabase.auth.mfa.listFactors()
+
+    if (factorsError) {
+      redirect('/admin/login?error=mfa')
+    }
+
+    const verifiedTotp = factors?.totp?.some(
+      factor => factor.status === 'verified',
+    )
+
+    redirect(verifiedTotp ? '/admin/mfa' : '/admin/mfa/setup')
+  }
+
+  return identity
 }
