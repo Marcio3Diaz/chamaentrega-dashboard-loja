@@ -1,6 +1,15 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+
+  if (claimsData?.claims?.sub) {
+    redirect('/painel')
+  }
+
   return (
     <main className="login-page">
       <section className="login-card">
