@@ -3457,42 +3457,7 @@
 }
 
 
-/* ChamaEntrega zero-hydration public interactions 2026-09-22 */
-
-/* Native Popover API: same visual interaction without React state/effects. */
-.ce-step-modal[popover],
-.ce-benefit-modal[popover]{
-  position:fixed;
-  inset:0;
-  margin:auto;
-  max-height:calc(100dvh - 48px);
-  overflow:auto;
-  color:inherit;
-}
-
-.ce-step-modal[popover]{
-  width:min(620px,calc(100vw - 48px));
-}
-
-.ce-benefit-modal[popover]{
-  width:min(610px,calc(100vw - 48px));
-}
-
-.ce-step-modal[popover]::backdrop,
-.ce-benefit-modal[popover]::backdrop{
-  background:rgba(2,6,9,.80);
-  backdrop-filter:blur(10px);
-}
-
-.ce-step-modal[popover]:popover-open{
-  animation:ceStepModalIn .24s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.ce-benefit-modal[popover]:popover-open{
-  animation:ceBenefitModalIn .24s cubic-bezier(.2,.8,.2,1) both;
-}
-
-/* Mobile menu driven by :target so same-page links close it automatically. */
+/* ChamaEntrega static mobile navigation 2026-09-22 */
 .ce-mobile-menu-layer{
   display:none!important;
 }
@@ -3554,15 +3519,6 @@
 @media(max-width:620px){
   .ce-mobile-menu-layer:target{
     inset:72px 0 0;
-  }
-
-  .ce-step-modal[popover],
-  .ce-benefit-modal[popover]{
-    inset:auto 14px 14px;
-    margin:0;
-    width:auto;
-    max-height:calc(100dvh - 28px);
-    border-radius:22px 22px 14px 14px;
   }
 }
 
