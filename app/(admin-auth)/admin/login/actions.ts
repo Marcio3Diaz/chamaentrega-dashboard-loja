@@ -47,7 +47,30 @@ export async function adminLoginAction(
   const cookieStore = await cookies()
   cookieStore.delete(ACTIVE_STORE_COOKIE)
 
-  redirect('/admin')
+  const { data:assurance,error:assuranceError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+
+  if (assuranceError) {
+    await supabase.auth.signOut()
+    return { error:'Não foi possível validar a segurança da conta administrativa.' }
+  }
+
+  if (assurance?.currentLevel === 'aal2') {
+    redirect('/admin')
+  }
+
+  const { data:factors,error:factorsError } = await supabase.auth.mfa.listFactors()
+
+  if (factorsError) {
+    await supabase.auth.signOut()
+    return { error:'Não foi possível carregar a verificação em duas etapas.' }
+  }
+
+  const hasVerifiedTotp = factors?.totp?.some(
+    factor => factor.status === 'verified',
+  )
+
+  redirect(hasVerifiedTotp ? '/admin/mfa' : '/admin/mfa/setup')
 }
 
 export async function adminSignOutAction() {
