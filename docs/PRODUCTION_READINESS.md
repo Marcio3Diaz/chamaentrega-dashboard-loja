@@ -21,6 +21,10 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - `package-lock.json` versionado.
 - Dependabot configurado.
 - APIs internas sensíveis validam sessão, origem do navegador, Content-Type e tamanho real do payload, inclusive quando `Content-Length` está ausente.
+- Home pública confirmada como cacheável no servidor de produção (`s-maxage=31536000`) e protegida por smoke test contra regressão para `no-store`.
+- Menu mobile e modais públicos prendem o foco do teclado, fecham com `Escape`, restauram o foco ao elemento de origem e bloqueiam o scroll de fundo.
+- Modais públicos possuem altura máxima e rolagem interna para não cortar conteúdo em celulares e telas baixas.
+- Teste de regressão cobre destinos não permitidos no callback de autenticação.
 - MFA/TOTP obrigatório na Central Administrativa: senha sozinha não abre `/admin`.
 - Cadastro do autenticador e desafio AAL2 implementados em `/admin/mfa/setup` e `/admin/mfa`.
 - Token de acesso do WhatsApp armazenado no Supabase Vault; não existe mais coluna de token em texto puro.
@@ -43,7 +47,7 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 - Todas as 5 Edge Functions implantadas estão versionadas no GitHub e alinhadas byte a byte com o código do Supabase.
 - Edge Functions checks executa `deno check` em todas as funções a cada alteração em `supabase/functions/**`.
 - `create-wallet-topup` exige JWT no gateway e também valida a sessão internamente.
-- Webhooks Pix, WhatsApp e Push validam assinatura/segredo antes de usar credenciais administrativas.
+- Webhooks Pix, WhatsApp e Push validam assinatura/segredo antes de usar credenciais administrativas; logs Pix foram sanitizados para não registrar payload bruto do provedor.
 - Edge Functions públicas possuem limites de payload; chamadas externas críticas possuem timeout.
 - A função que credita carteira é idempotente, usa bloqueio de linha e só pode ser executada por `service_role`.
 - Quality Checks e Lighthouse CI usam permissões explícitas `contents: read`.
@@ -66,7 +70,7 @@ Este documento registra o que já foi automatizado e o que precisa ser validado 
 
 ## Segurança que ainda exige ação
 
-- **Ativar Leaked Password Protection no Supabase Auth.** O advisor de segurança ainda aponta essa configuração como desabilitada. Ela depende de uma configuração do projeto no Auth, não de migration SQL.
+- **Ativar Leaked Password Protection no Supabase Auth.** O advisor de segurança ainda aponta essa configuração como desabilitada. Ela depende de uma configuração do projeto no Auth, não de migration SQL e permanece como ação manual antes do lançamento.
 - Manter revisão periódica das funções `SECURITY DEFINER` expostas a `authenticated`. As RPCs atuais usam `auth.uid()` ou helpers privados de autorização, mas devem ser reavaliadas quando a regra de negócio mudar.
 - Revisar periodicamente as políticas RLS após novas tabelas ou integrações.
 - Manter rotinas administrativas separadas do Portal da Loja.
@@ -91,7 +95,7 @@ Validar somente quando houver um ambiente público:
 
 Antes do lançamento:
 
-- Informar os contatos reais no footer.
+- Informar pelo menos um contato oficial real no footer (e-mail, WhatsApp ou canal de suporte). Não publicar contato inventado.
 - Adicionar links reais para Instagram/WhatsApp/e-mail somente depois de definidos os canais oficiais.
 - Revisar título e descrição usando o domínio e posicionamento comercial definitivos.
 - Cadastrar o domínio no Google Search Console.
