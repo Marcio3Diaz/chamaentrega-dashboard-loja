@@ -43,10 +43,32 @@ export function acceptsJson(request: Request) {
   return contentType.startsWith('application/json')
 }
 
-export function bodyWithinLimit(request: Request, maxBytes = 16 * 1024) {
-  const raw = request.headers.get('content-length')
-  if (!raw) return true
+export type JsonBodyResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: 'payload_too_large' | 'invalid_json' }
 
-  const length = Number(raw)
-  return Number.isFinite(length) && length >= 0 && length <= maxBytes
+export async function readJsonWithinLimit<T>(
+  request: Request,
+  maxBytes = 16 * 1024,
+): Promise<JsonBodyResult<T>> {
+  const declared = request.headers.get('content-length')
+
+  if (declared) {
+    const length = Number(declared)
+    if (!Number.isFinite(length) || length < 0 || length > maxBytes) {
+      return { ok:false,error:'payload_too_large' }
+    }
+  }
+
+  const raw = await request.text()
+
+  if (new TextEncoder().encode(raw).byteLength > maxBytes) {
+    return { ok:false,error:'payload_too_large' }
+  }
+
+  try {
+    return { ok:true,data:JSON.parse(raw) as T }
+  } catch {
+    return { ok:false,error:'invalid_json' }
+  }
 }
