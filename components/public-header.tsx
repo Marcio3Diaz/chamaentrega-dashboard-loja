@@ -49,10 +49,10 @@ export function PublicHeader() {
       </nav>
 
       <div className="ce-header-actions">
-        <Link href="/login" className="ce-link-button">
+        <Link href="/login" prefetch={false} className="ce-link-button">
           Entrar
         </Link>
-        <Link href="/cadastro" className="ce-primary-button">
+        <Link href="/cadastro" prefetch={false} className="ce-primary-button">
           Criar minha loja <Icon name="arrow" size={15}/>
         </Link>
       </div>
@@ -85,8 +85,8 @@ export function PublicHeader() {
             <a href="#faq" onClick={closeMenu}>Dúvidas frequentes <Icon name="arrow" size={15}/></a>
 
             <div className="ce-mobile-nav-actions">
-              <Link href="/login" onClick={closeMenu}>Entrar no portal</Link>
-              <Link href="/cadastro" className="primary" onClick={closeMenu}>
+              <Link href="/login" prefetch={false} onClick={closeMenu}>Entrar no portal</Link>
+              <Link href="/cadastro" prefetch={false} className="primary" onClick={closeMenu}>
                 Criar minha loja <Icon name="arrow" size={15}/>
               </Link>
             </div>
