@@ -9,6 +9,9 @@ const securityHeaders = [
     value: 'camera=(), microphone=(), geolocation=(self), payment=(self)',
   },
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
+  { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+  { key: 'Origin-Agent-Cluster', value: '?1' },
 ]
 
 if (process.env.NODE_ENV === 'production') {
