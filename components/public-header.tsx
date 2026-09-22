@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Icon } from '@/components/icon'
@@ -30,12 +31,13 @@ export function PublicHeader() {
   return (
     <header className="ce-header">
       <Link href="/" className="ce-logo" aria-label="ChamaEntrega" onClick={closeMenu}>
-        <img
+        <Image
           src="/brand/chamaentrega-logo-official.webp"
           alt="ChamaEntrega"
-          width={420}
-          height={140}
-          decoding="async"
+          width={176}
+          height={59}
+          sizes="(max-width: 620px) 155px, 176px"
+          priority
         />
       </Link>
 
