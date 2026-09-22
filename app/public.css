@@ -3455,3 +3455,119 @@
 .onboarding-topbar img{
   height:auto;
 }
+
+
+/* ChamaEntrega zero-hydration public interactions 2026-09-22 */
+
+/* Native Popover API: same visual interaction without React state/effects. */
+.ce-step-modal[popover],
+.ce-benefit-modal[popover]{
+  position:fixed;
+  inset:0;
+  margin:auto;
+  max-height:calc(100dvh - 48px);
+  overflow:auto;
+  color:inherit;
+}
+
+.ce-step-modal[popover]{
+  width:min(620px,calc(100vw - 48px));
+}
+
+.ce-benefit-modal[popover]{
+  width:min(610px,calc(100vw - 48px));
+}
+
+.ce-step-modal[popover]::backdrop,
+.ce-benefit-modal[popover]::backdrop{
+  background:rgba(2,6,9,.80);
+  backdrop-filter:blur(10px);
+}
+
+.ce-step-modal[popover]:popover-open{
+  animation:ceStepModalIn .24s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.ce-benefit-modal[popover]:popover-open{
+  animation:ceBenefitModalIn .24s cubic-bezier(.2,.8,.2,1) both;
+}
+
+/* Mobile menu driven by :target so same-page links close it automatically. */
+.ce-mobile-menu-layer{
+  display:none!important;
+}
+
+.ce-mobile-menu-dismiss{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  display:block;
+}
+
+.ce-mobile-nav{
+  position:relative;
+  z-index:1;
+}
+
+.ce-mobile-nav-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.ce-mobile-menu-close{
+  width:38px;
+  height:38px;
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 auto;
+  padding:0!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:50%;
+  color:#dce4e8!important;
+  font-size:24px!important;
+  font-weight:400!important;
+  line-height:1!important;
+}
+
+.ce-mobile-menu-close::after{
+  display:none!important;
+}
+
+@media(max-width:980px){
+  .ce-mobile-menu-layer:target{
+    position:fixed;
+    inset:82px 0 0;
+    z-index:49;
+    display:block!important;
+    background:rgba(2,6,9,.74);
+    backdrop-filter:blur(8px);
+    animation:ceMobileMenuFade .18s ease both;
+  }
+
+  body:has(.ce-mobile-menu-layer:target){
+    overflow:hidden;
+  }
+}
+
+@media(max-width:620px){
+  .ce-mobile-menu-layer:target{
+    inset:72px 0 0;
+  }
+
+  .ce-step-modal[popover],
+  .ce-benefit-modal[popover]{
+    inset:auto 14px 14px;
+    margin:0;
+    width:auto;
+    max-height:calc(100dvh - 28px);
+    border-radius:22px 22px 14px 14px;
+  }
+}
+
+@media(min-width:981px){
+  .ce-mobile-menu-layer:target{
+    display:none!important;
+  }
+}
