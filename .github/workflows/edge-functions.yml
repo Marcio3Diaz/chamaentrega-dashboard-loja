@@ -34,4 +34,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deno check supabase/functions/*/index.ts
+          deno check --node-modules-dir=auto supabase/functions/*/index.ts
