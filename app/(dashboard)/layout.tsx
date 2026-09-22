@@ -1,3 +1,4 @@
+import '../private.css'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { requireStore } from '@/lib/auth'
 
