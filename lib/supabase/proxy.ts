@@ -6,6 +6,8 @@ export async function updateSession(request: NextRequest) {
 
   if (
     pathname === '/'
+    || pathname === '/privacidade'
+    || pathname === '/termos'
     || pathname === '/robots.txt'
     || pathname === '/sitemap.xml'
     || pathname === '/api/health'
@@ -41,6 +43,8 @@ export async function updateSession(request: NextRequest) {
   const isAdminLogin = pathname === '/admin/login'
   const publicRoute =
     pathname === '/' ||
+    pathname === '/privacidade' ||
+    pathname === '/termos' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/cadastro') ||
     pathname.startsWith('/auth') ||
