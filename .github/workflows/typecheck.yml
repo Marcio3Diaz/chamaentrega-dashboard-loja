@@ -204,6 +204,26 @@ jobs:
           console.log('content-security-policy-report-only: ' + csp)
           assert(csp && csp.includes("default-src 'self'"), 'CSP Report-Only ausente')
 
+          const dashboardRedirect = await get('/painel')
+          assert(
+            [307,308].includes(dashboardRedirect.status),
+            '/painel deveria redirecionar visitante não autenticado',
+          )
+          assert(
+            dashboardRedirect.headers.get('location')?.endsWith('/login'),
+            '/painel não redirecionou para /login',
+          )
+
+          const adminRedirect = await get('/admin')
+          assert(
+            [307,308].includes(adminRedirect.status),
+            '/admin deveria redirecionar visitante não autenticado',
+          )
+          assert(
+            adminRedirect.headers.get('location')?.endsWith('/admin/login'),
+            '/admin não redirecionou para /admin/login',
+          )
+
           const login = await get('/login')
           const robotsHeader = login.headers.get('x-robots-tag')
           console.log('x-robots-tag (/login): ' + robotsHeader)
