@@ -19054,3 +19054,238 @@ html[data-theme="light"] .store-switcher-avatar{
     scroll-behavior:auto!important;
   }
 }
+
+/* ChamaEntrega interactive how-to cards 2026-09-21 */
+.ce-how-grid article.ce-how-step-card{
+  min-height:270px;
+  padding:18px 16px 16px;
+  cursor:pointer;
+}
+
+.ce-how-step-button{
+  width:100%;
+  min-height:234px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  margin:0;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+
+.ce-how-step-button:focus-visible{
+  border-radius:9px;
+  outline:2px solid rgba(255,189,18,.92);
+  outline-offset:5px;
+}
+
+.ce-how-step-card .ce-step-icon{
+  min-height:68px;
+  margin-top:10px;
+}
+
+.ce-marketplace-logos{
+  width:100%;
+  min-height:68px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.ce-marketplace-logos img{
+  width:62px;
+  height:62px;
+  display:block;
+  padding:0;
+  border:0;
+  border-radius:14px;
+  background:transparent;
+  object-fit:cover;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.22),
+    0 0 0 1px rgba(255,255,255,.08);
+}
+
+.ce-how-step-more{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:auto;
+  padding-top:14px;
+  color:#f5bd26;
+  font-size:11px;
+  font-weight:850;
+  opacity:.78;
+  transition:opacity .2s ease,transform .2s ease;
+}
+
+.ce-how-step-card:hover .ce-how-step-more{
+  opacity:1;
+  transform:translateX(3px);
+}
+
+.ce-step-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(2,6,9,.78);
+  backdrop-filter:blur(10px);
+  animation:ceStepBackdropIn .2s ease both;
+}
+
+.ce-step-modal{
+  position:relative;
+  width:min(620px,100%);
+  overflow:hidden;
+  padding:34px 34px 30px;
+  border:1px solid rgba(255,189,18,.30);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(255,189,18,.12),transparent 28%),
+    linear-gradient(145deg,#101b22 0%,#081015 72%);
+  box-shadow:
+    0 28px 80px rgba(0,0,0,.55),
+    0 0 36px rgba(255,189,18,.07);
+  animation:ceStepModalIn .24s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.ce-step-modal::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:3px;
+  background:linear-gradient(90deg,#ff9f08,#ffcf3d,#ff9f08);
+}
+
+.ce-step-modal-close{
+  position:absolute;
+  top:16px;
+  right:16px;
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  background:rgba(255,255,255,.035);
+  color:#dce3e7;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.ce-step-modal-close:hover{
+  border-color:rgba(255,189,18,.45);
+  background:rgba(255,189,18,.08);
+  color:#ffca35;
+  transform:rotate(4deg);
+}
+
+.ce-step-modal-badge{
+  width:max-content;
+  margin-bottom:14px;
+  padding:7px 11px;
+  border:1px solid rgba(255,189,18,.24);
+  border-radius:999px;
+  background:rgba(255,189,18,.08);
+  color:#ffbd12;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.12em;
+}
+
+.ce-step-modal h3{
+  max-width:520px;
+  margin:0;
+  color:#f7f9fa;
+  font-size:28px;
+  line-height:1.15;
+  letter-spacing:-.7px;
+}
+
+.ce-step-modal-summary{
+  margin:13px 0 0;
+  color:#9aa8b0;
+  font-size:14px;
+  line-height:1.65;
+}
+
+.ce-step-modal-content{
+  margin-top:24px;
+  padding:18px;
+  border:1px solid rgba(255,189,18,.14);
+  border-radius:14px;
+  background:rgba(255,189,18,.035);
+}
+
+.ce-step-modal-content strong{
+  display:block;
+  margin-bottom:7px;
+  color:#ffbd12;
+  font-size:13px;
+}
+
+.ce-step-modal-content p{
+  margin:0;
+  color:#c6d0d5;
+  font-size:13px;
+  line-height:1.65;
+}
+
+@keyframes ceStepBackdropIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+@keyframes ceStepModalIn{
+  from{opacity:0;transform:translateY(16px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+@media(max-width:620px){
+  .ce-how-grid article.ce-how-step-card{
+    min-height:250px;
+  }
+
+  .ce-how-step-button{
+    min-height:214px;
+  }
+
+  .ce-marketplace-logos img{
+    width:58px;
+    height:58px;
+  }
+
+  .ce-step-modal-backdrop{
+    padding:14px;
+    align-items:end;
+  }
+
+  .ce-step-modal{
+    padding:28px 20px 22px;
+    border-radius:20px 20px 14px 14px;
+  }
+
+  .ce-step-modal h3{
+    padding-right:28px;
+    font-size:23px;
+  }
+
+  .ce-step-modal-summary,
+  .ce-step-modal-content p{
+    font-size:12.5px;
+  }
+}
