@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { acceptsJson, bodyWithinLimit, isTrustedBrowserOrigin } from '@/lib/security/origin'
+import { acceptsJson, isTrustedBrowserOrigin, readJsonWithinLimit } from '@/lib/security/origin'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +18,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Envie os dados em JSON.' }, { status: 415 })
     }
 
-    if (!bodyWithinLimit(request, 8 * 1024)) {
-      return NextResponse.json({ error: 'Requisição muito grande.' }, { status: 413 })
+    const parsed = await readJsonWithinLimit<GeocodeRequest>(request, 8 * 1024)
+
+    if (!parsed.ok) {
+      return NextResponse.json(
+        {
+          error: parsed.error === 'payload_too_large'
+            ? 'Requisição muito grande.'
+            : 'JSON inválido.',
+        },
+        { status: parsed.error === 'payload_too_large' ? 413 : 400 },
+      )
     }
 
     const supabase = await createClient()
@@ -32,8 +41,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const body = await request.json() as GeocodeRequest
-    const address = String(body.address ?? '').trim()
+    const address = String(parsed.data.address ?? '').trim()
 
     if (address.length < 6) {
       return NextResponse.json(
