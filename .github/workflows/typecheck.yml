@@ -223,10 +223,11 @@ jobs:
             )
 
             const location = callback.headers.get('location') ?? ''
-            const target = new URL(location, 'http://127.0.0.1:3000')
+            const requestOrigin = new URL(callback.url).origin
+            const target = new URL(location, requestOrigin)
 
             assert(
-              target.origin === 'http://127.0.0.1:3000'
+              target.origin === requestOrigin
                 && target.pathname === '/forgot-password',
               'Callback permitiu destino externo ou inesperado',
             )
