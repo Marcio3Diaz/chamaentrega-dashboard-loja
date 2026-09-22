@@ -15,8 +15,8 @@ export function ResetPasswordForm() {
     event.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('A nova senha precisa ter pelo menos 8 caracteres.')
+    if (password.length < 10) {
+      setError('A nova senha precisa ter pelo menos 10 caracteres.')
       return
     }
     if (password !== confirmPassword) {
@@ -37,7 +37,7 @@ export function ResetPasswordForm() {
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
       setSaving(false)
-      setError(updateError.message)
+      setError('Não foi possível atualizar a senha. Solicite um novo link e tente novamente.')
       return
     }
 
@@ -56,7 +56,7 @@ export function ResetPasswordForm() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
-          minLength={8}
+          minLength={10}
           required
         />
       </div>
@@ -68,7 +68,7 @@ export function ResetPasswordForm() {
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
           autoComplete="new-password"
-          minLength={8}
+          minLength={10}
           required
         />
       </div>
