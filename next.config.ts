@@ -18,6 +18,25 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
+const noIndexSources = [
+  '/admin/:path*',
+  '/painel/:path*',
+  '/chat/:path*',
+  '/configuracoes/:path*',
+  '/despacho/:path*',
+  '/entregadores/:path*',
+  '/entregas/:path*',
+  '/financeiro/:path*',
+  '/integracoes/:path*',
+  '/mapa/:path*',
+  '/pedidos/:path*',
+  '/onboarding/:path*',
+  '/login',
+  '/cadastro',
+  '/forgot-password',
+  '/reset-password',
+]
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
@@ -26,6 +45,15 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      ...noIndexSources.map(source => ({
+        source,
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive, nosnippet',
+          },
+        ],
+      })),
     ]
   },
 }
