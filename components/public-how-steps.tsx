@@ -9,6 +9,7 @@ type Step = {
   text: string
   kind?: 'marketplaces'
   icon?: string
+  detail?: string
 }
 
 const steps: Step[] = [
@@ -16,6 +17,7 @@ const steps: Step[] = [
     n:'1',
     title:'Sua loja já vende no iFood ou 99Food?',
     text:'Se hoje você usa o modelo sob demanda, pode começar a estruturar uma base própria de entregadores para reduzir dependência operacional.',
+    detail:'Marketplaces como iFood e 99Food oferecem praticidade no modelo sob demanda, mas esse formato costuma ter taxas mais altas para a loja. Você não precisa mudar tudo de uma vez: pode continuar usando o plano atual e, quando fizer sentido para a sua operação, migrar para a entrega própria com o ChamaEntrega como apoio. Durante essa transição, aproveite para formar sua própria rede. Convide entregadores que já atenderam sua loja, transmitiram confiança e com quem você criou uma boa relação no dia a dia. Quando restaurantes vizinhos fizerem o mesmo, mais profissionais passam a circular pela região e podem solicitar entrada em diferentes redes. Assim, você continua escolhendo quem faz parte da sua operação, mas ganha acesso a uma base regional mais ampla — formada pelos entregadores que você convidou e também por profissionais indicados por outras lojas. O resultado é um ecossistema colaborativo, com mais disponibilidade de entregadores e mais autonomia para os restaurantes da região.',
     kind:'marketplaces',
   },
   {
@@ -127,7 +129,7 @@ export function PublicHowSteps() {
 
             <div className="ce-step-modal-content">
               <strong>Explicação detalhada</strong>
-              <p>O conteúdo completo deste passo será inserido aqui com o texto que você definir.</p>
+              <p>{activeStep.detail ?? 'O conteúdo completo deste passo será inserido aqui com o texto que você definir.'}</p>
             </div>
           </section>
         </div>
