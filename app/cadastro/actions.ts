@@ -69,11 +69,9 @@ export async function signupStoreAction(
   })
 
   if (error) {
-    if (/already|registered|exists/i.test(error.message)) {
-      return { error:'Este e-mail já possui uma conta. Entre pelo login.' }
+    return {
+      error:'Não foi possível concluir o cadastro. Confira os dados ou tente entrar caso já possua uma conta.',
     }
-
-    return { error:'Não foi possível criar a conta agora. Tente novamente.' }
   }
 
   if (data.session) {
