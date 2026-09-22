@@ -139,19 +139,19 @@ jobs:
             )
           }
 
-          const publicImage = await get('/images/chamaentrega-dashboard-banner.avif')
-          assert(publicImage.ok, 'Imagem pública AVIF não respondeu 2xx')
+          const publicImage = await get('/images/chamaentrega-dashboard-banner.webp')
+          assert(publicImage.ok, 'Imagem pública WebP não respondeu 2xx')
           assert(
             publicImage.status === 200,
-            'Imagem pública AVIF sofreu redirecionamento inesperado',
+            'Imagem pública WebP sofreu redirecionamento inesperado',
           )
           assert(
-            publicImage.headers.get('content-type')?.toLowerCase().includes('image/avif'),
-            'Imagem pública AVIF retornou Content-Type incorreto',
+            publicImage.headers.get('content-type')?.toLowerCase().includes('image/webp'),
+            'Imagem pública WebP retornou Content-Type incorreto',
           )
           assert(
             !publicImage.headers.get('location'),
-            'Imagem pública AVIF não pode redirecionar para autenticação',
+            'Imagem pública WebP não pode redirecionar para autenticação',
           )
 
           const home = await get('/')
