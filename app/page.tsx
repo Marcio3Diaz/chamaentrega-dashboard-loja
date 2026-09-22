@@ -114,7 +114,7 @@ export default function PublicHomePage() {
           </p>
 
           <div className="ce-hero-actions">
-            <Link href="/cadastro" className="ce-primary-button big">
+            <Link href="/cadastro" prefetch={false} className="ce-primary-button big">
               Criar minha loja <Icon name="arrow" size={16}/>
             </Link>
             <a href="#como-usar" className="ce-secondary-button">Conhecer a plataforma</a>
@@ -247,7 +247,7 @@ export default function PublicHomePage() {
                   ))}
                 </ul>
 
-                <Link href="/cadastro">
+                <Link href="/cadastro" prefetch={false}>
                   {plan.cta} <Icon name="arrow" size={17}/>
                 </Link>
               </article>
@@ -335,8 +335,8 @@ export default function PublicHomePage() {
 
           <div>
             <strong>Para lojas</strong>
-            <Link href="/cadastro">Criar minha loja</Link>
-            <Link href="/login">Portal da loja</Link>
+            <Link href="/cadastro" prefetch={false}>Criar minha loja</Link>
+            <Link href="/login" prefetch={false}>Portal da loja</Link>
             <a href="#recursos">Carteira</a>
             <a href="#recursos">Rede de entregadores</a>
           </div>
@@ -360,7 +360,7 @@ export default function PublicHomePage() {
           <div className="ce-footer-cta">
             <strong>Pronto para evoluir seu delivery?</strong>
             <p>Junte-se a uma rede de negócios que fazem parte do ChamaEntrega.</p>
-            <Link href="/cadastro">Criar minha loja <Icon name="arrow" size={14}/></Link>
+            <Link href="/cadastro" prefetch={false}>Criar minha loja <Icon name="arrow" size={14}/></Link>
           </div>
         </div>
 
