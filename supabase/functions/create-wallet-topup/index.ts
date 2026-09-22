@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
+const MAX_REQUEST_BYTES = 8 * 1024;
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -37,7 +39,7 @@ const ensureWalletWebhook = async (supabaseUrl: string, wooviAppId: string) => {
 
   const listResponse = await fetch(
     `https://api.woovi.com/api/v1/webhook?url=${encodeURIComponent(webhookUrl)}`,
-    { headers },
+    { headers, signal: AbortSignal.timeout(10_000) },
   );
 
   if (listResponse.ok) {
@@ -77,6 +79,7 @@ const ensureWalletWebhook = async (supabaseUrl: string, wooviAppId: string) => {
           isActive: true,
         },
       }),
+      signal: AbortSignal.timeout(10_000),
     },
   );
 
@@ -123,7 +126,23 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await userClient.auth.getUser();
   if (userError || !userData.user) return json({ error: "Sessão inválida." }, 401);
 
-  const body = await req.json().catch(() => ({}));
+  const contentLength = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return json({ error: "Requisição muito grande." }, 413);
+  }
+
+  const rawBody = await req.text();
+  if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
+    return json({ error: "Requisição muito grande." }, 413);
+  }
+
+  let body: any = {};
+  try {
+    body = rawBody ? JSON.parse(rawBody) : {};
+  } catch {
+    return json({ error: "JSON inválido." }, 400);
+  }
+
   const storeId = String(body?.storeId ?? "");
   const amount = Number(body?.amount);
 
@@ -197,6 +216,7 @@ Deno.serve(async (req: Request) => {
       value: cents,
       comment: `Recarga carteira ChamaEntrega - ${store.name}`,
     }),
+    signal: AbortSignal.timeout(12_000),
   });
 
   const providerData = await chargeResponse.json().catch(() => ({}));
