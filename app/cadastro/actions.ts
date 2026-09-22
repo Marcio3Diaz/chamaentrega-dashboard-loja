@@ -31,8 +31,8 @@ export async function signupStoreAction(
     return { error:'Informe um e-mail válido.' }
   }
 
-  if (password.length < 8) {
-    return { error:'A senha precisa ter pelo menos 8 caracteres.' }
+  if (password.length < 10) {
+    return { error:'A senha precisa ter pelo menos 10 caracteres.' }
   }
 
   if (password !== confirmPassword) {
@@ -42,9 +42,12 @@ export async function signupStoreAction(
   const headersList = await headers()
   const host = headersList.get('host')
   const proto = headersList.get('x-forwarded-proto') || 'http'
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/,'')
   const origin =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/,'') ||
-    (host ? `${proto}://${host}` : 'http://localhost:3000')
+    configuredSiteUrl ||
+    (process.env.NODE_ENV !== 'production' && host
+      ? `${proto}://${host}`
+      : 'http://localhost:3000')
 
   const supabase = await createClient()
   const { data,error } = await supabase.auth.signUp({
