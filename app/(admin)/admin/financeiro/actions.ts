@@ -4,9 +4,33 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 function numberValue(value:FormDataEntryValue|null) {
-  const parsed = Number(String(value ?? '').replace(',','.'))
-  return Number.isFinite(parsed) ? parsed : 0
+  const raw = String(value ?? '').trim().replace(',','.')
+  if (!raw) return null
+
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function boundedNumber(
+  value:FormDataEntryValue|null,
+  min:number,
+  maxInclusive:number,
+) {
+  const parsed = numberValue(value)
+  if (parsed === null || parsed < min || parsed > maxInclusive) return null
+  return parsed
+}
+
+function parseBillingDate(value:FormDataEntryValue|null) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return undefined
+
+  const date = new Date(`${raw}T12:00:00.000Z`)
+  return Number.isFinite(date.getTime()) ? date.toISOString() : undefined
 }
 
 export async function updatePlatformBillingSettingsAction(formData:FormData) {
@@ -15,14 +39,23 @@ export async function updatePlatformBillingSettingsAction(formData:FormData) {
 
   const commissionEnabled = formData.get('commission_enabled') === 'on'
   const subscriptionsEnabled = formData.get('subscriptions_enabled') === 'on'
-  const deliveryCommissionPercent = Math.min(
-    100,
-    Math.max(0,numberValue(formData.get('delivery_commission_percent'))),
-  )
-  const defaultSubscriptionAmount = Math.max(
+  const deliveryCommissionPercent = boundedNumber(
+    formData.get('delivery_commission_percent'),
     0,
-    numberValue(formData.get('default_subscription_amount')),
+    100,
   )
+  const defaultSubscriptionAmount = boundedNumber(
+    formData.get('default_subscription_amount'),
+    0,
+    9_999_999_999.99,
+  )
+
+  if (
+    deliveryCommissionPercent === null
+    || defaultSubscriptionAmount === null
+  ) {
+    throw new Error('Valores do modelo de cobrança inválidos.')
+  }
 
   const { error } = await supabase
     .from('platform_billing_settings')
@@ -46,25 +79,35 @@ export async function updateStoreSubscriptionAction(formData:FormData) {
   const supabase = await createClient()
 
   const storeId = String(formData.get('store_id') ?? '').trim()
-  const planName = String(formData.get('plan_name') ?? '').trim() || 'Plano ChamaEntrega'
-  const monthlyAmount = Math.max(0,numberValue(formData.get('monthly_amount')))
+  const planName = String(formData.get('plan_name') ?? '').trim().slice(0,120)
+    || 'Plano ChamaEntrega'
+  const monthlyAmount = boundedNumber(
+    formData.get('monthly_amount'),
+    0,
+    9_999_999_999.99,
+  )
   const status = String(formData.get('status') ?? 'inactive')
   const allowed = new Set(['inactive','trialing','active','paused','cancelled'])
+  const nextBillingAt = parseBillingDate(formData.get('next_billing_at'))
 
-  if (!storeId || !allowed.has(status)) {
+  if (
+    !UUID_RE.test(storeId)
+    || !allowed.has(status)
+    || monthlyAmount === null
+    || nextBillingAt === undefined
+  ) {
     throw new Error('Assinatura inválida.')
   }
 
-  const nextBillingRaw = String(formData.get('next_billing_at') ?? '').trim()
-  const nextBillingAt = nextBillingRaw
-    ? new Date(nextBillingRaw+'T12:00:00').toISOString()
-    : null
-
-  const { data:existing } = await supabase
+  const { data:existing,error:existingError } = await supabase
     .from('store_subscriptions')
     .select('started_at')
     .eq('store_id',storeId)
     .maybeSingle()
+
+  if (existingError) {
+    throw new Error('Não foi possível carregar a assinatura da loja.')
+  }
 
   const { error } = await supabase
     .from('store_subscriptions')
@@ -73,7 +116,8 @@ export async function updateStoreSubscriptionAction(formData:FormData) {
       plan_name:planName,
       monthly_amount:monthlyAmount,
       status,
-      started_at:existing?.started_at ?? (status === 'active' ? new Date().toISOString() : null),
+      started_at:existing?.started_at
+        ?? (status === 'active' ? new Date().toISOString() : null),
       next_billing_at:nextBillingAt,
       updated_at:new Date().toISOString(),
     },{
@@ -90,56 +134,26 @@ export async function registerSubscriptionPaymentAction(formData:FormData) {
   const supabase = await createClient()
 
   const subscriptionId = String(formData.get('subscription_id') ?? '').trim()
-  if (!subscriptionId) throw new Error('Assinatura inválida.')
-
-  const { data:subscription,error:subscriptionError } = await supabase
-    .from('store_subscriptions')
-    .select('id,store_id,plan_name,monthly_amount,status,next_billing_at')
-    .eq('id',subscriptionId)
-    .maybeSingle()
-
-  if (subscriptionError || !subscription) {
-    throw new Error('Assinatura não encontrada.')
+  if (!UUID_RE.test(subscriptionId)) {
+    throw new Error('Assinatura inválida.')
   }
 
-  const amount = Number(subscription.monthly_amount ?? 0)
-  if (amount <= 0) {
-    throw new Error('Defina um valor mensal antes de registrar o pagamento.')
+  const { error } = await supabase.rpc('admin_register_subscription_payment',{
+    p_subscription_id:subscriptionId,
+  })
+
+  if (error) {
+    const messages:Record<string,string> = {
+      ADMIN_MFA_REQUIRED:'Confirme o MFA administrativo para continuar.',
+      SUBSCRIPTION_NOT_FOUND:'Assinatura não encontrada.',
+      SUBSCRIPTION_AMOUNT_REQUIRED:'Defina um valor mensal antes de registrar o pagamento.',
+    }
+
+    throw new Error(
+      messages[error.message]
+      ?? 'Não foi possível registrar o pagamento da assinatura.',
+    )
   }
-
-  const now = new Date()
-  const next = subscription.next_billing_at
-    ? new Date(subscription.next_billing_at)
-    : new Date(now)
-  next.setMonth(next.getMonth()+1)
-
-  const { error:eventError } = await supabase
-    .from('platform_revenue_events')
-    .insert({
-      store_id:subscription.store_id,
-      subscription_id:subscription.id,
-      revenue_type:'subscription',
-      gross_reference_amount:amount,
-      rate_percent:null,
-      amount,
-      status:'paid',
-      description:`Assinatura — ${subscription.plan_name}`,
-      occurred_at:now.toISOString(),
-    })
-
-  if (eventError) throw new Error('Não foi possível registrar a receita da assinatura.')
-
-  const { error:updateError } = await supabase
-    .from('store_subscriptions')
-    .update({
-      last_billed_at:now.toISOString(),
-      next_billing_at:next.toISOString(),
-      status:subscription.status === 'inactive' ? 'active' : subscription.status,
-      updated_at:now.toISOString(),
-    })
-    .eq('id',subscription.id)
-
-  if (updateError) throw new Error('Pagamento registrado, mas a assinatura não foi atualizada.')
 
   revalidatePath('/admin/financeiro')
 }
