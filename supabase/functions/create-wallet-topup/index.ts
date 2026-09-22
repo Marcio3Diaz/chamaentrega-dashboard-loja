@@ -176,17 +176,6 @@ Deno.serve(async (req: Request) => {
 
   if (!wallet) return json({ error: "Carteira não encontrada." }, 400);
 
-  try {
-    await ensureWalletWebhook(supabaseUrl, wooviAppId);
-  } catch (error) {
-    // A criação do Pix não deve ficar bloqueada por uma falha temporária
-    // no cadastro/consulta do webhook. Registramos o erro e seguimos.
-    console.warn(
-      "wallet webhook setup warning",
-      error instanceof Error ? error.message.slice(0, 500) : "verification_setup_failed",
-    );
-  }
-
   const correlationId = `wallet-topup:${storeId}:${crypto.randomUUID()}`;
   const cents = Math.round(normalizedAmount * 100);
 
@@ -213,6 +202,17 @@ Deno.serve(async (req: Request) => {
   const topupId = String(reservedTopupId ?? "");
   if (!topupId) {
     return json({ error: "Não foi possível iniciar a recarga." }, 500);
+  }
+
+  try {
+    await ensureWalletWebhook(supabaseUrl, wooviAppId);
+  } catch (error) {
+    // A criação do Pix não deve ficar bloqueada por uma falha temporária
+    // no cadastro/consulta do webhook. Registramos o erro e seguimos.
+    console.warn(
+      "wallet webhook setup warning",
+      error instanceof Error ? error.message.slice(0, 500) : "verification_setup_failed",
+    );
   }
 
   const chargeResponse = await fetch("https://api.woovi.com/api/v1/charge", {
