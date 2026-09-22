@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
 const WOOVI_PUBLIC_KEYS_URL = "https://api.woovi.com/api/v1/webhook/public-keys";
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
