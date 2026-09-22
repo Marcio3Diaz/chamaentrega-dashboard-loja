@@ -91,10 +91,11 @@ const plans = [
 
 export default function PublicHomePage() {
   return (
-    <main className="ce-showcase">
+    <main className="ce-showcase" id="conteudo">
       <script type="application/ld+json">
         {JSON.stringify(publicJsonLd)}
       </script>
+      <a className="ce-skip-link" href="#como-usar">Pular para o conteúdo</a>
       <PublicHeader />
 
       <section className="ce-hero">
