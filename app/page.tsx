@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
+import { PublicNetworkBenefits } from '@/components/public-network-benefits'
 import { createClient } from '@/lib/supabase/server'
 
 const resources = [
@@ -42,13 +43,6 @@ const plans = [
     features:['Todas as funcionalidades','Múltiplas lojas','Condições especiais','Suporte prioritário','Implantação assistida','Soluções personalizadas'],
     cta:'Falar com o time',
   },
-]
-
-const trustCards = [
-  ['LO','Loja organizada','Mais visibilidade sobre pedidos, entregadores e andamento das corridas.'],
-  ['EP','Entregador parceiro','Mais oportunidades de receber ofertas de diferentes redes próximas.'],
-  ['RR','Rede regional','Restaurantes vizinhos ajudam a ampliar a base de entregadores da região.'],
-  ['OP','Operação própria','A loja ganha uma alternativa para estruturar sua própria logística de entrega.'],
 ]
 
 export default async function PublicHomePage() {
@@ -251,18 +245,7 @@ export default async function PublicHomePage() {
           <span className="ce-testimonials-caption">Uma rede cresce quando todos ajudam a fortalecê-la.</span>
         </div>
 
-        <div className="ce-testimonials-grid">
-          {trustCards.map(([initials,title,text]) => (
-            <article key={title}>
-              <span className="ce-testimonial-avatar">{initials}</span>
-              <div>
-                <strong>{title}</strong>
-                <p>{text}</p>
-                <em>CHAMAENTREGA</em>
-              </div>
-            </article>
-          ))}
-        </div>
+        <PublicNetworkBenefits />
       </section>
 
       <section className="ce-faq" id="faq">
