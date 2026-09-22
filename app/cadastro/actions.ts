@@ -1,8 +1,8 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/site-url'
 
 export type SignupState = {
   error?: string
@@ -44,17 +44,9 @@ export async function signupStoreAction(
     return { error:'Confirme o consentimento para criar a conta comercial.' }
   }
 
-  const headersList = await headers()
-  const host = headersList.get('host')
-  const proto = headersList.get('x-forwarded-proto') || 'http'
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/,'')
-  const origin =
-    configuredSiteUrl ||
-    (process.env.NODE_ENV !== 'production' && host
-      ? `${proto}://${host}`
-      : 'http://localhost:3000')
-
+  const origin = getSiteUrl()
   const supabase = await createClient()
+
   const { data,error } = await supabase.auth.signUp({
     email,
     password,
