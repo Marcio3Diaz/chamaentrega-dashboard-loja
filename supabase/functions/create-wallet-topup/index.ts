@@ -108,12 +108,12 @@ Deno.serve(async (req: Request) => {
   const wooviAppId = Deno.env.get("WOOVI_APP_ID");
 
   if (!supabaseUrl || !userKey || !adminKey) {
-    return json({ error: "Configuração interna do Supabase ausente." }, 500);
+    console.error("wallet topup: configuração interna do Supabase ausente");
+    return json({ error: "Serviço temporariamente indisponível." }, 500);
   }
   if (!wooviAppId) {
-    return json({
-      error: "A integração Pix ainda não tem WOOVI_APP_ID configurado no Supabase.",
-    }, 503);
+    console.error("wallet topup: integração Pix não configurada");
+    return json({ error: "Integração Pix temporariamente indisponível." }, 503);
   }
 
   const authHeader = req.headers.get("Authorization");
@@ -232,11 +232,13 @@ Deno.serve(async (req: Request) => {
       })
       .eq("id", topup.id);
 
+    console.error(
+      "wallet topup: provedor recusou criação da cobrança",
+      JSON.stringify(providerData).slice(0, 1500),
+    );
+
     return json({
-      error:
-        providerData?.error ??
-        providerData?.message ??
-        "A Woovi não conseguiu criar a cobrança Pix.",
+      error: "Não foi possível criar a cobrança Pix agora. Tente novamente em instantes.",
     }, 502);
   }
 
