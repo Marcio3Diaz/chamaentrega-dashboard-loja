@@ -48,8 +48,8 @@ export function SignupStoreForm() {
             name="password"
             type="password"
             autoComplete="new-password"
-            placeholder="Mínimo 8 caracteres"
-            minLength={8}
+            placeholder="Mínimo 10 caracteres"
+            minLength={10}
             required
           />
         </label>
@@ -61,7 +61,7 @@ export function SignupStoreForm() {
             type="password"
             autoComplete="new-password"
             placeholder="Repita sua senha"
-            minLength={8}
+            minLength={10}
             required
           />
         </label>
