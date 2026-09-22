@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import './public.css'
 import Link from 'next/link'
 import { Icon } from '@/components/icon'
 import { PublicHowSteps } from '@/components/public-how-steps'
