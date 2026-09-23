@@ -44,103 +44,179 @@ export default async function OverviewPage() {
   const firstProfile = profilesData?.find(p => p.id === firstCourier?.id)
 
   const metrics = [
-    { icon:'box', label:'Entregas hoje', value:String(deliveries.length), note:'Pedidos criados desde 00:00', tone:'gold' },
-    { icon:'truck', label:'Em andamento', value:String(active), note:'Entregas já aceitas', tone:'blue' },
-    { icon:'clock', label:'Buscando entregador', value:String(waiting), note:'Ofertas abertas agora', tone:'gray' },
-    { icon:'check', label:'Concluídas', value:String(completed), note:'Entregas finalizadas hoje', tone:'green' },
-    { icon:'money', label:'Faturamento hoje', value:currency(gross), note:'Total em taxas de entrega', tone:'gold' },
+    { icon:'box', label:'Pedidos hoje', value:String(deliveries.length), note:`${completed} concluída${completed === 1 ? '' : 's'}`, tone:'gold' },
+    { icon:'truck', label:'Em andamento', value:String(active), note:`${waiting} buscando entregador`, tone:'blue' },
+    { icon:'user', label:'Entregadores online', value:String(couriers.length), note:'Disponíveis na sua região', tone:'green' },
+    { icon:'money', label:'Saldo disponível', value:currency(walletAvailable), note:`${currency(walletReserved)} reservado`, tone:'gold' },
   ]
 
   return <>
-    <section className="dashboard-hero target-hero dashboard-hero-v2">
-      <div className="hero-content">
-        <div className="eyebrow">CENTRAL OPERACIONAL · AO VIVO</div>
-        <h1>Olá, <span>{store.name}.</span></h1>
-        <p>Controle pedidos, entregadores, carteira e rotas em um único painel.</p>
+    <div className="dashboard-home-v3">
+      <section className="home-hero-v3">
+        <div className="home-hero-copy">
+          <div className="eyebrow">VISÃO GERAL</div>
+          <h1>Olá, <span>{store.name}.</span></h1>
+          <p>Veja o que está acontecendo na sua operação agora.</p>
 
-        <div className="hero-status-row">
-          <span className="hero-live-badge"><i /> Operação online</span>
-          <span className="hero-date-badge">Atualização em tempo real</span>
+          <div className="home-hero-statuses">
+            <span className="home-live-chip"><i /> Sistema online</span>
+            <span>{active} entrega{active === 1 ? '' : 's'} em andamento</span>
+            <span>{waiting} aguardando entregador</span>
+          </div>
         </div>
-      </div>
 
-      <div className="hero-command-center" aria-hidden="true">
-        <div className="command-orbit orbit-one" />
-        <div className="command-orbit orbit-two" />
-        <div className="command-center-core">
-          <Icon name="route" size={28}/>
+        <Link href="/entregas/nova" className="home-primary-action">
+          <span className="home-primary-action-icon"><Icon name="plus" size={22}/></span>
+          <span>
+            <strong>Nova entrega</strong>
+            <small>Pedido pronto para sair</small>
+          </span>
+          <Icon name="arrow" size={18}/>
+        </Link>
+      </section>
+
+      <section className="home-kpis-v3">
+        {metrics.map(metric => (
+          <article className={`home-kpi-v3 ${metric.tone}`} key={metric.label}>
+            <span className="home-kpi-icon"><Icon name={metric.icon} size={22}/></span>
+            <div>
+              <small>{metric.label}</small>
+              <strong>{metric.value}</strong>
+              <span>{metric.note}</span>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="home-main-grid-v3">
+        <article className="home-panel-v3 home-deliveries-v3">
+          <div className="home-panel-head-v3">
+            <div>
+              <span className="home-panel-kicker">HOJE</span>
+              <h2>Entregas</h2>
+              <p>Acompanhe os pedidos publicados pela sua loja.</p>
+            </div>
+            <Link href="/entregas" className="home-secondary-action">Ver todas <Icon name="arrow" size={15}/></Link>
+          </div>
+          <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} limit={5}/>
+        </article>
+
+        <aside className="home-panel-v3 home-actions-v3">
+          <div className="home-panel-head-v3">
+            <div>
+              <span className="home-panel-kicker">ATALHOS</span>
+              <h2>Ações rápidas</h2>
+              <p>O que você mais usa, a um clique.</p>
+            </div>
+          </div>
+
+          <div className="home-action-list-v3">
+            <Link href="/entregas/nova" className="primary">
+              <span><Icon name="plus" size={20}/></span>
+              <div><strong>Nova entrega</strong><small>Publicar pedido pronto</small></div>
+              <b>›</b>
+            </Link>
+            <Link href="/entregadores">
+              <span><Icon name="user" size={20}/></span>
+              <div><strong>Entregadores</strong><small>{couriers.length} online agora</small></div>
+              <b>›</b>
+            </Link>
+            <Link href="/mapa">
+              <span><Icon name="map" size={20}/></span>
+              <div><strong>Mapa ao vivo</strong><small>Acompanhar rotas e corridas</small></div>
+              <b>›</b>
+            </Link>
+            <Link href="/financeiro">
+              <span><Icon name="chart" size={20}/></span>
+              <div><strong>Financeiro</strong><small>Carteira, taxas e histórico</small></div>
+              <b>›</b>
+            </Link>
+          </div>
+        </aside>
+      </section>
+
+      <section className="home-bottom-grid-v3">
+        <article className="home-panel-v3 home-map-v3">
+          <div className="home-panel-head-v3">
+            <div>
+              <span className="home-panel-kicker">OPERAÇÃO</span>
+              <h2>Mapa ao vivo</h2>
+              <p>Visualize a entrega ativa e acompanhe sua região.</p>
+            </div>
+            <Link href="/mapa" className="home-secondary-action">Abrir mapa <Icon name="arrow" size={15}/></Link>
+          </div>
+
+          <div className="home-live-map-v3">
+            <svg viewBox="0 0 760 260" preserveAspectRatio="none" aria-hidden="true">
+              <path className="map-street" d="M0 50 130 90 245 38 390 110 540 58 760 115M0 205 135 150 285 220 450 160 620 222 760 175M88 0 145 260M315 0 360 260M610 0 540 260"/>
+              <polyline className="route-line" points="72,175 168,132 215,72 350,116 486,83 588,146 700,102"/>
+            </svg>
+
+            <span className="home-map-origin"><Icon name="truck" size={18}/></span>
+            <span className="home-map-destination"><Icon name="pin" size={19}/></span>
+
+            <div className="home-map-live-chip"><i /> AO VIVO</div>
+
+            <div className="home-map-current-v3">
+              <span className="map-small-icon"><Icon name="box" size={16}/></span>
+              <div>
+                <strong>{activeDelivery ? `Entrega #${shortId(activeDelivery.id)}` : 'Nenhuma entrega ativa'}</strong>
+                <small>{activeDelivery ? (statusLabel[activeDelivery.status] ?? activeDelivery.status) : 'Publique uma nova entrega para começar'}</small>
+              </div>
+              <Icon name="arrow" size={16}/>
+            </div>
+          </div>
+        </article>
+
+        <div className="home-side-stack-v3">
+          <article className="home-panel-v3 home-wallet-v3">
+            <div className="home-panel-head-v3 compact">
+              <div>
+                <span className="home-panel-kicker">CARTEIRA</span>
+                <h2>Saldo da loja</h2>
+              </div>
+              <Link href="/financeiro" className="home-secondary-action">Recarregar</Link>
+            </div>
+
+            <div className="home-wallet-balance-v3">
+              <small>Disponível para entregas</small>
+              <strong>{currency(walletAvailable)}</strong>
+            </div>
+
+            <div className="home-wallet-stats-v3">
+              <div><small>Reservado</small><strong>{currency(walletReserved)}</strong></div>
+              <div><small>Taxas hoje</small><strong>{currency(gross)}</strong></div>
+              <div><small>Saldo total</small><strong>{currency(walletBalance)}</strong></div>
+            </div>
+          </article>
+
+          <article className="home-panel-v3 home-courier-v3">
+            <div className="home-panel-head-v3 compact">
+              <div>
+                <span className="home-panel-kicker">REDE LOCAL</span>
+                <h2>Entregadores disponíveis</h2>
+              </div>
+              <Link href="/entregadores" className="home-secondary-action">Ver todos</Link>
+            </div>
+
+            {firstCourier ? (
+              <div className="home-courier-row-v3">
+                <div className="courier-photo">
+                  {firstProfile?.avatar_url ? <img src={firstProfile.avatar_url} alt="" /> : (firstProfile?.full_name?.slice(0,1) ?? 'E')}
+                </div>
+                <span className="courier-live-dot"/>
+                <div>
+                  <strong>{firstProfile?.full_name ?? 'Entregador parceiro'}</strong>
+                  <small>★ {Number(firstCourier.rating).toFixed(1)} · {firstCourier.total_deliveries} entregas</small>
+                </div>
+                <span className="online-tag">Online</span>
+              </div>
+            ) : (
+              <div className="home-empty-v3">Nenhum entregador disponível agora.</div>
+            )}
+          </article>
         </div>
-        <div className="command-stat stat-one"><strong>{active}</strong><small>em rota</small></div>
-        <div className="command-stat stat-two"><strong>{couriers.length}</strong><small>online</small></div>
-        <div className="command-stat stat-three"><strong>{waiting}</strong><small>buscando</small></div>
-      </div>
-
-      <Link href="/entregas/nova" className="button hero-cta hero-cta-v2">
-        <span className="hero-cta-icon"><Icon name="plus" size={19}/></span>
-        <span><strong>Nova entrega</strong><small>Publicar pedido pronto</small></span>
-        <Icon name="arrow" size={18}/>
-      </Link>
-    </section>
-
-    <section className="premium-metrics premium-metrics-v2">
-      {metrics.map(metric => <article className={`premium-metric ${metric.tone}`} key={metric.label}>
-        <div className="metric-icon"><Icon name={metric.icon} size={25}/></div>
-        <div><div className="metric-label">{metric.label}</div><div className="metric-value">{metric.value}</div><div className="metric-note">{metric.note}</div></div>
-        <div className="mini-bars" aria-hidden="true"><i/><i/><i/></div>
-      </article>)}
-    </section>
-
-    <section className="dashboard-row main-row">
-      <article className="premium-card deliveries-card premium-card-v2">
-        <div className="premium-card-head">
-          <div className="head-title"><span className="section-icon"><Icon name="box" size={22}/></span><div><h2>Entregas de hoje</h2><p>Atualização automática via Realtime</p></div></div>
-          <Link href="/entregas" className="outline-link">Ver todas <Icon name="arrow" size={16}/></Link>
-        </div>
-        <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} limit={5}/>
-      </article>
-
-      <article className="premium-card quick-card premium-card-v2">
-        <div className="premium-card-head compact"><div className="head-title"><span className="section-icon lightning"><Icon name="lightning" size={22}/></span><div><h2>Ações rápidas</h2><p>Facilite sua operação do dia a dia</p></div></div></div>
-        <div className="quick-grid">
-          <Link href="/entregas/nova"><span className="quick-icon">+</span><span><strong>Pedido pronto</strong><small>Crie e publique uma entrega</small></span><b>›</b></Link>
-          <Link href="/mapa"><span className="quick-icon"><Icon name="map" size={20}/></span><span><strong>Acompanhar corridas</strong><small>Veja entregadores e rotas no mapa</small></span><b>›</b></Link>
-          <Link href="/entregadores"><span className="quick-icon"><Icon name="user" size={20}/></span><span><strong>Entregadores disponíveis</strong><small>{couriers.length} disponível na sua região</small></span><b>›</b></Link>
-          <Link href="/financeiro"><span className="quick-icon"><Icon name="chart" size={20}/></span><span><strong>Financeiro</strong><small>Controle pagamentos das entregas</small></span><b>›</b></Link>
-        </div>
-      </article>
-    </section>
-
-    <section className="dashboard-row bottom-row">
-      <article className="premium-card courier-card premium-card-v2">
-        <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="user" size={22}/></span><div><h2>Entregadores disponíveis</h2><p>Entregadores online na sua região</p></div></div><Link href="/entregadores" className="outline-link">Ver todos</Link></div>
-        {firstCourier ? <div className="courier-line">
-          <div className="courier-photo">{firstProfile?.avatar_url ? <img src={firstProfile.avatar_url} alt="" /> : (firstProfile?.full_name?.slice(0,1) ?? 'E')}</div>
-          <span className="courier-live-dot"/>
-          <div className="courier-copy"><strong>{firstProfile?.full_name ?? 'Entregador parceiro'}</strong><small>★ {Number(firstCourier.rating).toFixed(1)} &nbsp; {firstCourier.total_deliveries} entregas</small></div>
-          <span className="online-tag">Online</span>
-          <Link href="/entregadores" className="call-button"><Icon name="arrow" size={15}/>Ver entregadores</Link>
-        </div> : <div className="premium-empty small">Nenhum entregador online agora.</div>}
-      </article>
-
-      <article className="premium-card finance-card premium-card-v2 finance-card-v2">
-        <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="money" size={22}/></span><div><h2>Carteira pré-paga</h2><p>Saldo para pagar suas entregas</p></div></div><Link href="/financeiro" className="outline-link">Recarregar</Link></div>
-        <div className="finance-main"><div><strong>{currency(walletAvailable)}</strong><span>Saldo disponível</span></div><div className="finance-separator"/><div><strong>{currency(walletReserved)}</strong><span>Saldo reservado</span></div></div>
-        <div className="finance-breakdown"><div><strong>{currency(walletBalance)}</strong><span>Saldo total</span></div><div><strong>{currency(gross)}</strong><span>Taxas de hoje</span></div><div className="positive"><strong>{walletAvailable > 0 ? 'ATIVA' : 'SEM SALDO'}</strong><span>Carteira</span></div></div>
-      </article>
-
-      <article className="premium-card activity-card premium-card-v2 activity-card-v2">
-        <div className="premium-card-head compact"><div className="head-title"><span className="section-icon"><Icon name="pin" size={22}/></span><div><h2>Atividade em tempo real</h2><p>Acompanhe suas entregas no mapa</p></div></div><Link href="/mapa" className="outline-link">Abrir mapa</Link></div>
-        <div className="fake-map">
-          <svg viewBox="0 0 360 140" preserveAspectRatio="none" aria-hidden="true">
-            <path className="map-street" d="M0 30 75 55 130 28 195 62 255 35 360 65M0 100 70 75 145 112 220 82 300 118 360 92M45 0 75 140M155 0 180 140M285 0 255 140"/>
-            <polyline className="route-line" points="36,90 86,70 105,42 170,62 230,46 278,75 330,58"/>
-          </svg>
-          <span className="map-bike"><Icon name="truck" size={18}/></span>
-          <span className="map-pin"><Icon name="pin" size={18}/></span>
-          <div className="map-delivery"><span className="map-small-icon"><Icon name="box" size={15}/></span><span><strong>{activeDelivery ? `Entrega #${shortId(activeDelivery.id)}` : 'Sem entrega ativa'}</strong><small>{activeDelivery ? (statusLabel[activeDelivery.status] ?? activeDelivery.status) : 'Aguardando nova corrida'}</small></span><b>→</b></div>
-          <div className="map-city">Rio de Janeiro</div>
-        </div>
-      </article>
-    </section>
+      </section>
+    </div>
   </>
 }
