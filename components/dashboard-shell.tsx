@@ -238,13 +238,11 @@ export function DashboardShell({
               aria-expanded={storeMenuOpen}
             >
               <span className="reference-profile-logo">
-                <StoreLogoUpload
-                  storeId={storeId}
-                  userId={userId}
-                  storeName={storeName}
-                  logoUrl={storeLogoUrl}
-                  variant="topbar"
-                />
+                {storeLogoUrl ? (
+                  <img src={storeLogoUrl} alt="" />
+                ) : (
+                  <span className="reference-profile-fallback">{storeName.slice(0,1).toUpperCase()}</span>
+                )}
               </span>
               <span><strong>{storeName}</strong><small><i />{moderationStatus === 'active' ? 'Loja ativa' : moderationLabel}</small></span>
               <Icon name="chevron" size={16}/>
