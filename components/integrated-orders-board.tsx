@@ -351,10 +351,11 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
 
         setOrders(current => {
           if (!mapped) return current
-          const hasIntegratedOrder = current.some(item => !item.id.startsWith('delivery:') && item.deliveryId === mapped.id)
+          const deliveryId = mapped.id
+          const hasIntegratedOrder = current.some(item => !item.id.startsWith('delivery:') && item.deliveryId === deliveryId)
 
           if (hasIntegratedOrder || row.status === 'draft') {
-            return current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === mapped.id))
+            return current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === deliveryId))
           }
 
           const synthetic = syntheticOrderFromDelivery(row,storeId)
