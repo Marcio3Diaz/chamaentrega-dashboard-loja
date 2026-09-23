@@ -52,23 +52,37 @@ export default async function OverviewPage() {
   ]
 
   return <>
-    <section className="dashboard-hero target-hero">
+    <section className="dashboard-hero target-hero dashboard-hero-v2">
       <div className="hero-content">
-        <div className="eyebrow">OPERAÇÃO EM TEMPO REAL</div>
+        <div className="eyebrow">CENTRAL OPERACIONAL · AO VIVO</div>
         <h1>Olá, <span>{store.name}.</span></h1>
-        <p>Acompanhe suas entregas, clientes e resultados em tempo real.</p>
+        <p>Controle pedidos, entregadores, carteira e rotas em um único painel.</p>
+
+        <div className="hero-status-row">
+          <span className="hero-live-badge"><i /> Operação online</span>
+          <span className="hero-date-badge">Atualização em tempo real</span>
+        </div>
       </div>
 
-      <div className="hero-visual target-hero-visual" aria-hidden="true">
-        <div className="hero-quote">Mais<br/>distâncias.<br/>Mais sabores.<br/>Mais histórias.<i /></div>
+      <div className="hero-command-center" aria-hidden="true">
+        <div className="command-orbit orbit-one" />
+        <div className="command-orbit orbit-two" />
+        <div className="command-center-core">
+          <Icon name="route" size={28}/>
+        </div>
+        <div className="command-stat stat-one"><strong>{active}</strong><small>em rota</small></div>
+        <div className="command-stat stat-two"><strong>{couriers.length}</strong><small>online</small></div>
+        <div className="command-stat stat-three"><strong>{waiting}</strong><small>buscando</small></div>
       </div>
 
-      <Link href="/entregas/nova" className="button hero-cta">
-        <Icon name="plus" size={20}/>NOVA ENTREGA
+      <Link href="/entregas/nova" className="button hero-cta hero-cta-v2">
+        <span className="hero-cta-icon"><Icon name="plus" size={19}/></span>
+        <span><strong>Nova entrega</strong><small>Publicar pedido pronto</small></span>
+        <Icon name="arrow" size={18}/>
       </Link>
     </section>
 
-    <section className="premium-metrics">
+    <section className="premium-metrics premium-metrics-v2">
       {metrics.map(metric => <article className={`premium-metric ${metric.tone}`} key={metric.label}>
         <div className="metric-icon"><Icon name={metric.icon} size={25}/></div>
         <div><div className="metric-label">{metric.label}</div><div className="metric-value">{metric.value}</div><div className="metric-note">{metric.note}</div></div>
@@ -77,7 +91,7 @@ export default async function OverviewPage() {
     </section>
 
     <section className="dashboard-row main-row">
-      <article className="premium-card deliveries-card">
+      <article className="premium-card deliveries-card premium-card-v2">
         <div className="premium-card-head">
           <div className="head-title"><span className="section-icon"><Icon name="box" size={22}/></span><div><h2>Entregas de hoje</h2><p>Atualização automática via Realtime</p></div></div>
           <Link href="/entregas" className="outline-link">Ver todas <Icon name="arrow" size={16}/></Link>
@@ -85,7 +99,7 @@ export default async function OverviewPage() {
         <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} limit={5}/>
       </article>
 
-      <article className="premium-card quick-card">
+      <article className="premium-card quick-card premium-card-v2">
         <div className="premium-card-head compact"><div className="head-title"><span className="section-icon lightning"><Icon name="lightning" size={22}/></span><div><h2>Ações rápidas</h2><p>Facilite sua operação do dia a dia</p></div></div></div>
         <div className="quick-grid">
           <Link href="/entregas/nova"><span className="quick-icon">+</span><span><strong>Pedido pronto</strong><small>Crie e publique uma entrega</small></span><b>›</b></Link>
@@ -97,7 +111,7 @@ export default async function OverviewPage() {
     </section>
 
     <section className="dashboard-row bottom-row">
-      <article className="premium-card courier-card">
+      <article className="premium-card courier-card premium-card-v2">
         <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="user" size={22}/></span><div><h2>Entregadores disponíveis</h2><p>Entregadores online na sua região</p></div></div><Link href="/entregadores" className="outline-link">Ver todos</Link></div>
         {firstCourier ? <div className="courier-line">
           <div className="courier-photo">{firstProfile?.avatar_url ? <img src={firstProfile.avatar_url} alt="" /> : (firstProfile?.full_name?.slice(0,1) ?? 'E')}</div>
@@ -108,13 +122,13 @@ export default async function OverviewPage() {
         </div> : <div className="premium-empty small">Nenhum entregador online agora.</div>}
       </article>
 
-      <article className="premium-card finance-card">
+      <article className="premium-card finance-card premium-card-v2 finance-card-v2">
         <div className="premium-card-head"><div className="head-title"><span className="section-icon"><Icon name="money" size={22}/></span><div><h2>Carteira pré-paga</h2><p>Saldo para pagar suas entregas</p></div></div><Link href="/financeiro" className="outline-link">Recarregar</Link></div>
         <div className="finance-main"><div><strong>{currency(walletAvailable)}</strong><span>Saldo disponível</span></div><div className="finance-separator"/><div><strong>{currency(walletReserved)}</strong><span>Saldo reservado</span></div></div>
         <div className="finance-breakdown"><div><strong>{currency(walletBalance)}</strong><span>Saldo total</span></div><div><strong>{currency(gross)}</strong><span>Taxas de hoje</span></div><div className="positive"><strong>{walletAvailable > 0 ? 'ATIVA' : 'SEM SALDO'}</strong><span>Carteira</span></div></div>
       </article>
 
-      <article className="premium-card activity-card">
+      <article className="premium-card activity-card premium-card-v2 activity-card-v2">
         <div className="premium-card-head compact"><div className="head-title"><span className="section-icon"><Icon name="pin" size={22}/></span><div><h2>Atividade em tempo real</h2><p>Acompanhe suas entregas no mapa</p></div></div><Link href="/mapa" className="outline-link">Abrir mapa</Link></div>
         <div className="fake-map">
           <svg viewBox="0 0 360 140" preserveAspectRatio="none" aria-hidden="true">
