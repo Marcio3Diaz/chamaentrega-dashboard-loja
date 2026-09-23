@@ -202,7 +202,7 @@ export function DashboardShell({
             <div className="topbar-subtitle">Seu centro de controle de entregas</div>
           </div>
           <div className="topbar-actions">
-            <button className="icon-button notification-button" aria-label="Notificações"><Icon name="bell" size={21}/><i /></button>
+            <Link href="/pedidos" className="icon-button notification-button" aria-label="Abrir pedidos"><Icon name="bell" size={21}/><i /></Link>
             <span className="topbar-divider" />
             <div className={moderationStatus === 'active' ? 'online-pill' : 'online-pill moderation-warning'}>
               <span className="online-dot" />
