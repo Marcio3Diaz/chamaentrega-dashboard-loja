@@ -44,6 +44,9 @@ export type LinkedDelivery = {
   id: string
   status: string
   assignedCourierId: string | null
+  assignedCourierName: string | null
+  assignedCourierVehicle: string | null
+  assignedCourierAvatarUrl: string | null
   deliveryFee: number
   estimatedMinutes: number | null
   updatedAt: string
@@ -94,6 +97,13 @@ function fullDate(value:string) {
   return new Intl.DateTimeFormat('pt-BR',{ day:'2-digit',month:'2-digit',year:'numeric' }).format(new Date(value))
 }
 
+function vehicleLabel(value:string | null) {
+  if (value === 'motorcycle') return 'Moto'
+  if (value === 'bike') return 'Bicicleta'
+  if (value === 'car') return 'Carro'
+  return 'Veículo não informado'
+}
+
 function phone(value:string | null) {
   return value?.trim() || '—'
 }
@@ -109,11 +119,16 @@ function itemPrice(item:OrderItem) {
   return raw > 0 ? raw * quantity : null
 }
 
-function normalizeDelivery(row:any):LinkedDelivery {
+function normalizeDelivery(row:any,previous?:LinkedDelivery):LinkedDelivery {
+  const sameCourier = previous?.assignedCourierId && previous.assignedCourierId === row.assigned_courier_id
+
   return {
     id:row.id,
     status:row.status,
     assignedCourierId:row.assigned_courier_id,
+    assignedCourierName:sameCourier ? previous?.assignedCourierName ?? null : null,
+    assignedCourierVehicle:sameCourier ? previous?.assignedCourierVehicle ?? null : null,
+    assignedCourierAvatarUrl:sameCourier ? previous?.assignedCourierAvatarUrl ?? null : null,
     deliveryFee:Number(row.delivery_fee ?? 0),
     estimatedMinutes:row.estimated_minutes == null ? null : Number(row.estimated_minutes),
     updatedAt:row.updated_at,
@@ -223,6 +238,49 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
   },[page,totalPages])
 
   useEffect(() => {
+    const missingIds = Array.from(new Set(
+      deliveries
+        .filter(item => item.assignedCourierId && !item.assignedCourierName)
+        .map(item => item.assignedCourierId!)
+    ))
+
+    if (!missingIds.length) return
+
+    let cancelled = false
+
+    const hydrateCouriers = async () => {
+      const [{ data:courierRows },{ data:profileRows }] = await Promise.all([
+        supabase.from('couriers').select('id,vehicle_type').in('id',missingIds),
+        supabase.from('profiles').select('id,full_name,avatar_url').in('id',missingIds),
+      ])
+
+      if (cancelled) return
+
+      const courierMap = new Map((courierRows ?? []).map((row:any) => [row.id,row]))
+      const profileMap = new Map((profileRows ?? []).map((row:any) => [row.id,row]))
+
+      setDeliveries(current => current.map(item => {
+        if (!item.assignedCourierId || !missingIds.includes(item.assignedCourierId)) return item
+        const courier = courierMap.get(item.assignedCourierId)
+        const profile = profileMap.get(item.assignedCourierId)
+
+        return {
+          ...item,
+          assignedCourierName:profile?.full_name ?? 'Entregador parceiro',
+          assignedCourierVehicle:courier?.vehicle_type ?? null,
+          assignedCourierAvatarUrl:profile?.avatar_url ?? null,
+        }
+      }))
+    }
+
+    void hydrateCouriers()
+
+    return () => {
+      cancelled = true
+    }
+  },[deliveries,supabase])
+
+  useEffect(() => {
     const orderChannel = supabase
       .channel(`integrated-orders:${storeId}`)
       .on('postgres_changes',{
@@ -283,13 +341,16 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
         }
 
         const row = payload.new as any
-        const mapped = normalizeDelivery(row)
+        let mapped:LinkedDelivery | null = null
         setDeliveries(current => {
-          const exists = current.some(item => item.id === mapped.id)
-          return exists ? current.map(item => item.id === mapped.id ? mapped : item) : [...current,mapped]
+          const previous = current.find(item => item.id === row.id)
+          mapped = normalizeDelivery(row,previous)
+          const exists = current.some(item => item.id === mapped!.id)
+          return exists ? current.map(item => item.id === mapped!.id ? mapped! : item) : [...current,mapped!]
         })
 
         setOrders(current => {
+          if (!mapped) return current
           const hasIntegratedOrder = current.some(item => !item.id.startsWith('delivery:') && item.deliveryId === mapped.id)
 
           if (hasIntegratedOrder || row.status === 'draft') {
@@ -420,59 +481,148 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
             </div>
           </div>
 
-          <div className="orders-hub-table-card">
-            <div className="orders-hub-table-search">
-              <label><span>⌕</span><input value={search} onChange={e => {setSearch(e.target.value);setPage(1)}} placeholder="Buscar por cliente, pedido ou endereço..." /></label>
+          <div className="orders-command-section">
+            <div className="orders-command-toolbar">
+              <div>
+                <strong>Comandas da operação</strong>
+                <small>Pedidos e entregas em uma visão rápida</small>
+              </div>
+              <label>
+                <span>⌕</span>
+                <input
+                  value={search}
+                  onChange={e => {setSearch(e.target.value);setPage(1)}}
+                  placeholder="Buscar cliente, pedido ou endereço..."
+                />
+              </label>
             </div>
 
-            <div className="orders-hub-table-wrap">
-              <table className="orders-hub-table">
-                <thead><tr><th>Origem</th><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Valor</th><th>Status</th><th>Horário</th><th>Entrega</th><th>Ações</th></tr></thead>
-                <tbody>
-                  {visible.map(({order,delivery,status}) => (
-                    <tr key={order.id} className={selected?.order.id === order.id ? 'selected' : ''} onClick={() => setSelectedId(order.id)}>
-                      <td><OrderSourceMark source={order.source}/></td>
-                      <td><strong>#{order.externalOrderId || shortId(order.id)}</strong></td>
-                      <td><b>{order.customerName || 'Cliente'}</b><span>{phone(order.customerPhone)}</span></td>
-                      <td>
-                        <div className="order-items-preview">
-                          {order.items.length ? (
-                            <>
-                              {order.items.slice(0,2).map((item,index) => <span key={index}>{itemLabel(item)}</span>)}
-                              {order.items.length > 2 ? <small>+{order.items.length - 2} item(ns)</small> : null}
-                            </>
-                          ) : order.sourceMetadata.standaloneDelivery ? (
-                            <span className="delivery-grid-label"><Icon name="truck" size={12}/> Enviado ao entregador</span>
-                          ) : (
-                            <small>Itens não informados</small>
-                          )}
+            <div className="orders-command-grid">
+              {visible.map(({order,delivery,status}) => {
+                const assigned = Boolean(delivery?.assignedCourierId)
+                const standalone = Boolean(order.sourceMetadata.standaloneDelivery)
+
+                return (
+                  <article
+                    key={order.id}
+                    className={`order-command-card ${selected?.order.id === order.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedId(order.id)}
+                  >
+                    <header className="order-command-head">
+                      <div className="order-command-origin">
+                        <OrderSourceMark source={order.source}/>
+                        <div>
+                          <small>{sourceMeta[order.source].label}</small>
+                          <strong>#{order.externalOrderId || shortId(order.id)}</strong>
                         </div>
-                      </td>
-                      <td><strong>{currency(order.orderTotal)}</strong></td>
-                      <td><span className={`order-status-pill ${statusMeta[status].className}`}>{statusMeta[status].label}</span></td>
-                      <td>{onlyTime(order.receivedAt)}</td>
-                      <td>
-                        <span className={delivery?.assignedCourierId ? 'delivery-grid-state assigned' : 'delivery-grid-state'}>
-                          {order.fulfillmentType === 'pickup'
-                            ? 'Retirada'
-                            : delivery?.assignedCourierId
-                              ? 'Com entregador'
-                              : status === 'seeking_courier'
-                                ? 'Procurando'
-                                : 'Entrega'}
-                        </span>
-                      </td>
-                      <td><button className="orders-row-action" type="button" onClick={event => { event.stopPropagation();setSelectedId(order.id) }}>Ver</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      <span className={`order-status-pill ${statusMeta[status].className}`}>
+                        {statusMeta[status].label}
+                      </span>
+                    </header>
+
+                    <div className="order-command-time">
+                      <Icon name="clock" size={13}/>
+                      {onlyTime(order.receivedAt)} · {fullDate(order.receivedAt)}
+                    </div>
+
+                    <section className="order-command-block">
+                      <div className="order-command-label"><Icon name="user" size={14}/>Cliente</div>
+                      <strong>{order.customerName || 'Cliente não informado'}</strong>
+                      <span>{phone(order.customerPhone)}</span>
+                    </section>
+
+                    <section className="order-command-block">
+                      <div className="order-command-label"><Icon name="pin" size={14}/>Entrega</div>
+                      <strong>{order.fulfillmentType === 'pickup' ? 'Retirada na loja' : order.deliveryAddress || 'Endereço não informado'}</strong>
+                    </section>
+
+                    <section className="order-command-block items">
+                      <div className="order-command-label"><Icon name="box" size={14}/>Itens / origem</div>
+                      {order.items.length ? (
+                        <div className="order-command-item-list">
+                          {order.items.slice(0,3).map((item,index) => (
+                            <span key={index}>{itemLabel(item)}</span>
+                          ))}
+                          {order.items.length > 3 ? <small>+{order.items.length - 3} item(ns)</small> : null}
+                        </div>
+                      ) : standalone ? (
+                        <div className="order-command-delivery-only">
+                          <Icon name="truck" size={14}/>
+                          <span>Entrega criada no ChamaEntrega</span>
+                        </div>
+                      ) : (
+                        <span>Itens não informados pela integração</span>
+                      )}
+                    </section>
+
+                    <section className={`order-command-courier ${assigned ? 'assigned' : 'seeking'}`}>
+                      <div className="order-command-label"><Icon name="truck" size={14}/>Entregador</div>
+                      {assigned && delivery ? (
+                        <div className="order-command-courier-row">
+                          <span className="order-command-courier-avatar">
+                            {delivery.assignedCourierAvatarUrl
+                              ? <img src={delivery.assignedCourierAvatarUrl} alt="" />
+                              : <Icon name="user" size={18}/>}
+                          </span>
+                          <div>
+                            <strong>{delivery.assignedCourierName || 'Entregador alocado'}</strong>
+                            <span>{vehicleLabel(delivery.assignedCourierVehicle)} · {currency(delivery.deliveryFee)}</span>
+                            <small>
+                              {statusMeta[effectiveStatus(order,delivery)].label}
+                              {delivery.estimatedMinutes ? ` · ~${delivery.estimatedMinutes} min` : ''}
+                            </small>
+                          </div>
+                        </div>
+                      ) : order.fulfillmentType === 'pickup' ? (
+                        <div className="order-command-courier-row">
+                          <span className="order-command-courier-avatar"><Icon name="store" size={18}/></span>
+                          <div><strong>Retirada na loja</strong><span>Não precisa de entregador</span></div>
+                        </div>
+                      ) : (
+                        <div className="order-command-courier-row">
+                          <span className="order-command-courier-avatar pulse"><Icon name="search" size={18}/></span>
+                          <div>
+                            <strong>Buscando entregador</strong>
+                            <span>Oferta publicada para a rede</span>
+                            {delivery ? <small>Taxa {currency(delivery.deliveryFee)}</small> : null}
+                          </div>
+                        </div>
+                      )}
+                    </section>
+
+                    <footer className="order-command-footer">
+                      <div className="order-command-total">
+                        <small>Total do pedido</small>
+                        <strong>{currency(order.orderTotal)}</strong>
+                      </div>
+                      <div className="order-command-actions">
+                        <button
+                          type="button"
+                          className="ghost"
+                          onClick={event => {
+                            event.stopPropagation()
+                            setSelectedId(order.id)
+                          }}
+                        >
+                          Ver detalhes
+                        </button>
+                        {delivery?.assignedCourierId ? (
+                          <Link href="/mapa" onClick={event => event.stopPropagation()}>Acompanhar</Link>
+                        ) : status === 'seeking_courier' ? (
+                          <Link href="/entregas" onClick={event => event.stopPropagation()}>Ver busca</Link>
+                        ) : null}
+                      </div>
+                    </footer>
+                  </article>
+                )
+              })}
 
               {!visible.length ? (
-                <div className="orders-hub-empty">
+                <div className="orders-command-empty">
                   <span>✦</span>
-                  <strong>Nenhum pedido integrado encontrado</strong>
-                  <p>Quando WhatsApp, iFood, 99Food, Goomer ou seu cardápio enviarem pedidos, eles aparecerão automaticamente aqui.</p>
+                  <strong>Nenhuma comanda encontrada</strong>
+                  <p>Os pedidos e entregas da operação aparecerão aqui em formato de comanda.</p>
                 </div>
               ) : null}
             </div>
@@ -621,6 +771,19 @@ function OrderDetail({
           <span><Icon name="truck" size={16}/>Entrega vinculada</span>
           <strong>#{shortId(delivery.id)}</strong>
           <small>{statusMeta[effectiveStatus(order,delivery)].label}{delivery.estimatedMinutes ? ` · ~${delivery.estimatedMinutes} min` : ''}</small>
+          {delivery.assignedCourierId ? (
+            <div className="orders-detail-courier">
+              <span className="orders-detail-courier-avatar">
+                {delivery.assignedCourierAvatarUrl
+                  ? <img src={delivery.assignedCourierAvatarUrl} alt="" />
+                  : <Icon name="user" size={17}/>}
+              </span>
+              <div>
+                <b>{delivery.assignedCourierName || 'Entregador alocado'}</b>
+                <small>{vehicleLabel(delivery.assignedCourierVehicle)} · taxa {currency(delivery.deliveryFee)}</small>
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
