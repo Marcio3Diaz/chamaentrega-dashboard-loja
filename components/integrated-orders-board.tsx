@@ -506,9 +506,14 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
                 return (
                   <article
                     key={order.id}
-                    className={`order-command-card ${selected?.order.id === order.id ? 'selected' : ''}`}
+                    className={`order-command-card ${selected?.order.id === order.id ? 'selected' : ''} ${order.source === 'whatsapp' ? 'whatsapp-source' : ''}`}
                     onClick={() => setSelectedId(order.id)}
                   >
+                    {order.source === 'whatsapp' ? (
+                      <span className="order-command-whatsapp-badge" title="Pedido via WhatsApp">
+                        <img src="/integrations/whatsapp.svg" alt="WhatsApp"/>
+                      </span>
+                    ) : null}
                     <header className="order-command-head">
                       <div className="order-command-origin">
                         <OrderSourceMark source={order.source}/>
