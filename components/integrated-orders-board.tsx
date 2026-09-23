@@ -74,7 +74,7 @@ const sourceMeta: Record<OrderSource,{label:string;logo?:string;className:string
   '99food':{ label:'99Food', logo:'/integrations/99food.svg', className:'food99' },
   goomer:{ label:'Goomer', logo:'/integrations/goomer.svg', className:'goomer' },
   own_menu:{ label:'Cardápio próprio', className:'own' },
-  manual:{ label:'Manual', className:'manual' },
+  manual:{ label:'ChamaEntrega', className:'manual' },
 }
 
 
@@ -117,6 +117,43 @@ function normalizeDelivery(row:any):LinkedDelivery {
     deliveryFee:Number(row.delivery_fee ?? 0),
     estimatedMinutes:row.estimated_minutes == null ? null : Number(row.estimated_minutes),
     updatedAt:row.updated_at,
+  }
+}
+
+function orderStatusFromDelivery(status:string):OrderStatus {
+  if (status === 'completed') return 'completed'
+  if (status === 'cancelled' || status === 'expired') return 'cancelled'
+  if (['accepted','heading_to_pickup','at_pickup','heading_to_dropoff','at_dropoff'].includes(status)) return 'in_route'
+  return 'seeking_courier'
+}
+
+function syntheticOrderFromDelivery(row:any,storeId:string):IntegratedOrder {
+  const createdAt = row.created_at ?? row.updated_at ?? new Date().toISOString()
+  return {
+    id:`delivery:${row.id}`,
+    storeId:row.store_id ?? storeId,
+    source:'manual',
+    externalOrderId:row.external_order_id ?? row.id.replaceAll('-','').slice(0,7).toUpperCase(),
+    status:orderStatusFromDelivery(row.status),
+    fulfillmentType:'delivery',
+    customerName:row.customer_name ?? null,
+    customerPhone:row.customer_phone ?? null,
+    deliveryAddress:row.delivery_address ?? null,
+    deliveryLatitude:row.delivery_latitude == null ? null : Number(row.delivery_latitude),
+    deliveryLongitude:row.delivery_longitude == null ? null : Number(row.delivery_longitude),
+    items:[],
+    orderTotal:Number(row.order_total ?? 0),
+    paymentMethod:row.payment_method ?? 'unknown',
+    paymentStatus:'unknown',
+    customerNote:row.customer_note ?? null,
+    deliveryId:row.id,
+    sourceMetadata:{
+      standaloneDelivery:true,
+      itemCount:Number(row.item_count ?? 0),
+    },
+    receivedAt:createdAt,
+    createdAt,
+    updatedAt:row.updated_at ?? createdAt,
   }
 }
 
@@ -220,8 +257,11 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
             createdAt:row.created_at,
             updatedAt:row.updated_at,
           }
-          const exists = current.some(item => item.id === mapped.id)
-          return (exists ? current.map(item => item.id === mapped.id ? mapped : item) : [mapped,...current])
+          const base = mapped.deliveryId
+            ? current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === mapped.deliveryId))
+            : current
+          const exists = base.some(item => item.id === mapped.id)
+          return (exists ? base.map(item => item.id === mapped.id ? mapped : item) : [mapped,...base])
             .sort((a,b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
         })
       })
@@ -236,13 +276,33 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
         filter:`store_id=eq.${storeId}`,
       },payload => {
         if (payload.eventType === 'DELETE') {
-          setDeliveries(current => current.filter(item => item.id !== (payload.old as any).id))
+          const removedId = (payload.old as any).id
+          setDeliveries(current => current.filter(item => item.id !== removedId))
+          setOrders(current => current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === removedId)))
           return
         }
-        const mapped = normalizeDelivery(payload.new)
+
+        const row = payload.new as any
+        const mapped = normalizeDelivery(row)
         setDeliveries(current => {
           const exists = current.some(item => item.id === mapped.id)
           return exists ? current.map(item => item.id === mapped.id ? mapped : item) : [...current,mapped]
+        })
+
+        setOrders(current => {
+          const hasIntegratedOrder = current.some(item => !item.id.startsWith('delivery:') && item.deliveryId === mapped.id)
+
+          if (hasIntegratedOrder || row.status === 'draft') {
+            return current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === mapped.id))
+          }
+
+          const synthetic = syntheticOrderFromDelivery(row,storeId)
+          const exists = current.some(item => item.id === synthetic.id)
+
+          return (exists
+            ? current.map(item => item.id === synthetic.id ? synthetic : item)
+            : [synthetic,...current]
+          ).sort((a,b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
         })
       })
       .subscribe()
@@ -346,7 +406,7 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
             <div className="orders-filter-row source">
               <strong>Filtrar por origem:</strong>
               <button className={sourceFilter === 'all' ? 'active' : ''} onClick={() => {setSourceFilter('all');setPage(1)}}>Todos</button>
-              {(Object.keys(sourceMeta) as OrderSource[]).filter(key => key !== 'manual').map(key => (
+              {(Object.keys(sourceMeta) as OrderSource[]).map(key => (
                 <button
                   key={key}
                   className={sourceFilter === key ? 'active' : ''}
@@ -374,11 +434,34 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
                       <td><OrderSourceMark source={order.source}/></td>
                       <td><strong>#{order.externalOrderId || shortId(order.id)}</strong></td>
                       <td><b>{order.customerName || 'Cliente'}</b><span>{phone(order.customerPhone)}</span></td>
-                      <td><div className="order-items-preview">{order.items.slice(0,2).map((item,index) => <span key={index}>{itemLabel(item)}</span>)}{order.items.length > 2 ? <small>+{order.items.length - 2} item(ns)</small> : null}</div></td>
+                      <td>
+                        <div className="order-items-preview">
+                          {order.items.length ? (
+                            <>
+                              {order.items.slice(0,2).map((item,index) => <span key={index}>{itemLabel(item)}</span>)}
+                              {order.items.length > 2 ? <small>+{order.items.length - 2} item(ns)</small> : null}
+                            </>
+                          ) : order.sourceMetadata.standaloneDelivery ? (
+                            <span className="delivery-grid-label"><Icon name="truck" size={12}/> Enviado ao entregador</span>
+                          ) : (
+                            <small>Itens não informados</small>
+                          )}
+                        </div>
+                      </td>
                       <td><strong>{currency(order.orderTotal)}</strong></td>
                       <td><span className={`order-status-pill ${statusMeta[status].className}`}>{statusMeta[status].label}</span></td>
                       <td>{onlyTime(order.receivedAt)}</td>
-                      <td><span>{order.fulfillmentType === 'pickup' ? 'Retirada' : delivery ? 'Entrega' : 'Entrega'}</span></td>
+                      <td>
+                        <span className={delivery?.assignedCourierId ? 'delivery-grid-state assigned' : 'delivery-grid-state'}>
+                          {order.fulfillmentType === 'pickup'
+                            ? 'Retirada'
+                            : delivery?.assignedCourierId
+                              ? 'Com entregador'
+                              : status === 'seeking_courier'
+                                ? 'Procurando'
+                                : 'Entrega'}
+                        </span>
+                      </td>
                       <td><button className="orders-row-action" type="button" onClick={event => { event.stopPropagation();setSelectedId(order.id) }}>Ver</button></td>
                     </tr>
                   ))}
