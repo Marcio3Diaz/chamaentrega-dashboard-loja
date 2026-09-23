@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { setActiveStoreAction, signOutAction } from '@/app/actions'
 import { Icon } from '@/components/icon'
 import { StoreLogoUpload } from '@/components/store-logo-upload'
+import { CHAMAENTREGA_LOGO_CREME } from '@/lib/brand-logo-creme'
 
 const nav = [
   ['/painel', 'Início', 'home'],
@@ -96,7 +97,7 @@ export function DashboardShell({
       <aside className="sidebar premium-sidebar">
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
-            src="/brand/chamaentrega-logo-official.webp"
+            src={pathname.startsWith('/pedidos') ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
             width={420}
             height={140}
             alt="ChamaEntrega — Chamou, Chegou"
