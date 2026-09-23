@@ -8,16 +8,16 @@ import { Icon } from '@/components/icon'
 import { StoreLogoUpload } from '@/components/store-logo-upload'
 
 const nav = [
-  ['/painel', 'Visão Geral', 'home'],
+  ['/painel', 'Início', 'home'],
   ['/pedidos', 'Pedidos', 'box'],
-  ['/entregas/nova', 'Criar entrega', 'plus'],
-  ['/despacho', 'Despacho Inteligente', 'route'],
-  ['/entregas', 'Entregas', 'box'],
+  ['/entregas/nova', 'Criar entrega', 'route'],
   ['/entregadores', 'Entregadores', 'user'],
-  ['/mapa', 'Mapa ao vivo', 'map'],
-  ['/chat', 'Chat', 'chat'],
   ['/financeiro', 'Financeiro', 'chart'],
+  ['/entregas', 'Relatórios', 'box'],
+  ['/pedidos', 'Clientes', 'users'],
+  ['/integracoes', 'Cardápio', 'store'],
   ['/integracoes', 'Integrações', 'link'],
+  ['/despacho', 'Promoções', 'activity'],
   ['/configuracoes', 'Configurações', 'gear'],
 ]
 
@@ -40,6 +40,7 @@ type Props = {
   moderationStatus: 'pending' | 'active' | 'suspended' | 'banned' | 'rejected'
   moderationReason: string | null
   storeLogoUrl: string | null
+  walletAvailable: number
   children: React.ReactNode
 }
 
@@ -52,11 +53,13 @@ export function DashboardShell({
   moderationStatus,
   moderationReason,
   storeLogoUrl,
+  walletAvailable,
   children,
 }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const [storeMenuOpen,setStoreMenuOpen] = useState(false)
+  const [searchValue,setSearchValue] = useState('')
   const [switchingStore,startStoreTransition] = useTransition()
 
   useEffect(() => {
@@ -196,30 +199,56 @@ export function DashboardShell({
       </aside>
 
       <section className="main premium-main">
-        <header className="topbar premium-topbar">
-          <div>
-            <div className="topbar-title">Portal da Loja</div>
-            <div className="topbar-subtitle">Seu centro de controle de entregas</div>
+        <header className="topbar premium-topbar reference-topbar">
+          <div className="reference-search">
+            <Icon name="search" size={18}/>
+            <input
+              value={searchValue}
+              onChange={event => setSearchValue(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' && searchValue.trim()) {
+                  router.push('/pedidos')
+                }
+              }}
+              placeholder="Buscar pedidos, clientes, entregadores..."
+              aria-label="Buscar no painel"
+            />
+            <kbd>Ctrl + K</kbd>
           </div>
-          <div className="topbar-actions">
-            <Link href="/pedidos" className="icon-button notification-button" aria-label="Abrir pedidos"><Icon name="bell" size={21}/><i /></Link>
-            <span className="topbar-divider" />
-            <div className={moderationStatus === 'active' ? 'online-pill' : 'online-pill moderation-warning'}>
-              <span className="online-dot" />
-              {moderationStatus === 'active' ? 'Sistema online' : moderationLabel}
-            </div>
-            <span className="topbar-divider" />
-            <div className="topbar-profile">
-              <StoreLogoUpload
-                storeId={storeId}
-                userId={userId}
-                storeName={storeName}
-                logoUrl={storeLogoUrl}
-                variant="topbar"
-              />
-              <span><strong>{storeName}</strong><small>Administrador da loja</small></span>
-              <span>⌄</span>
-            </div>
+
+          <div className="topbar-actions reference-topbar-actions">
+            <Link href="/pedidos" className="icon-button notification-button reference-bell" aria-label="Abrir pedidos">
+              <Icon name="bell" size={21}/><i />
+            </Link>
+
+            <Link href="/financeiro" className="reference-wallet-chip">
+              <span className="reference-wallet-icon"><Icon name="money" size={18}/></span>
+              <span><strong>{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(walletAvailable)}</strong><small>Saldo na carteira</small></span>
+            </Link>
+
+            <Link href="/entregas/nova" className="reference-new-delivery">
+              <Icon name="plus" size={20}/>
+              <span>Nova entrega</span>
+            </Link>
+
+            <button
+              type="button"
+              className="reference-store-profile"
+              onClick={() => setStoreMenuOpen(open => !open)}
+              aria-expanded={storeMenuOpen}
+            >
+              <span className="reference-profile-logo">
+                <StoreLogoUpload
+                  storeId={storeId}
+                  userId={userId}
+                  storeName={storeName}
+                  logoUrl={storeLogoUrl}
+                  variant="topbar"
+                />
+              </span>
+              <span><strong>{storeName}</strong><small><i />{moderationStatus === 'active' ? 'Loja ativa' : moderationLabel}</small></span>
+              <Icon name="chevron" size={16}/>
+            </button>
           </div>
         </header>
         <div className="content premium-content">
