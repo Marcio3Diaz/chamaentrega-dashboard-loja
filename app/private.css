@@ -17710,3 +17710,198 @@ html[data-theme="light"] .store-switcher-avatar{
     flex:1;
   }
 }
+
+
+/* =================================================================
+   PEDIDOS — COMANDAS COMPACTAS + LEGIBILIDADE
+   ================================================================= */
+.orders-command-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding:12px;
+}
+
+.order-command-card{
+  gap:8px;
+  padding:12px;
+  border-radius:15px;
+}
+
+.order-command-head{
+  gap:8px;
+}
+
+.order-command-origin{
+  gap:7px;
+}
+
+.order-command-origin .order-source-mark{
+  width:32px;
+  height:32px;
+  flex-basis:32px;
+  border-radius:9px;
+}
+
+.order-command-origin small{
+  font-size:8px;
+}
+
+.order-command-origin strong{
+  max-width:190px;
+  font-size:11px;
+}
+
+.order-command-time{
+  font-size:8px;
+}
+
+.order-command-block{
+  gap:3px;
+  padding:8px 9px;
+  border-radius:10px;
+}
+
+.order-command-label{
+  font-size:7.8px;
+}
+
+.order-command-block>strong{
+  font-size:10.4px;
+  line-height:1.28;
+}
+
+.order-command-block>span{
+  font-size:8.6px;
+  line-height:1.28;
+}
+
+.order-command-block.items{
+  min-height:58px;
+}
+
+.order-command-item-list{
+  gap:3px;
+}
+
+.order-command-item-list span{
+  font-size:8.8px;
+  line-height:1.25;
+}
+
+.order-command-item-list small{
+  font-size:7.6px;
+}
+
+.order-command-delivery-only{
+  gap:6px;
+  font-size:8.8px;
+}
+
+.order-command-courier{
+  gap:5px;
+  padding:8px 9px;
+  border-radius:11px;
+}
+
+.order-command-courier-row{
+  grid-template-columns:32px minmax(0,1fr);
+  gap:7px;
+}
+
+.order-command-courier-avatar{
+  width:32px;
+  height:32px;
+}
+
+.order-command-courier-row strong{
+  font-size:9.8px;
+}
+
+.order-command-courier-row span{
+  margin-top:2px;
+  font-size:8px;
+}
+
+.order-command-courier-row small{
+  margin-top:2px;
+  font-size:7.4px;
+}
+
+.order-command-footer{
+  gap:8px;
+}
+
+.order-command-total small{
+  font-size:7.4px;
+}
+
+.order-command-total strong{
+  font-size:17px;
+}
+
+.order-command-actions{
+  gap:5px;
+}
+
+.order-command-actions button,
+.order-command-actions a{
+  min-height:29px;
+  padding:0 8px;
+  border-radius:8px;
+  font-size:7.8px;
+}
+
+.order-status-pill{
+  min-height:24px;
+  padding:0 7px;
+  font-size:7.5px!important;
+}
+
+.orders-command-toolbar{
+  min-height:58px;
+  padding:10px 12px;
+}
+
+.orders-command-toolbar>div strong{
+  font-size:12px;
+}
+
+.orders-command-toolbar>div small{
+  font-size:8px;
+}
+
+.orders-command-toolbar label{
+  min-height:35px;
+}
+
+.orders-command-toolbar input{
+  font-size:9px;
+}
+
+@media(min-width:1650px){
+  .orders-command-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+
+  .orders-hub-workspace{
+    grid-template-columns:minmax(0,1fr) 330px;
+  }
+}
+
+@media(min-width:1350px) and (max-width:1649px){
+  .orders-command-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:1349px){
+  .orders-command-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:900px){
+  .orders-command-grid{
+    grid-template-columns:1fr;
+  }
+}
