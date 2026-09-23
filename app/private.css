@@ -18648,3 +18648,217 @@ html[data-theme="light"] .store-switcher-avatar{
 .premium-shell:has(.orders-hub-page) .mobile-nav svg{
   color:#b77a00!important;
 }
+
+
+/* =================================================================
+   PEDIDOS — FORMATO DE COMANDA VERTICAL (REFERÊNCIA DESENHADA)
+   ================================================================= */
+
+/* A área principal passa a privilegiar comandas estreitas e verticais */
+.orders-hub-workspace{
+  grid-template-columns:minmax(0,1fr) 350px!important;
+  gap:12px!important;
+}
+
+.orders-command-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:stretch!important;
+  gap:12px!important;
+  padding:13px!important;
+}
+
+/* Formato alto/estreito de comanda */
+.order-command-card{
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:390px!important;
+  height:100%!important;
+  gap:9px!important;
+  padding:12px!important;
+  border-radius:16px!important;
+}
+
+/* Cabeçalho mais compacto para preservar largura */
+.order-command-head{
+  flex:0 0 auto!important;
+  min-height:46px!important;
+  gap:7px!important;
+}
+
+.order-command-origin{
+  min-width:0!important;
+  align-items:flex-start!important;
+}
+
+.order-command-origin .order-source-mark{
+  width:30px!important;
+  height:30px!important;
+  flex-basis:30px!important;
+}
+
+.order-command-origin>div{
+  min-width:0!important;
+}
+
+.order-command-origin small{
+  font-size:9px!important;
+}
+
+.order-command-origin strong{
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+  font-size:11.5px!important;
+  line-height:1.18!important;
+}
+
+.order-status-pill{
+  flex:0 0 auto!important;
+  min-height:24px!important;
+  padding:0 7px!important;
+  font-size:8px!important;
+}
+
+.order-command-time{
+  flex:0 0 auto!important;
+  font-size:9px!important;
+}
+
+/* Blocos empilhados verticalmente */
+.order-command-block{
+  flex:0 0 auto!important;
+  min-width:0!important;
+  padding:9px 10px!important;
+}
+
+.order-command-block>strong,
+.order-command-block>span,
+.order-command-item-list span{
+  overflow-wrap:anywhere!important;
+}
+
+.order-command-block>strong{
+  font-size:11px!important;
+}
+
+.order-command-block>span{
+  font-size:9.5px!important;
+}
+
+.order-command-block.items{
+  min-height:62px!important;
+}
+
+/* Bloco do entregador ocupa uma faixa fixa na parte baixa */
+.order-command-courier{
+  flex:0 0 auto!important;
+  min-height:74px!important;
+  padding:9px 10px!important;
+}
+
+.order-command-courier-row{
+  align-items:center!important;
+}
+
+.order-command-courier-row strong{
+  font-size:10.5px!important;
+}
+
+.order-command-courier-row span{
+  font-size:9px!important;
+}
+
+.order-command-courier-row small{
+  font-size:8.3px!important;
+}
+
+/* Rodapé sempre encostado na base da comanda */
+.order-command-footer{
+  margin-top:auto!important;
+  flex:0 0 auto!important;
+  align-items:flex-end!important;
+  gap:7px!important;
+  padding-top:8px!important;
+}
+
+.order-command-total{
+  min-width:0!important;
+}
+
+.order-command-total strong{
+  font-size:19px!important;
+}
+
+.order-command-actions{
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+}
+
+.order-command-actions button,
+.order-command-actions a{
+  min-height:30px!important;
+  padding:0 8px!important;
+  font-size:8.5px!important;
+}
+
+/* WhatsApp permanece no canto superior direito */
+.order-command-card.whatsapp-source .order-command-head{
+  padding-right:38px!important;
+}
+
+.order-command-whatsapp-badge{
+  top:10px!important;
+  right:10px!important;
+  width:29px!important;
+  height:29px!important;
+}
+
+.order-command-whatsapp-badge img{
+  width:20px!important;
+  height:20px!important;
+}
+
+/* Desktop grande: exatamente 4 comandas como no desenho */
+@media(min-width:1550px){
+  .orders-command-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  .orders-hub-workspace{
+    grid-template-columns:minmax(0,1fr) 350px!important;
+  }
+}
+
+/* Notebook: 3 comandas */
+@media(min-width:1180px) and (max-width:1549px){
+  .orders-command-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .orders-hub-workspace{
+    grid-template-columns:minmax(0,1fr) 330px!important;
+  }
+}
+
+/* Tablet */
+@media(min-width:820px) and (max-width:1179px){
+  .orders-command-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .orders-hub-workspace{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* Mobile */
+@media(max-width:819px){
+  .orders-command-grid{
+    grid-template-columns:1fr!important;
+  }
+  .orders-hub-workspace{
+    grid-template-columns:1fr!important;
+  }
+}
