@@ -14,7 +14,6 @@ const nav = [
   ['/entregadores', 'Entregadores', 'user'],
   ['/financeiro', 'Financeiro', 'chart'],
   ['/entregas', 'Relatórios', 'box'],
-  ['/pedidos', 'Clientes', 'users'],
   ['/integracoes', 'Cardápio', 'store'],
   ['/integracoes', 'Integrações', 'link'],
   ['/despacho', 'Promoções', 'activity'],
