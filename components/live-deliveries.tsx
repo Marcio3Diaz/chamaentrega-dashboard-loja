@@ -53,7 +53,14 @@ export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId:
               <Icon name="chat" size={15}/>
             </Link>
           ) : null}
-          <button className="table-more" aria-label="Mais ações">⋮</button>
+          <Link
+            href={delivery.assigned_courier_id ? '/mapa' : '/despacho'}
+            className="table-more"
+            aria-label={delivery.assigned_courier_id ? 'Ver no mapa' : 'Despachar entrega'}
+            title={delivery.assigned_courier_id ? 'Ver no mapa' : 'Despachar entrega'}
+          >
+            <Icon name={delivery.assigned_courier_id ? 'pin' : 'route'} size={14}/>
+          </Link>
         </div>
       </td>
     </tr>)}</tbody>

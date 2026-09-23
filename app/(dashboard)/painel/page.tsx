@@ -104,7 +104,7 @@ export default async function OverviewPage() {
           <span className="courier-live-dot"/>
           <div className="courier-copy"><strong>{firstProfile?.full_name ?? 'Entregador parceiro'}</strong><small>★ {Number(firstCourier.rating).toFixed(1)} &nbsp; {firstCourier.total_deliveries} entregas</small></div>
           <span className="online-tag">Online</span>
-          <button className="call-button"><Icon name="arrow" size={15}/>Chamar</button>
+          <Link href="/entregadores" className="call-button"><Icon name="arrow" size={15}/>Ver entregadores</Link>
         </div> : <div className="premium-empty small">Nenhum entregador online agora.</div>}
       </article>
 
