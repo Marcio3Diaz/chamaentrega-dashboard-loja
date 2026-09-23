@@ -91,6 +91,8 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
       initialOrder={initialOrder}
       storeLatitude={store.latitude == null ? null : Number(store.latitude)}
       storeLongitude={store.longitude == null ? null : Number(store.longitude)}
+      storeCity={store.city ?? null}
+      storeState={store.state ?? null}
       pricing={pricing}
     />
   </>
