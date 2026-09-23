@@ -18184,3 +18184,222 @@ html[data-theme="light"] .store-switcher-avatar{
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* =================================================================
+   PEDIDOS — TEMA CREME + COMANDAS EQUILIBRADAS
+   ================================================================= */
+.premium-main:has(.orders-hub-page),
+.premium-content:has(.orders-hub-page){
+  background:#f6f0e6!important;
+}
+.orders-hub-page{
+  min-height:calc(100vh - 86px);
+  padding:16px!important;
+  gap:14px!important;
+  border:1px solid #eadfce;
+  border-radius:22px;
+  color:#2b241d;
+  background:#f8f2e8!important;
+}
+.orders-hub-hero{
+  min-height:132px!important;
+  padding:22px 24px!important;
+  border:1px solid #e5d8c5!important;
+  background:linear-gradient(145deg,#fffaf2,#f2e8d9)!important;
+}
+.orders-hub-hero .eyebrow{color:#b77c00!important}
+.orders-hub-hero h1{color:#251f19!important;font-size:34px!important}
+.orders-hub-hero h1 span{color:#d99100!important}
+.orders-hub-hero p{color:#6e6255!important;font-size:11.5px!important}
+.orders-hub-hero-side>span{color:#3f352b!important}
+
+.orders-hub-metrics article{
+  min-height:108px!important;
+  padding:15px 16px!important;
+  border:1px solid #e5d9c7!important;
+  background:#fffaf3!important;
+}
+.orders-hub-metrics small{color:#7e705f!important;font-size:10px!important}
+.orders-hub-metrics strong{color:#28211a!important;font-size:29px!important}
+.orders-hub-metrics article div>span{color:#988a78!important;font-size:9px!important}
+.orders-metric-icon{width:50px!important;height:50px!important;flex-basis:50px!important}
+
+.orders-hub-filters{
+  border:1px solid #e3d7c6!important;
+  background:#fffaf3!important;
+}
+.orders-filter-row.source{border-top-color:#eadfce!important}
+.orders-filter-row>strong{color:#5c5043!important;font-size:9.5px!important}
+.orders-filter-row button{
+  color:#65594b!important;
+  border-color:#e4d9c9!important;
+  background:#f8f0e5!important;
+  font-size:9.2px!important;
+}
+.orders-filter-row button.active{
+  color:#241b0d!important;
+  border-color:#e0a900!important;
+  background:linear-gradient(135deg,#ffbc18,#ffd85a)!important;
+}
+
+.orders-command-section{
+  border:1px solid #e3d6c4!important;
+  background:#fffaf3!important;
+}
+.orders-command-toolbar{border-bottom-color:#eadfce!important}
+.orders-command-toolbar>div strong{color:#2b241d!important;font-size:13px!important}
+.orders-command-toolbar>div small{color:#887a69!important;font-size:9px!important}
+.orders-command-toolbar label{
+  border-color:#e1d5c4!important;
+  background:#fffdf9!important;
+}
+.orders-command-toolbar input{color:#2f281f!important;font-size:10px!important}
+.orders-command-toolbar input::placeholder{color:#9d8f7e!important}
+
+.orders-command-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  padding:13px!important;
+}
+.order-command-card{
+  min-height:300px!important;
+  gap:8px!important;
+  padding:13px!important;
+  border:1px solid #e4d8c8!important;
+  background:#fffdf9!important;
+  box-shadow:0 8px 20px rgba(80,59,27,.06)!important;
+}
+.order-command-card.selected{
+  border-color:#d6a000!important;
+  box-shadow:inset 3px 0 0 #f5b800,0 10px 26px rgba(80,59,27,.10)!important;
+}
+.order-command-card.whatsapp-source .order-command-head{padding-right:42px}
+.order-command-whatsapp-badge{
+  position:absolute;
+  top:11px;
+  right:11px;
+  z-index:4;
+  width:31px;
+  height:31px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#25d366;
+  box-shadow:0 5px 14px rgba(37,211,102,.22);
+}
+.order-command-whatsapp-badge img{width:22px;height:22px;object-fit:contain}
+
+.order-command-origin small{color:#8e806f!important;font-size:9.5px!important}
+.order-command-origin strong{color:#2d261f!important;font-size:12.5px!important}
+.order-command-time{color:#887a69!important;font-size:9.5px!important}
+
+.order-command-block{
+  padding:9px 10px!important;
+  border-color:#ece1d2!important;
+  background:#fff9f0!important;
+}
+.order-command-label{color:#8a7965!important;font-size:9px!important}
+.order-command-block>strong{color:#302820!important;font-size:12px!important}
+.order-command-block>span{color:#6f6254!important;font-size:10.5px!important}
+.order-command-block.items{min-height:56px!important}
+.order-command-item-list span{color:#564b40!important;font-size:10.5px!important}
+.order-command-item-list small{color:#8d7f6e!important;font-size:9px!important}
+.order-command-delivery-only{color:#bc7b00!important;font-size:10px!important}
+
+.order-command-courier{padding:9px 10px!important}
+.order-command-courier.assigned{border-color:#c9deef!important;background:#eff8ff!important}
+.order-command-courier.seeking{border-color:#ead5a0!important;background:#fff7e3!important}
+.order-command-courier-row{grid-template-columns:34px minmax(0,1fr)!important}
+.order-command-courier-avatar{
+  width:34px!important;
+  height:34px!important;
+  color:#c88900!important;
+  border-color:#e3d6c6!important;
+  background:#fffdf8!important;
+}
+.order-command-courier-row strong{color:#2e2720!important;font-size:11px!important}
+.order-command-courier-row span{color:#695d50!important;font-size:9.5px!important}
+.order-command-courier-row small{color:#8a7d6e!important;font-size:8.8px!important}
+
+.order-command-footer{border-top-color:#eadfce!important}
+.order-command-total small{color:#8d7e6c!important;font-size:9px!important}
+.order-command-total strong{color:#c78300!important;font-size:20px!important}
+.order-command-actions button,
+.order-command-actions a{
+  min-height:31px!important;
+  padding:0 9px!important;
+  font-size:9px!important;
+}
+.order-command-actions button{
+  color:#4d4236!important;
+  border-color:#ded2c1!important;
+  background:#fffaf3!important;
+}
+.order-command-actions a{
+  color:#251b0b!important;
+  background:linear-gradient(135deg,#ffb300,#ffd75a)!important;
+}
+
+.order-status-pill{
+  min-height:25px!important;
+  padding:0 8px!important;
+  font-size:8.7px!important;
+}
+.order-status-pill.new{color:#1676aa!important;background:#e9f6ff!important}
+.order-status-pill.preparing{color:#a96400!important;background:#fff4de!important}
+.order-status-pill.ready{color:#16824f!important;background:#eaf9f1!important}
+.order-status-pill.seeking{color:#7b3e9e!important;background:#f6ebff!important}
+.order-status-pill.route{color:#176f9c!important;background:#eaf6fd!important}
+.order-status-pill.completed{color:#506057!important;background:#edf3ef!important}
+.order-status-pill.cancelled{color:#b14950!important;background:#fff0f1!important}
+
+.orders-hub-workspace{
+  grid-template-columns:minmax(0,1fr) 350px!important;
+  gap:12px!important;
+}
+.orders-hub-detail{
+  min-height:620px!important;
+  border-color:#e2d5c3!important;
+  background:#fffaf3!important;
+}
+.orders-detail-head{border-bottom-color:#eadfce!important}
+.orders-detail-head strong{color:#2d261f!important;font-size:12px!important}
+.orders-detail-head div>span,
+.orders-detail-time{color:#8a7d6d!important}
+.orders-detail-section,
+.orders-detail-items,
+.orders-detail-note,
+.orders-detail-payment{border-color:#eee2d2!important}
+.orders-detail-icon{color:#756654!important;background:#f5ecdf!important}
+.orders-detail-section small,
+.orders-detail-payment small{color:#8f806f!important;font-size:8px!important}
+.orders-detail-section strong,
+.orders-detail-payment strong{color:#302820!important;font-size:10.5px!important}
+.orders-detail-section div>span{color:#716455!important;font-size:9px!important}
+.orders-detail-total strong{color:#c78300!important}
+
+.orders-hub-pagination{
+  border-top-color:#eadfce!important;
+  color:#7e7060!important;
+}
+.orders-hub-pagination button{
+  color:#6d6052!important;
+  border-color:#e0d4c3!important;
+  background:#fffaf3!important;
+}
+.orders-hub-pagination button.active{
+  color:#251b0b!important;
+  background:#ffbd12!important;
+}
+
+@media(max-width:1440px){
+  .orders-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .orders-hub-workspace{grid-template-columns:minmax(0,1fr) 330px!important}
+}
+@media(max-width:1080px){
+  .orders-hub-workspace{grid-template-columns:1fr!important}
+}
+@media(max-width:820px){
+  .orders-command-grid{grid-template-columns:1fr!important}
+}
