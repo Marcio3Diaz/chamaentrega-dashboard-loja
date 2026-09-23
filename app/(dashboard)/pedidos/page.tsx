@@ -90,14 +90,46 @@ export default async function OrdersPage() {
   const orders = [...integratedOrders,...standaloneDeliveryOrders]
     .sort((a,b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
 
-  const linkedDeliveries: LinkedDelivery[] = (deliveryRows ?? []).map((row:any) => ({
-    id: row.id,
-    status: row.status,
-    assignedCourierId: row.assigned_courier_id,
-    deliveryFee: Number(row.delivery_fee ?? 0),
-    estimatedMinutes: row.estimated_minutes == null ? null : Number(row.estimated_minutes),
-    updatedAt: row.updated_at,
-  }))
+  const courierIds = Array.from(
+    new Set(
+      (deliveryRows ?? [])
+        .map((row:any) => row.assigned_courier_id)
+        .filter(Boolean) as string[],
+    ),
+  )
+
+  const [{ data: courierRows }, { data: profileRows }] = courierIds.length
+    ? await Promise.all([
+        supabase
+          .from('couriers')
+          .select('id,vehicle_type')
+          .in('id', courierIds),
+        supabase
+          .from('profiles')
+          .select('id,full_name,avatar_url')
+          .in('id', courierIds),
+      ])
+    : [{ data: [] as any[] }, { data: [] as any[] }]
+
+  const courierMap = new Map((courierRows ?? []).map((row:any) => [row.id,row]))
+  const profileMap = new Map((profileRows ?? []).map((row:any) => [row.id,row]))
+
+  const linkedDeliveries: LinkedDelivery[] = (deliveryRows ?? []).map((row:any) => {
+    const courier = row.assigned_courier_id ? courierMap.get(row.assigned_courier_id) : null
+    const profile = row.assigned_courier_id ? profileMap.get(row.assigned_courier_id) : null
+
+    return {
+      id: row.id,
+      status: row.status,
+      assignedCourierId: row.assigned_courier_id,
+      assignedCourierName: profile?.full_name ?? null,
+      assignedCourierVehicle: courier?.vehicle_type ?? null,
+      assignedCourierAvatarUrl: profile?.avatar_url ?? null,
+      deliveryFee: Number(row.delivery_fee ?? 0),
+      estimatedMinutes: row.estimated_minutes == null ? null : Number(row.estimated_minutes),
+      updatedAt: row.updated_at,
+    }
+  })
 
   return (
     <IntegratedOrdersBoard
