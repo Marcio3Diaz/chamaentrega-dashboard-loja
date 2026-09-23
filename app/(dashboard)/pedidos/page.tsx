@@ -7,7 +7,7 @@ function statusFromDelivery(status:string):IntegratedOrder['status'] {
   if (status === 'cancelled' || status === 'expired') return 'cancelled'
   if (['accepted','heading_to_pickup','at_pickup','heading_to_dropoff','at_dropoff'].includes(status)) return 'in_route'
   if (['available','negotiating'].includes(status)) return 'seeking_courier'
-  return 'ready'
+  return 'seeking_courier'
 }
 
 export default async function OrdersPage() {
