@@ -58,6 +58,8 @@ export function CreateDeliveryForm({
   initialOrder,
   storeLatitude,
   storeLongitude,
+  storeCity,
+  storeState,
   pricing,
 }: {
   availableBalance: number
@@ -65,6 +67,8 @@ export function CreateDeliveryForm({
   initialOrder?: DeliveryOrderPrefill | null
   storeLatitude: number | null
   storeLongitude: number | null
+  storeCity: string | null
+  storeState: string | null
   pricing: DeliveryPricingConfig
 }) {
   const [state, action, pending] = useActionState(createDeliveryAction, initial)
@@ -101,10 +105,18 @@ export function CreateDeliveryForm({
     setResolvedAddress('')
 
     try {
+      const locationContext = [storeCity,storeState,'Brasil']
+        .map(value => value?.trim())
+        .filter(Boolean)
+        .join(', ')
+      const geocodeAddress = locationContext
+        ? `${address.trim()}, ${locationContext}`
+        : address.trim()
+
       const response = await fetch('/api/geocode',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({address}),
+        body:JSON.stringify({address:geocodeAddress}),
       })
 
       const payload = await response.json() as {
@@ -200,6 +212,11 @@ export function CreateDeliveryForm({
               onChange={event => {
                 setAddress(event.target.value)
                 setResolvedAddress('')
+                setGeocodeError('')
+                setLatitude('')
+                setLongitude('')
+                setDeliveryDistance('')
+                setEstimatedMinutes('')
               }}
             />
             <button
@@ -325,6 +342,15 @@ export function CreateDeliveryForm({
     {state.error ? <div className="error">{state.error}</div> : null}
 
     <div className="form-actions">
+      <div className="form-action-hint">
+        {!hasCoordinates
+          ? 'Localize o endereço antes de publicar.'
+          : feeValue <= 0
+            ? 'Informe a taxa do entregador.'
+            : insufficient
+              ? 'Saldo insuficiente para publicar.'
+              : 'Tudo pronto para buscar um entregador.'}
+      </div>
       <button className="button button-dark" name="intent" value="draft" disabled={pending}>SALVAR RASCUNHO</button>
       <button
         className="button button-gold"
