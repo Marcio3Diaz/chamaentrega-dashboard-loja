@@ -19814,3 +19814,272 @@ html[data-theme="light"] .store-switcher-avatar{
     overflow:visible;
   }
 }
+
+
+/* ===== Entregadores V2.2 — cards de ENTREGADORES em grade de 5 ===== */
+@media (min-width:1500px){
+  .ce2-grid{
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    align-items:start !important;
+    gap:10px !important;
+  }
+
+  .ce2-courier-card{
+    min-width:0 !important;
+    width:100% !important;
+    height:auto !important;
+    border-radius:12px !important;
+    position:relative !important;
+  }
+
+  .ce2-courier-top{
+    min-height:78px !important;
+    padding:10px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+  }
+
+  .ce2-person{
+    min-width:0 !important;
+    width:100% !important;
+    gap:8px !important;
+    padding-right:78px !important;
+  }
+
+  .ce2-avatar{
+    width:44px !important;
+    height:44px !important;
+    min-width:44px !important;
+    flex-basis:44px !important;
+    border-width:1px !important;
+  }
+
+  .ce2-person>div{
+    min-width:0 !important;
+  }
+
+  .ce2-person>div>strong{
+    max-width:100% !important;
+    font-size:15px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .ce2-person>div>span{
+    margin-top:3px !important;
+    font-size:10px !important;
+    line-height:1.15 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .ce2-person>div>small{
+    margin-top:2px !important;
+    font-size:9px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .ce2-status{
+    position:absolute !important;
+    top:10px !important;
+    right:10px !important;
+    max-width:82px !important;
+    height:26px !important;
+    padding:0 8px !important;
+    font-size:9px !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  .ce2-courier-actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:5px !important;
+  }
+
+  .ce2-mini{
+    width:100% !important;
+    min-width:0 !important;
+    height:30px !important;
+    padding:0 7px !important;
+    justify-content:center !important;
+    gap:4px !important;
+    border-radius:7px !important;
+    font-size:9px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .ce2-mini svg{
+    width:13px !important;
+    height:13px !important;
+    flex:0 0 auto !important;
+  }
+
+  .ce2-metrics{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    margin:0 8px !important;
+    border-radius:8px !important;
+  }
+
+  .ce2-metrics>div{
+    min-height:43px !important;
+    padding:6px 7px !important;
+    grid-template-columns:16px 1fr !important;
+    column-gap:5px !important;
+  }
+
+  .ce2-metrics>div:nth-child(2){
+    border-right:0 !important;
+  }
+
+  .ce2-metrics>div:nth-child(-n+2){
+    border-bottom:1px solid #e9dfd2 !important;
+  }
+
+  .ce2-metrics>div>span svg{
+    width:13px !important;
+    height:13px !important;
+  }
+
+  .ce2-metrics small{
+    font-size:8px !important;
+    line-height:1.05 !important;
+  }
+
+  .ce2-metrics strong{
+    font-size:11px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .ce2-profile-strip{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    margin:6px 8px 0 !important;
+    padding:6px !important;
+  }
+
+  .ce2-profile-strip>div{
+    padding:4px 6px !important;
+  }
+
+  .ce2-profile-strip small{
+    font-size:8px !important;
+  }
+
+  .ce2-profile-strip strong{
+    font-size:10px !important;
+  }
+
+  .ce2-active-route{
+    grid-template-columns:1fr !important;
+    gap:6px !important;
+    margin:6px 8px 8px !important;
+    padding:7px 8px !important;
+    border-radius:8px !important;
+  }
+
+  .ce2-route-id{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:6px !important;
+  }
+
+  .ce2-route-id span,
+  .ce2-route-id strong{
+    margin:0 !important;
+    font-size:9px !important;
+  }
+
+  .ce2-route-flow{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    justify-content:stretch !important;
+    gap:3px !important;
+  }
+
+  .ce2-route-flow>svg{
+    display:none !important;
+  }
+
+  .ce2-route-flow span{
+    min-width:0 !important;
+    font-size:9px !important;
+    line-height:1.15 !important;
+  }
+
+  .ce2-route-flow span:last-child{
+    font-weight:900 !important;
+  }
+
+  .ce2-route-summary{
+    width:100% !important;
+    justify-content:space-between !important;
+    font-size:9px !important;
+  }
+
+  .ce2-route-summary strong{
+    font-size:11px !important;
+  }
+
+  .ce2-route-summary span{
+    font-size:9px !important;
+  }
+
+  .ce2-details{
+    width:100% !important;
+    height:30px !important;
+    justify-content:center !important;
+    padding:0 8px !important;
+    font-size:9px !important;
+  }
+
+  .ce2-no-route{
+    min-height:54px !important;
+    margin:6px 8px 8px !important;
+    padding:7px !important;
+    align-items:flex-start !important;
+    flex-wrap:wrap !important;
+    font-size:9px !important;
+  }
+
+  .ce2-no-route a{
+    width:100% !important;
+    margin-left:0 !important;
+    text-align:center !important;
+  }
+}
+
+@media (min-width:1100px) and (max-width:1499px){
+  .ce2-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    align-items:start !important;
+  }
+}
+
+@media (min-width:761px) and (max-width:1099px){
+  .ce2-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    align-items:start !important;
+  }
+}
+
+@media (max-width:760px){
+  .ce2-grid{
+    grid-template-columns:1fr !important;
+  }
+}
