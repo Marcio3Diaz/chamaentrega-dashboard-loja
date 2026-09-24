@@ -414,22 +414,26 @@ export function StoreCouriersPanel({
       </section>
 
       <section className="couriers-stats">
-        <article>
-          <span className="couriers-stat-icon gold"><Icon name="user" size={18}/></span>
+        <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
+          <span className="couriers-stat-icon gold"><Icon name="user" size={20}/></span>
           <div><small>Rede conectada</small><strong>{stats.connected}</strong><span>entregadores parceiros</span></div>
-        </article>
-        <article>
+          <Icon name="chevronRight" size={18}/>
+        </button>
+        <button type="button" className={filter === 'online' ? 'active' : ''} onClick={() => setFilter('online')}>
           <span className="couriers-stat-icon green">●</span>
           <div><small>Online agora</small><strong>{stats.online}</strong><span>conectados ao app</span></div>
-        </article>
-        <article>
-          <span className="couriers-stat-icon blue"><Icon name="lightning" size={18}/></span>
+          <Icon name="chevronRight" size={18}/>
+        </button>
+        <button type="button" className={filter === 'available' ? 'active' : ''} onClick={() => setFilter('available')}>
+          <span className="couriers-stat-icon blue"><Icon name="lightning" size={20}/></span>
           <div><small>Disponíveis</small><strong>{stats.available}</strong><span>prontos para oferta</span></div>
-        </article>
-        <article>
-          <span className="couriers-stat-icon amber"><Icon name="truck" size={18}/></span>
+          <Icon name="chevronRight" size={18}/>
+        </button>
+        <button type="button" className={filter === 'route' ? 'active' : ''} onClick={() => setFilter('route')}>
+          <span className="couriers-stat-icon amber"><Icon name="truck" size={20}/></span>
           <div><small>Em rota</small><strong>{stats.routes}</strong><span>com corrida ativa</span></div>
-        </article>
+          <Icon name="chevronRight" size={18}/>
+        </button>
       </section>
 
 
@@ -611,13 +615,23 @@ export function StoreCouriersPanel({
 
                 <div className="courier-card-actions">
                   {courier.phone ? (
-                    <a href={`tel:${courier.phone.replace(/\D/g,'')}`} className="secondary"><Icon name="phone" size={15}/> Ligar</a>
+                    <>
+                      <a href={`tel:${courier.phone.replace(/\D/g,'')}`} className="secondary"><Icon name="phone" size={16}/> Ligar</a>
+                      <a
+                        href={`https://wa.me/55${courier.phone.replace(/\D/g,'').replace(/^55/,'')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="secondary"
+                      >
+                        <Icon name="chat" size={16}/> Mensagem
+                      </a>
+                    </>
                   ) : null}
-                  <Link href="/mapa" className="secondary"><Icon name="pin" size={15}/> Ver no mapa</Link>
+                  <Link href={`/mapa?courier=${courier.id}`} className="secondary"><Icon name="pin" size={16}/> Ver no mapa</Link>
                   {delivery ? (
-                    <Link href={`/chat?delivery=${delivery.id}`} className="primary"><Icon name="chat" size={15}/> Chat da corrida</Link>
+                    <Link href={`/chat?delivery=${delivery.id}`} className="primary"><Icon name="chat" size={16}/> Chat da corrida</Link>
                   ) : (
-                    <Link href="/entregas/nova" className="primary"><Icon name="plus" size={15}/> Criar entrega</Link>
+                    <Link href="/entregas/nova" className="primary"><Icon name="plus" size={16}/> Criar entrega</Link>
                   )}
                 </div>
               </article>
