@@ -18862,3 +18862,441 @@ html[data-theme="light"] .store-switcher-avatar{
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* =================================================================
+   ENTREGADORES — TEMA CREME + CARDS MAIORES + MAIS FUNCIONALIDADE
+   ================================================================= */
+.premium-shell:has(.couriers-page){
+  background:#f3ecdf!important;
+}
+.premium-shell:has(.couriers-page) .premium-sidebar{
+  background:linear-gradient(180deg,#fbf6ee 0%,#f7efe4 60%,#f3eadc 100%)!important;
+  border-right:1px solid #e2d6c5!important;
+  box-shadow:8px 0 28px rgba(84,62,31,.045)!important;
+}
+.premium-shell:has(.couriers-page) .official-brand-link{
+  min-height:78px!important;
+  padding:4px 12px 14px!important;
+}
+.premium-shell:has(.couriers-page) .official-brand-logo{
+  width:178px!important;
+  max-height:62px!important;
+  object-fit:contain!important;
+}
+.premium-shell:has(.couriers-page) .premium-nav a{
+  color:#5d5144!important;
+}
+.premium-shell:has(.couriers-page) .premium-nav a .nav-icon{
+  color:#756654!important;
+}
+.premium-shell:has(.couriers-page) .premium-nav a:hover{
+  color:#2b231b!important;
+  background:#fff9ef!important;
+}
+.premium-shell:has(.couriers-page) .premium-nav a.primary{
+  color:#2c2110!important;
+  border-color:#e4ad00!important;
+  background:linear-gradient(90deg,#ffe5a0,#fff3ce)!important;
+  box-shadow:inset 3px 0 0 #e8ad00,0 7px 18px rgba(163,118,22,.08)!important;
+}
+.premium-shell:has(.couriers-page) .premium-nav a.primary .nav-icon{
+  color:#bd7d00!important;
+}
+.premium-shell:has(.couriers-page) .account-box,
+.premium-shell:has(.couriers-page) .signout{
+  border-color:#e1d5c4!important;
+  background:#fff9ef!important;
+  color:#4d4237!important;
+}
+.premium-shell:has(.couriers-page) .account-box strong{color:#2e261e!important}
+.premium-shell:has(.couriers-page) .account-box small{color:#8b7d6b!important}
+.premium-shell:has(.couriers-page) .reference-topbar{
+  background:rgba(255,251,244,.96)!important;
+  border-bottom:1px solid #e4d8c7!important;
+  box-shadow:0 8px 28px rgba(91,67,34,.045)!important;
+}
+.premium-shell:has(.couriers-page) .reference-search{
+  color:#746655!important;
+  border-color:#e2d6c5!important;
+  background:#f7efe4!important;
+}
+.premium-shell:has(.couriers-page) .reference-search input{color:#302820!important}
+.premium-shell:has(.couriers-page) .reference-search input::placeholder{color:#978977!important}
+.premium-shell:has(.couriers-page) .reference-search kbd{
+  color:#766956!important;
+  border-color:#dfd2bf!important;
+  background:#efe5d7!important;
+}
+.premium-shell:has(.couriers-page) .reference-bell{
+  color:#55493c!important;
+  border-color:#e2d5c4!important;
+  background:#fffaf3!important;
+}
+.premium-shell:has(.couriers-page) .reference-wallet-chip{
+  border-color:#e4c878!important;
+  background:#fff5d9!important;
+}
+.premium-shell:has(.couriers-page) .reference-wallet-chip strong{color:#30251a!important}
+.premium-shell:has(.couriers-page) .reference-wallet-chip small{color:#887963!important}
+.premium-shell:has(.couriers-page) .reference-new-delivery{
+  color:#251a08!important;
+  background:linear-gradient(135deg,#ffb300,#ffd95a)!important;
+}
+.premium-shell:has(.couriers-page) .reference-store-profile{
+  color:#392f26!important;
+  border-color:#e1d5c5!important;
+  background:#fffaf3!important;
+}
+.premium-shell:has(.couriers-page) .reference-store-profile strong{color:#302820!important}
+.premium-shell:has(.couriers-page) .premium-main,
+.premium-shell:has(.couriers-page) .premium-content{
+  background:#f3ecdf!important;
+}
+
+.couriers-page{
+  display:grid;
+  gap:16px!important;
+  padding:16px!important;
+  min-height:calc(100vh - 86px);
+  color:#2d251d!important;
+  border:1px solid #eadfce;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 88% 0%,rgba(255,189,18,.08),transparent 28%),
+    #f8f2e8!important;
+}
+.couriers-page-head{
+  min-height:148px!important;
+  padding:24px 26px!important;
+  border:1px solid #e4d8c7!important;
+  border-radius:19px!important;
+  background:linear-gradient(145deg,#fffaf2,#f0e7da)!important;
+  box-shadow:0 10px 26px rgba(87,67,38,.06)!important;
+}
+.couriers-page-head .eyebrow{
+  color:#b67a00!important;
+  font-size:10px!important;
+}
+.couriers-page-head h1{
+  color:#2b241d!important;
+  font-size:38px!important;
+  letter-spacing:-1.2px!important;
+}
+.couriers-page-head p{
+  color:#706355!important;
+  font-size:12px!important;
+}
+.couriers-head-actions{
+  flex-wrap:wrap!important;
+  gap:9px!important;
+}
+.couriers-live-pill,
+.couriers-refresh-button,
+.couriers-new-delivery-button,
+.couriers-map-button{
+  min-height:40px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:0 13px!important;
+  border-radius:11px!important;
+  font-size:9.5px!important;
+  font-weight:850!important;
+}
+.couriers-live-pill{
+  color:#178c53!important;
+  border:1px solid #bfe6d0!important;
+  background:#edf9f2!important;
+}
+.couriers-refresh-button{
+  color:#5b4f42!important;
+  border:1px solid #e0d4c4!important;
+  background:#fffaf3!important;
+}
+.couriers-new-delivery-button{
+  color:#251a08!important;
+  border:1px solid #e5ad00!important;
+  background:linear-gradient(135deg,#ffb300,#ffd75a)!important;
+}
+.couriers-map-button{
+  color:#40352a!important;
+  border:1px solid #ddcfbd!important;
+  background:#fff8ee!important;
+}
+
+.couriers-stats{
+  gap:13px!important;
+}
+.couriers-stats article{
+  min-height:120px!important;
+  padding:18px!important;
+  gap:15px!important;
+  border:1px solid #e3d7c6!important;
+  border-radius:17px!important;
+  background:#fffaf3!important;
+  box-shadow:0 9px 22px rgba(92,68,34,.05)!important;
+}
+.couriers-stat-icon{
+  width:54px!important;
+  height:54px!important;
+  flex-basis:54px!important;
+  border-radius:15px!important;
+}
+.couriers-stats small{
+  color:#7b6d5d!important;
+  font-size:9.5px!important;
+}
+.couriers-stats strong{
+  color:#2b241d!important;
+  font-size:28px!important;
+}
+.couriers-stats article div>span{
+  color:#928472!important;
+  font-size:8.8px!important;
+}
+
+.courier-network-requests,
+.couriers-list-card{
+  border:1px solid #e2d6c5!important;
+  border-radius:18px!important;
+  background:#fffaf3!important;
+  box-shadow:0 9px 24px rgba(85,63,31,.05)!important;
+}
+.courier-network-requests-head,
+.couriers-toolbar{
+  min-height:76px!important;
+  padding:16px 18px!important;
+  border-bottom-color:#eadfce!important;
+}
+.courier-network-requests-head .eyebrow{
+  color:#b87900!important;
+  font-size:9px!important;
+}
+.courier-network-requests-head h2,
+.couriers-toolbar>div>strong{
+  color:#2c251e!important;
+  font-size:18px!important;
+}
+.courier-network-requests-head p,
+.couriers-toolbar>div>span{
+  color:#857766!important;
+  font-size:9.5px!important;
+}
+.network-request-count{
+  color:#765e20!important;
+  border-color:#e6d3a0!important;
+  background:#fff3d1!important;
+}
+.courier-network-request-list article{
+  min-height:92px!important;
+  padding:14px 16px!important;
+  border-top-color:#eee2d2!important;
+  background:#fffdf9!important;
+}
+.network-request-avatar{
+  width:48px!important;
+  height:48px!important;
+}
+.network-request-person strong,
+.network-request-contact strong{
+  color:#302820!important;
+  font-size:11px!important;
+}
+.network-request-person small,
+.network-request-person em,
+.network-request-contact small{
+  color:#817362!important;
+  font-size:8.5px!important;
+}
+.network-request-actions button{
+  min-height:36px!important;
+  padding:0 12px!important;
+  font-size:8.8px!important;
+}
+.network-request-actions .reject{
+  color:#a23d45!important;
+  border-color:#efc8cb!important;
+  background:#fff4f5!important;
+}
+.network-request-actions .approve{
+  color:#176f46!important;
+  border-color:#bee1ce!important;
+  background:#edf9f2!important;
+}
+
+.couriers-toolbar-controls{
+  gap:9px!important;
+}
+.couriers-search{
+  min-height:38px!important;
+  min-width:300px!important;
+  border-color:#e0d4c4!important;
+  background:#fffdf9!important;
+}
+.couriers-search input{
+  color:#302820!important;
+  font-size:9.5px!important;
+}
+.couriers-filters button{
+  min-height:34px!important;
+  padding:0 11px!important;
+  color:#65594b!important;
+  border-color:#e4d9c9!important;
+  background:#f8f0e5!important;
+  font-size:8.8px!important;
+}
+.couriers-filters button.active{
+  color:#241b0d!important;
+  border-color:#e0a900!important;
+  background:linear-gradient(135deg,#ffbc18,#ffd85a)!important;
+}
+
+.couriers-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:14px!important;
+  padding:16px!important;
+}
+.courier-card{
+  min-height:300px!important;
+  padding:16px!important;
+  gap:14px!important;
+  border:1px solid #e4d8c8!important;
+  border-radius:17px!important;
+  background:#fffdf9!important;
+  box-shadow:0 10px 24px rgba(80,59,27,.06)!important;
+}
+.courier-card.in-route{
+  border-color:#dcc77b!important;
+  box-shadow:inset 3px 0 0 #e5aa00,0 10px 24px rgba(80,59,27,.07)!important;
+}
+.courier-card-avatar{
+  width:58px!important;
+  height:58px!important;
+}
+.courier-card-name strong{
+  color:#2c251e!important;
+  font-size:15px!important;
+}
+.courier-card-name small{
+  color:#6f6254!important;
+  font-size:10px!important;
+}
+.courier-card-name>span{
+  color:#968775!important;
+  font-size:8.7px!important;
+}
+.courier-status-pill{
+  min-height:30px!important;
+  padding:0 10px!important;
+  font-size:8.8px!important;
+}
+.courier-card-metrics{
+  border-color:#eadfce!important;
+  background:#fff8ef!important;
+}
+.courier-card-metrics>div{
+  min-height:62px!important;
+  padding:11px!important;
+  border-color:#eadfce!important;
+}
+.courier-card-metrics small{
+  color:#8a7b69!important;
+  font-size:8.6px!important;
+}
+.courier-card-metrics strong{
+  color:#2f281f!important;
+  font-size:11px!important;
+}
+.courier-card-metrics strong.stale{
+  color:#b77900!important;
+}
+.courier-active-delivery{
+  padding:13px!important;
+  border-color:#e6d49d!important;
+  background:#fff6dc!important;
+}
+.courier-route-head span,
+.courier-route-head strong{
+  color:#6d5412!important;
+  font-size:9px!important;
+}
+.courier-route-customer strong{
+  color:#2f281f!important;
+  font-size:11px!important;
+}
+.courier-route-customer span{
+  color:#766958!important;
+  font-size:9px!important;
+}
+.courier-route-meta span{
+  color:#765c14!important;
+  background:#fff1c6!important;
+  font-size:8.5px!important;
+}
+.courier-no-route{
+  min-height:70px!important;
+  color:#5e6e63!important;
+  border-color:#d8e6dc!important;
+  background:#f2faf5!important;
+  font-size:9.5px!important;
+}
+.courier-card-actions{
+  gap:8px!important;
+}
+.courier-card-actions a,
+.courier-card-actions .courier-chat-disabled{
+  min-height:38px!important;
+  padding:0 12px!important;
+  border-radius:10px!important;
+  font-size:9px!important;
+}
+.courier-card-actions .secondary{
+  color:#514538!important;
+  border-color:#ded2c1!important;
+  background:#fffaf3!important;
+}
+.courier-card-actions .primary{
+  color:#251a08!important;
+  border-color:#e2a900!important;
+  background:linear-gradient(135deg,#ffb300,#ffd75a)!important;
+}
+.courier-chat-disabled{
+  color:#9b8d7a!important;
+  border-color:#e5dacb!important;
+  background:#f5eee4!important;
+}
+
+.network-requests-empty,
+.couriers-empty{
+  color:#7d7060!important;
+  background:#fffaf3!important;
+}
+.network-requests-empty strong,
+.couriers-empty strong{
+  color:#302820!important;
+}
+
+/* Mobile também claro */
+.premium-shell:has(.couriers-page) .mobile-nav{
+  border-top-color:#e2d5c4!important;
+  background:#fffaf3!important;
+}
+.premium-shell:has(.couriers-page) .mobile-nav a{color:#66594b!important}
+.premium-shell:has(.couriers-page) .mobile-nav svg{color:#b77a00!important}
+
+@media(max-width:1200px){
+  .couriers-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:800px){
+  .couriers-stats{grid-template-columns:1fr 1fr!important}
+  .couriers-toolbar{align-items:flex-start!important;flex-direction:column!important}
+  .couriers-toolbar-controls{width:100%!important;align-items:stretch!important;flex-direction:column!important}
+  .couriers-search{min-width:0!important;width:100%!important}
+}
+@media(max-width:560px){
+  .couriers-stats{grid-template-columns:1fr!important}
+  .couriers-head-actions{width:100%!important}
+  .couriers-head-actions>*{flex:1}
+}
