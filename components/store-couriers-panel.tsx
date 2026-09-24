@@ -449,9 +449,19 @@ export function StoreCouriersPanel({
           <span className="ce2-stat-copy"><small>Em rota</small><strong>{stats.routes}</strong><em>com corrida ativa</em></span>
           <Icon name="chevron" size={20}/>
         </button>
+        <button
+          type="button"
+          className="ce2-pending-stat"
+          onClick={() => document.getElementById('solicitacoes-entregadores')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          title="Ver solicitações pendentes"
+        >
+          <span className="ce2-stat-icon pending"><Icon name="users" size={22}/></span>
+          <span className="ce2-stat-copy"><small>Solicitações</small><strong>{requests.length}</strong><em>aguardando análise</em></span>
+          <Icon name="chevron" size={20}/>
+        </button>
       </section>
 
-      <section className="ce2-requests">
+      <section className="ce2-requests" id="solicitacoes-entregadores">
         <div className="ce2-section-head">
           <div>
             <span className="ce2-eyebrow">REDE PARTICULAR DA LOJA</span>
