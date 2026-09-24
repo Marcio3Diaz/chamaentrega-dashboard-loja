@@ -49,6 +49,8 @@ type Props = {
   storeLongitude: number | null
   initialCouriers: LiveCourier[]
   initialDeliveries: LiveDelivery[]
+  initialDeliveryId?: string | null
+  initialCourierId?: string | null
 }
 
 type Filter = 'all' | 'online' | 'route'
@@ -162,6 +164,8 @@ export function LiveCourierMap({
   storeLongitude,
   initialCouriers,
   initialDeliveries,
+  initialDeliveryId = null,
+  initialCourierId = null,
 }: Props) {
   const supabase = useMemo(() => createClient(), [])
 
@@ -180,11 +184,18 @@ export function LiveCourierMap({
   const [mapError, setMapError] = useState('')
   const [couriers, setCouriers] = useState(initialCouriers)
   const [deliveries, setDeliveries] = useState(initialDeliveries)
-  const [selectedCourierId, setSelectedCourierId] = useState<string | null>(
-    initialDeliveries.find(item => item.assignedCourierId)?.assignedCourierId ??
-    initialCouriers.find(item => item.isOnline)?.id ??
-    initialCouriers[0]?.id ??
-    null
+  const [selectedCourierId, setSelectedCourierId] = useState<string | null>(() =>
+    initialDeliveryId
+      ? initialDeliveries.find(item => item.id === initialDeliveryId)?.assignedCourierId ??
+        initialCourierId ??
+        initialCouriers.find(item => item.isOnline)?.id ??
+        initialCouriers[0]?.id ??
+        null
+      : initialCourierId ??
+        initialDeliveries.find(item => item.assignedCourierId)?.assignedCourierId ??
+        initialCouriers.find(item => item.isOnline)?.id ??
+        initialCouriers[0]?.id ??
+        null
   )
   const [filter, setFilter] = useState<Filter>('all')
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -221,6 +232,16 @@ export function LiveCourierMap({
 
   const selectedCourier = couriers.find(item => item.id === selectedCourierId) ?? null
   const selectedDelivery = selectedCourier ? deliveryByCourier.get(selectedCourier.id) ?? null : null
+
+  useEffect(() => {
+    if (!initialDeliveryId) return
+    const delivery = deliveries.find(item => item.id === initialDeliveryId)
+    if (delivery?.assignedCourierId) {
+      setSelectedCourierId(delivery.assignedCourierId)
+      setFilter('route')
+    }
+  }, [deliveries, initialDeliveryId])
+
 
   const stats = useMemo(() => ({
     connected: couriers.length,
