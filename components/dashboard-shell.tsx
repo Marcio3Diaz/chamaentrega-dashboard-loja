@@ -14,7 +14,7 @@ const nav = [
   ['/entregas/nova', 'Criar entrega', 'route'],
   ['/entregadores', 'Entregadores', 'user'],
   ['/financeiro', 'Financeiro', 'chart'],
-  ['/entregas', 'Relatórios', 'box'],
+  ['/entregas', 'Entregas', 'box'],
   ['/integracoes', 'Cardápio', 'store'],
   ['/integracoes', 'Integrações', 'link'],
   ['/despacho', 'Promoções', 'activity'],
@@ -97,7 +97,7 @@ export function DashboardShell({
       <aside className="sidebar premium-sidebar">
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
-            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores')) ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
+            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores') || pathname === '/entregas') ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
             width={420}
             height={140}
             alt="ChamaEntrega — Chamou, Chegou"
