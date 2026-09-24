@@ -1,11 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
-import { reviewCourierNetworkRequestAction } from '@/app/(dashboard)/entregadores/actions'
 
 export type StoreCourierActiveDelivery = {
   id: string
@@ -150,7 +149,6 @@ export function StoreCouriersPanel({
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set())
   const [reviewingActions, setReviewingActions] = useState<Record<string,'connected'|'rejected'>>({})
   const [reviewMessage, setReviewMessage] = useState('')
-  const [, startReviewTransition] = useTransition()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [liveState, setLiveState] = useState('CONECTANDO')
@@ -367,7 +365,7 @@ export function StoreCouriersPanel({
     }
   }
 
-  function reviewRequest(
+  async function reviewRequest(
     courierId: string,
     decision: 'connected' | 'rejected',
   ) {
@@ -377,23 +375,45 @@ export function StoreCouriersPanel({
     setReviewingIds(current => new Set(current).add(courierId))
     setReviewingActions(current => ({ ...current, [courierId]: decision }))
 
-    startReviewTransition(async () => {
-      const result = await reviewCourierNetworkRequestAction(
-        storeId,
-        courierId,
-        decision,
-      )
+    try {
+      const { error } = await supabase.rpc('review_courier_store_network_request', {
+        p_store_id: storeId,
+        p_courier_id: courierId,
+        p_decision: decision,
+        p_note: null,
+      })
 
-      setReviewMessage(result.message)
+      if (error) {
+        const raw = error.message ?? ''
 
-      if (result.ok) {
-        setRequests(current =>
-          current.filter(request => request.courierId !== courierId),
-        )
-        router.refresh()
-        void refresh()
+        if (raw.includes('REQUEST_ALREADY_REVIEWED')) {
+          setReviewMessage('Esta solicitação já foi analisada.')
+        } else if (raw.includes('REQUEST_NOT_FOUND')) {
+          setReviewMessage('Solicitação não encontrada.')
+        } else if (raw.includes('STORE_ACCESS_REQUIRED')) {
+          setReviewMessage('A sessão atual não tem permissão para analisar esta solicitação.')
+        } else {
+          setReviewMessage(`Erro ao ${decision === 'connected' ? 'aprovar' : 'recusar'}: ${raw || 'tente novamente.'}`)
+        }
+        return
       }
 
+      setRequests(current =>
+        current.filter(request => request.courierId !== courierId),
+      )
+
+      setReviewMessage(
+        decision === 'connected'
+          ? 'Entregador aprovado e adicionado à rede da loja.'
+          : 'Solicitação recusada.',
+      )
+
+      await refresh()
+      router.refresh()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha inesperada.'
+      setReviewMessage(`Não foi possível concluir a ação: ${message}`)
+    } finally {
       setReviewingIds(current => {
         const next = new Set(current)
         next.delete(courierId)
@@ -404,7 +424,7 @@ export function StoreCouriersPanel({
         delete next[courierId]
         return next
       })
-    })
+    }
   }
 
   function requestedLabel(value: string) {
