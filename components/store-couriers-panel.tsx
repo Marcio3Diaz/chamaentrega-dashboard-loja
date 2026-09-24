@@ -417,22 +417,22 @@ export function StoreCouriersPanel({
         <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
           <span className="couriers-stat-icon gold"><Icon name="user" size={20}/></span>
           <div><small>Rede conectada</small><strong>{stats.connected}</strong><span>entregadores parceiros</span></div>
-          <Icon name="chevronRight" size={18}/>
+          <Icon name="chevron" size={18}/>
         </button>
         <button type="button" className={filter === 'online' ? 'active' : ''} onClick={() => setFilter('online')}>
           <span className="couriers-stat-icon green">●</span>
           <div><small>Online agora</small><strong>{stats.online}</strong><span>conectados ao app</span></div>
-          <Icon name="chevronRight" size={18}/>
+          <Icon name="chevron" size={18}/>
         </button>
         <button type="button" className={filter === 'available' ? 'active' : ''} onClick={() => setFilter('available')}>
           <span className="couriers-stat-icon blue"><Icon name="lightning" size={20}/></span>
           <div><small>Disponíveis</small><strong>{stats.available}</strong><span>prontos para oferta</span></div>
-          <Icon name="chevronRight" size={18}/>
+          <Icon name="chevron" size={18}/>
         </button>
         <button type="button" className={filter === 'route' ? 'active' : ''} onClick={() => setFilter('route')}>
           <span className="couriers-stat-icon amber"><Icon name="truck" size={20}/></span>
           <div><small>Em rota</small><strong>{stats.routes}</strong><span>com corrida ativa</span></div>
-          <Icon name="chevronRight" size={18}/>
+          <Icon name="chevron" size={18}/>
         </button>
       </section>
 
