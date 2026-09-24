@@ -52,6 +52,7 @@ type Props = {
   storeLongitude: number | null
   initialCouriers: StoreCourier[]
   initialRequests: StoreCourierRequest[]
+  initialReviewMessage?: string
 }
 
 type Filter = 'all' | 'online' | 'available' | 'route'
@@ -141,14 +142,13 @@ export function StoreCouriersPanel({
   storeLongitude,
   initialCouriers,
   initialRequests,
+  initialReviewMessage = '',
 }: Props) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [couriers, setCouriers] = useState(initialCouriers)
   const [requests, setRequests] = useState(initialRequests)
-  const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set())
-  const [reviewingActions, setReviewingActions] = useState<Record<string,'connected'|'rejected'>>({})
-  const [reviewMessage, setReviewMessage] = useState('')
+  const [reviewMessage] = useState(initialReviewMessage)
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [liveState, setLiveState] = useState('CONECTANDO')
@@ -365,68 +365,6 @@ export function StoreCouriersPanel({
     }
   }
 
-  async function reviewRequest(
-    courierId: string,
-    decision: 'connected' | 'rejected',
-  ) {
-    if (reviewingIds.has(courierId)) return
-
-    setReviewMessage('')
-    setReviewingIds(current => new Set(current).add(courierId))
-    setReviewingActions(current => ({ ...current, [courierId]: decision }))
-
-    try {
-      const { error } = await supabase.rpc('review_courier_store_network_request', {
-        p_store_id: storeId,
-        p_courier_id: courierId,
-        p_decision: decision,
-        p_note: null,
-      })
-
-      if (error) {
-        const raw = error.message ?? ''
-
-        if (raw.includes('REQUEST_ALREADY_REVIEWED')) {
-          setReviewMessage('Esta solicitação já foi analisada.')
-        } else if (raw.includes('REQUEST_NOT_FOUND')) {
-          setReviewMessage('Solicitação não encontrada.')
-        } else if (raw.includes('STORE_ACCESS_REQUIRED')) {
-          setReviewMessage('A sessão atual não tem permissão para analisar esta solicitação.')
-        } else {
-          setReviewMessage(`Erro ao ${decision === 'connected' ? 'aprovar' : 'recusar'}: ${raw || 'tente novamente.'}`)
-        }
-        return
-      }
-
-      setRequests(current =>
-        current.filter(request => request.courierId !== courierId),
-      )
-
-      setReviewMessage(
-        decision === 'connected'
-          ? 'Entregador aprovado e adicionado à rede da loja.'
-          : 'Solicitação recusada.',
-      )
-
-      await refresh()
-      router.refresh()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha inesperada.'
-      setReviewMessage(`Não foi possível concluir a ação: ${message}`)
-    } finally {
-      setReviewingIds(current => {
-        const next = new Set(current)
-        next.delete(courierId)
-        return next
-      })
-      setReviewingActions(current => {
-        const next = { ...current }
-        delete next[courierId]
-        return next
-      })
-    }
-  }
-
   function requestedLabel(value: string) {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -503,7 +441,6 @@ export function StoreCouriersPanel({
         {requests.length ? (
           <div className="ce2-request-list">
             {requests.map(request => {
-              const busy = reviewingIds.has(request.courierId)
               return (
                 <article key={request.courierId} className="ce2-request">
                   <span className="ce2-avatar request">
@@ -521,27 +458,16 @@ export function StoreCouriersPanel({
                       ? <a href={`tel:${request.phone.replace(/\D/g,'')}`}>{request.phone}</a>
                       : <strong>Não informado</strong>}
                   </div>
-                  <div className="ce2-request-actions">
-                    <button
-                      type="button"
-                      className="reject"
-                      disabled={busy}
-                      aria-busy={busy && reviewingActions[request.courierId] === 'rejected'}
-                      onClick={() => reviewRequest(request.courierId,'rejected')}
-                    >
-                      {busy && reviewingActions[request.courierId] === 'rejected' ? 'Recusando...' : 'Recusar'}
+                  <form action="/api/courier-network/review" method="post" className="ce2-request-actions">
+                    <input type="hidden" name="storeId" value={storeId} />
+                    <input type="hidden" name="courierId" value={request.courierId} />
+                    <button type="submit" name="decision" value="rejected" className="reject">
+                      Recusar
                     </button>
-                    <button
-                      type="button"
-                      className="approve"
-                      disabled={busy}
-                      aria-busy={busy && reviewingActions[request.courierId] === 'connected'}
-                      onClick={() => reviewRequest(request.courierId,'connected')}
-                    >
-                      <Icon name="check" size={16}/>
-                      {busy && reviewingActions[request.courierId] === 'connected' ? 'Aprovando...' : 'Aprovar'}
+                    <button type="submit" name="decision" value="connected" className="approve">
+                      <Icon name="check" size={16}/> Aprovar
                     </button>
-                  </div>
+                  </form>
                 </article>
               )
             })}
