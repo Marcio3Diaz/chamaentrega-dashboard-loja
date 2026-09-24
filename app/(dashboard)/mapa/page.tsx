@@ -10,7 +10,14 @@ const activeStatuses = [
   'at_dropoff',
 ]
 
-export default async function LiveMapPage() {
+export default async function LiveMapPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string,string | string[] | undefined>>
+}) {
+  const params = searchParams ? await searchParams : {}
+  const initialDeliveryId = typeof params.delivery === 'string' ? params.delivery : null
+  const initialCourierId = typeof params.courier === 'string' ? params.courier : null
   const { store } = await requireStore()
   const supabase = await createClient()
 
@@ -79,6 +86,8 @@ export default async function LiveMapPage() {
       storeLongitude={store.longitude == null ? null : Number(store.longitude)}
       initialCouriers={couriers}
       initialDeliveries={deliveries}
+      initialDeliveryId={initialDeliveryId}
+      initialCourierId={initialCourierId}
     />
   )
 }
