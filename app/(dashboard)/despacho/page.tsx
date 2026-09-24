@@ -4,7 +4,13 @@ import { SmartDispatchBoard, type DispatchCourier, type DispatchDelivery } from 
 
 const queueStatuses = ['draft','available','negotiating'] as const
 
-export default async function SmartDispatchPage() {
+export default async function SmartDispatchPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string,string | string[] | undefined>>
+}) {
+  const params = searchParams ? await searchParams : {}
+  const initialFocusDeliveryId = typeof params.delivery === 'string' ? params.delivery : null
   const { store } = await requireStore()
   const supabase = await createClient()
 
@@ -79,6 +85,7 @@ export default async function SmartDispatchPage() {
       storeLongitude={store.longitude == null ? null : Number(store.longitude)}
       initialDeliveries={deliveries}
       initialCouriers={couriers}
+      initialFocusDeliveryId={initialFocusDeliveryId}
     />
   )
 }
