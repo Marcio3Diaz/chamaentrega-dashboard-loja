@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { Icon } from '@/components/icon'
 
 type DeliveryPoint = {
@@ -65,12 +66,13 @@ export function DashboardLiveMap({ storeLatitude, storeLongitude, deliveries }: 
 
       const map = L.map(ref.current,{
         zoomControl:true,
-        attributionControl:false,
+        attributionControl:true,
         scrollWheelZoom:true,
       }).setView(center,12)
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
         maxZoom:19,
+        attribution:'&copy; OpenStreetMap contributors',
       }).addTo(map)
 
       if (storeLatitude != null && storeLongitude != null) {
@@ -121,7 +123,7 @@ export function DashboardLiveMap({ storeLatitude, storeLongitude, deliveries }: 
       <div ref={ref} className="reference-map-canvas" />
       {error ? <div className="reference-map-error">{error}</div> : null}
       <div className="reference-map-badge"><i /> {deliveries.length} entrega{deliveries.length === 1 ? '' : 's'} ativa{deliveries.length === 1 ? '' : 's'}</div>
-      <button type="button" className="reference-map-expand" aria-label="Expandir mapa"><Icon name="map" size={16}/></button>
+      <Link href="/mapa" className="reference-map-expand" aria-label="Abrir mapa completo" title="Abrir mapa completo"><Icon name="map" size={16}/></Link>
     </div>
   )
 }
