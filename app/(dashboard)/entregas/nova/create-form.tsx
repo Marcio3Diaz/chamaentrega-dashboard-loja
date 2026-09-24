@@ -81,6 +81,7 @@ export function CreateDeliveryForm({
   const [resolvedAddress,setResolvedAddress] = useState('')
   const [geocodeError,setGeocodeError] = useState('')
   const [locating,setLocating] = useState(false)
+  const [lastLocatedAddress,setLastLocatedAddress] = useState('')
 
   const feeValue = useMemo(() => {
     const value = Number(fee.replace(',', '.'))
@@ -89,6 +90,21 @@ export function CreateDeliveryForm({
 
   const insufficient = feeValue > availableBalance
   const hasCoordinates = Boolean(latitude && longitude)
+
+  const mapPreviewUrl = useMemo(() => {
+    if (!hasCoordinates) return ''
+    const lat = Number(latitude)
+    const lon = Number(longitude)
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return ''
+    const delta = 0.006
+    const bbox = [
+      lon - delta,
+      lat - delta,
+      lon + delta,
+      lat + delta,
+    ].join(',')
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lon}`)}`
+  },[hasCoordinates,latitude,longitude])
 
   function suggestedFee(distanceKm:number) {
     const extraKm = Math.max(0,distanceKm-pricing.includedKm)
@@ -133,6 +149,7 @@ export function CreateDeliveryForm({
       setLatitude(String(payload.latitude))
       setLongitude(String(payload.longitude))
       setResolvedAddress(payload.displayName || address)
+      setLastLocatedAddress(address.trim())
 
       if (storeLatitude != null && storeLongitude != null) {
         const direct = haversineKm(
@@ -207,7 +224,7 @@ export function CreateDeliveryForm({
             <input
               name="delivery_address"
               required
-              placeholder="Rua, número, bairro, cidade"
+              placeholder="Ex.: Av. de Santa Cruz, 1200, Senador Camará"
               value={address}
               onChange={event => {
                 setAddress(event.target.value)
@@ -218,14 +235,27 @@ export function CreateDeliveryForm({
                 setDeliveryDistance('')
                 setEstimatedMinutes('')
               }}
+              onBlur={() => {
+                const current = address.trim()
+                if (current.length >= 6 && current !== lastLocatedAddress && !locating) {
+                  void locateAddress()
+                }
+              }}
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  void locateAddress()
+                }
+              }}
             />
             <button
               type="button"
               className="geo-locate-button"
+              onMouseDown={event => event.preventDefault()}
               onClick={() => void locateAddress()}
               disabled={locating || address.trim().length < 6}
             >
-              {locating ? 'LOCALIZANDO...' : 'LOCALIZAR + CALCULAR'}
+              {locating ? 'IDENTIFICANDO...' : 'IDENTIFICAR LOCALIZAÇÃO'}
             </button>
           </div>
         </div>
@@ -238,12 +268,12 @@ export function CreateDeliveryForm({
           <div className={hasCoordinates ? 'geo-status ok' : 'geo-status'}>
             <i/>
             <span>
-              <strong>{hasCoordinates ? 'Destino localizado' : 'Aguardando localização'}</strong>
-              {resolvedAddress || 'Localize o endereço para calcular distância, tempo e taxa automaticamente.'}
+              <strong>{hasCoordinates ? 'Localização identificada pelo sistema' : locating ? 'Identificando endereço...' : 'Digite o endereço do cliente'}</strong>
+              {resolvedAddress || 'O ChamaEntrega encontra o ponto no mapa e calcula automaticamente distância, tempo e taxa.'}
             </span>
           </div>
           {deliveryDistance ? <div>
-            <small>Distância estimada</small>
+            <small>Distância da loja</small>
             <strong>{Number(deliveryDistance).toFixed(1).replace('.',',')} km</strong>
           </div> : null}
           {estimatedMinutes ? <div>
@@ -251,6 +281,26 @@ export function CreateDeliveryForm({
             <strong>{estimatedMinutes} min</strong>
           </div> : null}
         </div>
+
+        {hasCoordinates && mapPreviewUrl ? (
+          <div className="geo-map-preview full">
+            <div className="geo-map-preview-head">
+              <div>
+                <strong>Destino no mapa</strong>
+                <span>Localização encontrada automaticamente a partir do endereço.</span>
+              </div>
+              <button type="button" onClick={() => void locateAddress()} disabled={locating}>
+                Atualizar localização
+              </button>
+            </div>
+            <iframe
+              title="Localização do cliente"
+              src={mapPreviewUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        ) : null}
 
         {geocodeError ? <div className="error full">{geocodeError}</div> : null}
 
@@ -310,41 +360,37 @@ export function CreateDeliveryForm({
           <label>Peso aproximado (kg)</label>
           <input name="package_weight_kg" inputMode="decimal" placeholder="1,2" />
         </div>
-        <div className="field">
-          <label>Tempo estimado (min)</label>
-          <input
-            name="estimated_minutes"
-            type="number"
-            min="0"
-            placeholder="Calculado automaticamente"
-            value={estimatedMinutes}
-            onChange={event => setEstimatedMinutes(event.target.value)}
-          />
-        </div>
-        <div className="field full">
-          <label>Retirada → cliente (km)</label>
-          <input
-            name="delivery_distance_km"
-            inputMode="decimal"
-            placeholder="Calculado automaticamente"
-            value={deliveryDistance}
-            onChange={event => setDeliveryDistance(event.target.value)}
-          />
+        <input type="hidden" name="estimated_minutes" value={estimatedMinutes}/>
+        <input type="hidden" name="delivery_distance_km" value={deliveryDistance}/>
+
+        <div className="delivery-auto-summary full">
+          <div>
+            <small>Localização</small>
+            <strong>{hasCoordinates ? 'Identificada automaticamente' : 'Aguardando endereço'}</strong>
+          </div>
+          <div>
+            <small>Distância</small>
+            <strong>{deliveryDistance ? `${Number(deliveryDistance).toFixed(1).replace('.',',')} km` : '—'}</strong>
+          </div>
+          <div>
+            <small>Tempo estimado</small>
+            <strong>{estimatedMinutes ? `${estimatedMinutes} min` : '—'}</strong>
+          </div>
         </div>
       </div>
     </section>
 
     <div className="notice">
-      Localize o endereço antes de publicar. Assim o app do entregador recebe distância, coordenadas e estimativa corretas.
+      Informe apenas o endereço do cliente. O ChamaEntrega identifica a localização e calcula a rota automaticamente.
     </div>
-    {!hasCoordinates ? <div className="notice geo-warning">O destino ainda não possui coordenadas. Use <strong>Localizar + calcular</strong>.</div> : null}
+    {!hasCoordinates ? <div className="notice geo-warning">Digite o endereço completo para o sistema identificar o destino no mapa.</div> : null}
     {insufficient ? <div className="error">Saldo insuficiente para publicar esta entrega. Adicione saldo no Financeiro.</div> : null}
     {state.error ? <div className="error">{state.error}</div> : null}
 
     <div className="form-actions">
       <div className="form-action-hint">
         {!hasCoordinates
-          ? 'Localize o endereço antes de publicar.'
+          ? 'Digite o endereço para identificar a localização.'
           : feeValue <= 0
             ? 'Informe a taxa do entregador.'
             : insufficient
