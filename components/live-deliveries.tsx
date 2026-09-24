@@ -54,7 +54,7 @@ export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId:
             </Link>
           ) : null}
           <Link
-            href={delivery.assigned_courier_id ? '/mapa' : '/despacho'}
+            href={delivery.assigned_courier_id ? `/mapa?delivery=${delivery.id}` : `/despacho?delivery=${delivery.id}`}
             className="table-more"
             aria-label={delivery.assigned_courier_id ? 'Ver no mapa' : 'Despachar entrega'}
             title={delivery.assigned_courier_id ? 'Ver no mapa' : 'Despachar entrega'}
