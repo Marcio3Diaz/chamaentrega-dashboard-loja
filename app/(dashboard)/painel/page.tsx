@@ -143,9 +143,13 @@ export default async function OverviewPage() {
     <div className="reference-dashboard">
       <section
         className="reference-hero generic-hero-banner official-png-banner"
-        style={{ backgroundImage: "url('/images/chamaentrega-dashboard-banner-generic.png')" }}
         aria-label="Sua loja no ChamaEntrega"
       >
+        <img
+          className="official-png-banner-image"
+          src="/images/chamaentrega-dashboard-banner-generic.png?v=20260924-2"
+          alt="Sua loja no ChamaEntrega — entregador em uma avenida iluminada à noite"
+        />
         <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
       </section>
 
