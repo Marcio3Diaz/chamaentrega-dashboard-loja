@@ -142,15 +142,10 @@ export default async function OverviewPage() {
   return (
     <div className="reference-dashboard">
       <section
-        className="reference-hero"
-        style={{ backgroundImage: "linear-gradient(90deg,rgba(6,9,12,.92) 0%,rgba(6,9,12,.38) 48%,rgba(6,9,12,.62) 100%),url('/images/chamaentrega-dashboard-banner.webp')" }}
+        className="reference-hero generic-hero-banner"
+        style={{ backgroundImage: "url('/images/chamaentrega-dashboard-banner-generic.webp')" }}
+        aria-label="Sua loja no ChamaEntrega"
       >
-        <div className="reference-hero-copy">
-          <span>Olá,</span>
-          <h1>{store.name}</h1>
-          <p>Acompanhe suas entregas, gerencie sua equipe e faça sua loja ir mais longe com o ChamaEntrega.</p>
-        </div>
-
         <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
       </section>
 
