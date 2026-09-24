@@ -21730,3 +21730,48 @@ html[data-theme="light"] .premium-shell:has(.wallet-page) .mobile-nav{
 html[data-theme="light"] .premium-shell:has(.wallet-page) .mobile-nav a{
   color:#66594b!important;
 }
+
+
+/* =================================================================
+   HOME V3 — banner genérico para todas as lojas
+   ================================================================= */
+.reference-dashboard .reference-hero.generic-hero-banner{
+  min-height:205px!important;
+  justify-content:flex-end!important;
+  padding:18px 16px!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  border:1px solid #d6c8b7!important;
+  border-radius:17px!important;
+  box-shadow:0 12px 30px rgba(63,42,14,.12)!important;
+}
+.reference-dashboard .reference-hero.generic-hero-banner:after{
+  background:linear-gradient(90deg,rgba(0,0,0,.03) 0%,transparent 66%,rgba(0,0,0,.12) 100%)!important;
+}
+.reference-dashboard .reference-hero.generic-hero-banner .reference-clock-card{
+  min-width:205px!important;
+  min-height:112px!important;
+  margin-right:2px!important;
+  border-color:rgba(255,255,255,.11)!important;
+  background:rgba(10,16,22,.88)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.18)!important;
+}
+@media(max-width:1100px){
+  .reference-dashboard .reference-hero.generic-hero-banner{
+    min-height:180px!important;
+    background-position:center center!important;
+  }
+}
+@media(max-width:760px){
+  .reference-dashboard .reference-hero.generic-hero-banner{
+    min-height:210px!important;
+    align-items:flex-end!important;
+    padding:10px!important;
+    background-position:center center!important;
+  }
+  .reference-dashboard .reference-hero.generic-hero-banner .reference-clock-card{
+    min-width:170px!important;
+    min-height:92px!important;
+  }
+}
