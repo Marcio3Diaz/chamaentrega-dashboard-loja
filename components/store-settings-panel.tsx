@@ -83,7 +83,7 @@ export function StoreSettingsPanel({ initialData }: Props) {
   const supabase = useMemo(() => createClient(), [])
 
   const [tab,setTab] = useState<Tab>('store')
-  const [theme,setTheme] = useState<Theme>('dark')
+  const [theme,setTheme] = useState<Theme>('light')
   const [name,setName] = useState(initialData.name)
   const [phone,setPhone] = useState(initialData.phone ?? '')
   const [isActive,setIsActive] = useState(initialData.isActive)
@@ -115,8 +115,19 @@ export function StoreSettingsPanel({ initialData }: Props) {
   const [messageType,setMessageType] = useState<'success'|'error'>('success')
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('chamaentrega-theme')
-    setTheme(saved === 'light' ? 'light' : 'dark')
+    const migrationKey = 'chamaentrega-theme-cream-v1'
+    const migrated = window.localStorage.getItem(migrationKey)
+    let saved = window.localStorage.getItem('chamaentrega-theme')
+
+    if (!migrated) {
+      saved = 'light'
+      window.localStorage.setItem('chamaentrega-theme','light')
+      window.localStorage.setItem(migrationKey,'1')
+      document.documentElement.dataset.theme = 'light'
+      document.documentElement.style.colorScheme = 'light'
+    }
+
+    setTheme(saved === 'dark' ? 'dark' : 'light')
   }, [])
 
   function changeTheme(nextTheme: Theme) {
