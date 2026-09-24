@@ -21305,3 +21305,217 @@ html[data-theme="light"] .store-switcher-avatar{
 .premium-shell:has(.reference-dashboard) .mobile-nav a{
   color:#66594b!important;
 }
+
+
+/* =================================================================
+   CONFIGURAÇÕES V3 — tema creme claro
+   ================================================================= */
+html[data-theme="light"] .premium-shell:has(.settings-page){
+  background:#f3ecdf!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-main,
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-content{
+  background:#f3ecdf!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-sidebar{
+  background:linear-gradient(180deg,#fbf6ee 0%,#f7efe4 60%,#f3eadc 100%)!important;
+  border-right:1px solid #e2d6c5!important;
+  box-shadow:8px 0 28px rgba(84,62,31,.045)!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-nav a{
+  color:#5d5144!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-nav a .nav-icon{
+  color:#756654!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-nav a:hover{
+  color:#2b231b!important;
+  background:#fff9ef!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-nav a.primary{
+  color:#2c2110!important;
+  border-color:#e4ad00!important;
+  background:linear-gradient(90deg,#ffe5a0,#fff3ce)!important;
+  box-shadow:inset 3px 0 0 #e8ad00,0 7px 18px rgba(163,118,22,.08)!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .premium-nav a.primary .nav-icon{
+  color:#bd7d00!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .account-box,
+html[data-theme="light"] .premium-shell:has(.settings-page) .signout{
+  color:#4d4237!important;
+  border-color:#e1d5c4!important;
+  background:#fff9ef!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .account-box strong{color:#2e261e!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .account-box small{color:#8b7d6b!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-topbar{
+  background:rgba(255,251,244,.97)!important;
+  border-bottom:1px solid #e4d8c7!important;
+  box-shadow:0 8px 28px rgba(91,67,34,.045)!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-search{
+  color:#746655!important;
+  border-color:#e2d6c5!important;
+  background:#f7efe4!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-search input{color:#302820!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-search input::placeholder{color:#978977!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-search kbd{
+  color:#766956!important;
+  border-color:#dfd2bf!important;
+  background:#efe5d7!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-bell{
+  color:#55493c!important;
+  border-color:#e2d5c4!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-wallet-chip{
+  border-color:#e4c878!important;
+  background:#fff5d9!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-wallet-chip strong{color:#30251a!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-wallet-chip small{color:#887963!important}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-new-delivery{
+  color:#251a08!important;
+  background:linear-gradient(135deg,#ffb300,#ffd95a)!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-store-profile{
+  color:#392f26!important;
+  border-color:#e1d5c5!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .reference-store-profile strong{color:#302820!important}
+
+html[data-theme="light"] .settings-page{
+  min-height:calc(100vh - 72px)!important;
+  padding:14px 16px 28px!important;
+  background:#f3ecdf!important;
+  color:#2f271f!important;
+}
+html[data-theme="light"] .settings-hero{
+  border-color:#e2d5c3!important;
+  background:
+    radial-gradient(circle at 86% 18%,rgba(255,189,18,.11),transparent 28%),
+    linear-gradient(145deg,#fffaf2,#f6eee3)!important;
+  box-shadow:0 7px 20px rgba(76,54,24,.045)!important;
+}
+html[data-theme="light"] .settings-hero h1{
+  color:#241e18!important;
+}
+html[data-theme="light"] .settings-hero p{
+  color:#76695c!important;
+}
+html[data-theme="light"] .settings-tabs,
+html[data-theme="light"] .settings-panel{
+  border-color:#e2d5c3!important;
+  background:#fffaf3!important;
+  box-shadow:0 7px 20px rgba(76,54,24,.04)!important;
+}
+html[data-theme="light"] .settings-tabs button{
+  color:#574b3f!important;
+}
+html[data-theme="light"] .settings-tabs button>span{
+  color:#756654!important;
+  background:#f7efe4!important;
+}
+html[data-theme="light"] .settings-tabs button small{
+  color:#8d806f!important;
+}
+html[data-theme="light"] .settings-tabs button.active{
+  border-color:#e5b21f!important;
+  background:#fff1c7!important;
+}
+html[data-theme="light"] .settings-tabs button.active>span{
+  color:#ae7100!important;
+  background:#ffe8a0!important;
+}
+html[data-theme="light"] .settings-tabs button.active strong{
+  color:#8f5d00!important;
+}
+html[data-theme="light"] .settings-panel-head{
+  border-bottom-color:#eadfce!important;
+}
+html[data-theme="light"] .settings-panel-head h2{
+  color:#2b241d!important;
+}
+html[data-theme="light"] .settings-panel-head p,
+html[data-theme="light"] .settings-field>span,
+html[data-theme="light"] .settings-field>small{
+  color:#786c5f!important;
+}
+html[data-theme="light"] .settings-logo-row,
+html[data-theme="light"] .settings-current-address,
+html[data-theme="light"] .settings-account-card,
+html[data-theme="light"] .settings-pix-card,
+html[data-theme="light"] .settings-payment-flow>div,
+html[data-theme="light"] .settings-location-tools,
+html[data-theme="light"] .appearance-current,
+html[data-theme="light"] .appearance-note{
+  color:#463b31!important;
+  border-color:#e5d8c6!important;
+  background:#fff7eb!important;
+}
+html[data-theme="light"] .settings-field input,
+html[data-theme="light"] .settings-toggle{
+  color:#2b241d!important;
+  border-color:#e0d3c2!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .settings-field input:focus{
+  border-color:#e4aa13!important;
+  box-shadow:0 0 0 3px rgba(228,170,19,.10)!important;
+}
+html[data-theme="light"] .settings-warning{
+  color:#6c521a!important;
+  border-color:#ead292!important;
+  background:#fff6dc!important;
+}
+html[data-theme="light"] .settings-save{
+  color:#251a08!important;
+  border-color:#e3a800!important;
+  background:linear-gradient(135deg,#ffb300,#ffd85a)!important;
+}
+html[data-theme="light"] .settings-secondary-action{
+  color:#574a3d!important;
+  border-color:#dfd2c0!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .settings-wallet-grid article{
+  color:#463b31!important;
+  border-color:#e5d8c6!important;
+  background:#fff7eb!important;
+}
+html[data-theme="light"] .settings-wallet-grid article.primary{
+  background:#fff1c7!important;
+  border-color:#e7c55d!important;
+}
+html[data-theme="light"] .settings-pricing-preview{
+  border-color:#ead292!important;
+  background:#fff6dc!important;
+}
+html[data-theme="light"] .settings-pricing-preview>div:not(.pricing-preview-plus){
+  border-color:#e7dac8!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .appearance-intro{
+  border-color:#e6c766!important;
+  background:#fff3cf!important;
+}
+html[data-theme="light"] .theme-option{
+  border-color:#e1d4c2!important;
+  background:#fffdf9!important;
+  box-shadow:0 7px 18px rgba(76,54,24,.035)!important;
+}
+html[data-theme="light"] .theme-option.selected{
+  border-color:#e6ab10!important;
+  box-shadow:0 0 0 3px rgba(230,171,16,.10),0 10px 24px rgba(76,54,24,.055)!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .mobile-nav{
+  border-top-color:#e2d5c4!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .premium-shell:has(.settings-page) .mobile-nav a{
+  color:#66594b!important;
+}
