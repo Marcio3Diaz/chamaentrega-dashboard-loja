@@ -56,6 +56,8 @@ type Props = {
   storeId: string
   initialOrders: IntegratedOrder[]
   initialDeliveries: LinkedDelivery[]
+  initialSelectedId?: string | null
+  initialMessage?: string
 }
 
 type FilterStatus = 'all' | OrderStatus
@@ -180,17 +182,26 @@ function effectiveStatus(order:IntegratedOrder,delivery?:LinkedDelivery):OrderSt
   return order.status
 }
 
-export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries }:Props) {
+export function IntegratedOrdersBoard({
+  storeId,
+  initialOrders,
+  initialDeliveries,
+  initialSelectedId = null,
+  initialMessage = '',
+}:Props) {
   const supabase = useMemo(() => createClient(),[])
   const [orders,setOrders] = useState(initialOrders)
   const [deliveries,setDeliveries] = useState(initialDeliveries)
   const [statusFilter,setStatusFilter] = useState<FilterStatus>('all')
   const [sourceFilter,setSourceFilter] = useState<FilterSource>('all')
   const [search,setSearch] = useState('')
-  const [selectedId,setSelectedId] = useState<string | null>(initialOrders[0]?.id ?? null)
+  const [selectedId,setSelectedId] = useState<string | null>(() =>
+    initialSelectedId && initialOrders.some(order => order.id === initialSelectedId)
+      ? initialSelectedId
+      : initialOrders[0]?.id ?? null
+  )
   const [page,setPage] = useState(1)
-  const [saving,setSaving] = useState(false)
-  const [message,setMessage] = useState('')
+  const [message,setMessage] = useState(initialMessage)
 
   const deliveryMap = useMemo(() => new Map(deliveries.map(item => [item.id,item])),[deliveries])
 
@@ -375,28 +386,28 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
     }
   },[storeId,supabase])
 
-  function notify(text:string) {
-    setMessage(text)
-    window.setTimeout(() => setMessage(''),3200)
-  }
+  function openDetails(orderId:string) {
+    setSelectedId(orderId)
 
-  async function updateStatus(order:IntegratedOrder,status:OrderStatus) {
-    setSaving(true)
-    const { error } = await supabase
-      .from('store_orders')
-      .update({ status })
-      .eq('id',order.id)
-      .eq('store_id',storeId)
-    setSaving(false)
+    const url = new URL(window.location.href)
+    url.searchParams.set('pedido',orderId)
+    window.history.replaceState({},'',url)
 
-    if (error) {
-      notify('Não foi possível atualizar o pedido.')
-      return
+    if (window.innerWidth <= 1180) {
+      window.requestAnimationFrame(() => {
+        document.getElementById('pedido-detalhes')?.scrollIntoView({
+          behavior:'smooth',
+          block:'start',
+        })
+      })
     }
-
-    setOrders(current => current.map(item => item.id === order.id ? { ...item,status } : item))
-    notify('Status do pedido atualizado.')
   }
+
+  useEffect(() => {
+    if (!message) return
+    const timer = window.setTimeout(() => setMessage(''),4200)
+    return () => window.clearTimeout(timer)
+  },[message])
 
   const todayKey = new Intl.DateTimeFormat('en-CA', {
     year:'numeric',
@@ -608,15 +619,25 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
                           className="ghost"
                           onClick={event => {
                             event.stopPropagation()
-                            setSelectedId(order.id)
+                            openDetails(order.id)
                           }}
                         >
                           Ver detalhes
                         </button>
                         {delivery?.assignedCourierId ? (
-                          <Link href="/mapa" onClick={event => event.stopPropagation()}>Acompanhar</Link>
-                        ) : status === 'seeking_courier' ? (
-                          <Link href="/entregas" onClick={event => event.stopPropagation()}>Ver busca</Link>
+                          <Link
+                            href={`/mapa?delivery=${delivery.id}`}
+                            onClick={event => event.stopPropagation()}
+                          >
+                            Acompanhar
+                          </Link>
+                        ) : status === 'seeking_courier' && delivery ? (
+                          <Link
+                            href={`/despacho?delivery=${delivery.id}`}
+                            onClick={event => event.stopPropagation()}
+                          >
+                            Ver busca
+                          </Link>
                         ) : null}
                       </div>
                     </footer>
@@ -648,12 +669,11 @@ export function IntegratedOrdersBoard({ storeId,initialOrders,initialDeliveries 
           <OrderProgress status={selected?.status ?? 'new'}/>
         </main>
 
-        <aside className="orders-hub-detail">
+        <aside className="orders-hub-detail" id="pedido-detalhes">
           {selected ? (
             <OrderDetail
+              storeId={storeId}
               item={selected}
-              saving={saving}
-              onStatus={status => void updateStatus(selected.order,status)}
             />
           ) : (
             <div className="orders-detail-empty"><span>☰</span><strong>Selecione um pedido</strong><p>Os detalhes completos aparecerão aqui.</p></div>
@@ -701,24 +721,38 @@ function OrderProgress({status}:{status:OrderStatus}) {
 }
 
 function OrderDetail({
+  storeId,
   item,
-  saving,
-  onStatus,
 }:{
+  storeId:string
   item:{order:IntegratedOrder;delivery?:LinkedDelivery;status:OrderStatus}
-  saving:boolean
-  onStatus:(status:OrderStatus)=>void
 }) {
   const { order,delivery,status } = item
   const meta = sourceMeta[order.source]
+  const standalone = Boolean(order.sourceMetadata.standaloneDelivery)
+
+  const statusForm = (
+    nextStatus:OrderStatus,
+    label:string,
+    icon?:string,
+  ) => (
+    <form action="/api/orders/status" method="post">
+      <input type="hidden" name="storeId" value={storeId}/>
+      <input type="hidden" name="orderId" value={order.id}/>
+      <input type="hidden" name="deliveryId" value={delivery?.id ?? order.deliveryId ?? ''}/>
+      <input type="hidden" name="standalone" value={standalone ? '1' : '0'}/>
+      <input type="hidden" name="status" value={nextStatus}/>
+      <button type="submit">{icon ? `${icon} ` : ''}{label}</button>
+    </form>
+  )
 
   const primary = (() => {
-    if (status === 'new') return <button disabled={saving} onClick={() => onStatus('preparing')}>♨ Marcar como em preparo</button>
-    if (status === 'preparing') return <button disabled={saving} onClick={() => onStatus('ready')}>✓ Marcar pedido como pronto</button>
+    if (status === 'new') return statusForm('preparing','Marcar como em preparo','♨')
+    if (status === 'preparing') return statusForm('ready','Marcar pedido como pronto','✓')
     if (status === 'ready' && order.fulfillmentType === 'delivery') return <Link href={`/entregas/nova?order=${order.id}`}>+ Criar entrega</Link>
-    if (status === 'ready' && order.fulfillmentType === 'pickup') return <button disabled={saving} onClick={() => onStatus('completed')}>✓ Marcar como retirado</button>
-    if (status === 'seeking_courier') return <Link href="/entregas">Acompanhar busca</Link>
-    if (status === 'in_route') return <Link href="/mapa">Acompanhar no mapa</Link>
+    if (status === 'ready' && order.fulfillmentType === 'pickup') return statusForm('completed','Marcar como retirado','✓')
+    if (status === 'seeking_courier' && delivery) return <Link href={`/despacho?delivery=${delivery.id}`}>Acompanhar busca</Link>
+    if (status === 'in_route' && delivery) return <Link href={`/mapa?delivery=${delivery.id}`}>Acompanhar no mapa</Link>
     return null
   })()
 
@@ -735,7 +769,7 @@ function OrderDetail({
       <section className="orders-detail-section">
         <span className="orders-detail-icon"><Icon name="user" size={17}/></span>
         <div><small>Cliente</small><strong>{order.customerName || 'Cliente'}</strong><span>{phone(order.customerPhone)}</span></div>
-        {order.customerPhone ? <a href={`tel:${order.customerPhone}`} aria-label="Ligar"><Icon name="user" size={15}/></a> : null}
+        {order.customerPhone ? <a href={`tel:${order.customerPhone.replace(/\D/g,'')}`} aria-label="Ligar para o cliente"><Icon name="phone" size={15}/></a> : null}
       </section>
 
       {order.fulfillmentType === 'delivery' ? (
@@ -796,7 +830,16 @@ function OrderDetail({
       <div className="orders-detail-total"><span>Total do pedido</span><strong>{currency(order.orderTotal)}</strong></div>
 
       <div className="orders-detail-actions">
-        {!['completed','cancelled'].includes(status) ? <button className="secondary" disabled={saving} onClick={() => onStatus('cancelled')}>Cancelar pedido</button> : null}
+        {!['completed','cancelled'].includes(status) ? (
+          <form action="/api/orders/status" method="post">
+            <input type="hidden" name="storeId" value={storeId}/>
+            <input type="hidden" name="orderId" value={order.id}/>
+            <input type="hidden" name="deliveryId" value={delivery?.id ?? order.deliveryId ?? ''}/>
+            <input type="hidden" name="standalone" value={standalone ? '1' : '0'}/>
+            <input type="hidden" name="status" value="cancelled"/>
+            <button type="submit" className="secondary">Cancelar pedido</button>
+          </form>
+        ) : null}
         {primary ? <div className="primary">{primary}</div> : null}
       </div>
     </>
