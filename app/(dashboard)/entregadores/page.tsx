@@ -87,6 +87,7 @@ export default async function CouriersPage() {
       return {
         id: item.id,
         fullName: profile?.full_name?.trim() || 'Entregador parceiro',
+        phone: profile?.phone ?? null,
         avatarUrl: profile?.avatar_url ?? null,
         vehicleType: item.vehicle_type,
         isOnline: Boolean(item.is_online),
