@@ -21857,3 +21857,68 @@ html[data-theme="light"] .premium-shell:has(.wallet-page) .mobile-nav a{
     align-self:flex-end!important;
   }
 }
+
+
+/* =================================================================
+   HOME V4 — ARTE PNG OFICIAL DO BANNER
+   Mantém a arte inteira e evita duplicar o texto já presente na imagem.
+   ================================================================= */
+.reference-dashboard .reference-hero.generic-hero-banner.official-png-banner{
+  position:relative!important;
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:1000 / 181!important;
+  display:block!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  border:1px solid #d6c8b7!important;
+  border-radius:17px!important;
+  box-shadow:0 12px 30px rgba(63,42,14,.12)!important;
+}
+.reference-dashboard .reference-hero.generic-hero-banner.official-png-banner:after{
+  display:none!important;
+  content:none!important;
+}
+.reference-dashboard .reference-hero.generic-hero-banner.official-png-banner .reference-clock-card{
+  position:absolute!important;
+  z-index:3!important;
+  top:18px!important;
+  right:16px!important;
+  width:190px!important;
+  min-width:190px!important;
+  min-height:102px!important;
+  margin:0!important;
+  border-color:rgba(255,255,255,.14)!important;
+  background:rgba(8,14,19,.90)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(8px)!important;
+}
+@media(max-width:1100px){
+  .reference-dashboard .reference-hero.generic-hero-banner.official-png-banner{
+    aspect-ratio:1000 / 181!important;
+  }
+  .reference-dashboard .reference-hero.generic-hero-banner.official-png-banner .reference-clock-card{
+    top:12px!important;
+    right:12px!important;
+    transform:scale(.88)!important;
+    transform-origin:top right!important;
+  }
+}
+@media(max-width:760px){
+  .reference-dashboard .reference-hero.generic-hero-banner.official-png-banner{
+    aspect-ratio:auto!important;
+    height:220px!important;
+    background-size:cover!important;
+    background-position:center!important;
+  }
+  .reference-dashboard .reference-hero.generic-hero-banner.official-png-banner .reference-clock-card{
+    top:auto!important;
+    right:10px!important;
+    bottom:10px!important;
+    transform:scale(.72)!important;
+    transform-origin:bottom right!important;
+  }
+}
