@@ -152,6 +152,7 @@ export function StoreCouriersPanel({
   const [search, setSearch] = useState('')
   const [liveState, setLiveState] = useState('CONECTANDO')
   const [now, setNow] = useState(Date.now())
+  const [refreshing, setRefreshing] = useState(false)
 
   const refresh = useCallback(async () => {
     const { data: networkRows } = await supabase
@@ -351,6 +352,17 @@ export function StoreCouriersPanel({
   }, [couriers, filter, search, storeLatitude, storeLongitude])
 
 
+  async function manualRefresh() {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      await refresh()
+      router.refresh()
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   function reviewRequest(
     courierId: string,
     decision: 'connected' | 'rejected',
@@ -405,8 +417,14 @@ export function StoreCouriersPanel({
 
         <div className="couriers-head-actions">
           <span className={`couriers-live-pill ${liveState === 'AO VIVO' ? 'online' : ''}`}><i />{liveState}</span>
-          <button type="button" className="couriers-refresh-button" onClick={() => void refresh()}>
-            <Icon name="activity" size={16}/> Atualizar
+          <button
+            type="button"
+            className="couriers-refresh-button"
+            onClick={() => void manualRefresh()}
+            disabled={refreshing}
+            aria-busy={refreshing}
+          >
+            <Icon name="activity" size={16}/> {refreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
           <Link href="/entregas/nova" className="couriers-new-delivery-button"><Icon name="plus" size={16}/> Nova entrega</Link>
           <Link href="/mapa" className="couriers-map-button"><Icon name="map" size={16}/> Mapa ao vivo</Link>
@@ -481,7 +499,13 @@ export function StoreCouriersPanel({
 
                   <span className="network-request-contact">
                     <small>Contato</small>
-                    <strong>{request.phone || 'Não informado'}</strong>
+                    {request.phone ? (
+                      <a href={`tel:${request.phone.replace(/\D/g,'')}`} title="Ligar para o entregador">
+                        <strong>{request.phone}</strong>
+                      </a>
+                    ) : (
+                      <strong>Não informado</strong>
+                    )}
                   </span>
 
                   <div className="network-request-actions">
@@ -616,22 +640,48 @@ export function StoreCouriersPanel({
                 <div className="courier-card-actions">
                   {courier.phone ? (
                     <>
-                      <a href={`tel:${courier.phone.replace(/\D/g,'')}`} className="secondary"><Icon name="phone" size={16}/> Ligar</a>
+                      <a
+                        href={`tel:${courier.phone.replace(/\D/g,'')}`}
+                        className="secondary"
+                        title="Chamar entregador"
+                      >
+                        <Icon name="phone" size={16}/> Chamar
+                      </a>
                       <a
                         href={`https://wa.me/55${courier.phone.replace(/\D/g,'').replace(/^55/,'')}`}
                         target="_blank"
                         rel="noreferrer"
                         className="secondary"
+                        title="Abrir conversa no WhatsApp"
                       >
                         <Icon name="chat" size={16}/> Mensagem
                       </a>
                     </>
-                  ) : null}
-                  <Link href={`/mapa?courier=${courier.id}`} className="secondary"><Icon name="pin" size={16}/> Ver no mapa</Link>
-                  {delivery ? (
-                    <Link href={`/chat?delivery=${delivery.id}`} className="primary"><Icon name="chat" size={16}/> Chat da corrida</Link>
                   ) : (
-                    <Link href="/entregas/nova" className="primary"><Icon name="plus" size={16}/> Criar entrega</Link>
+                    <>
+                      <button type="button" className="secondary" disabled title="Telefone não informado">
+                        <Icon name="phone" size={16}/> Chamar
+                      </button>
+                      <button type="button" className="secondary" disabled title="Telefone não informado">
+                        <Icon name="chat" size={16}/> Mensagem
+                      </button>
+                    </>
+                  )}
+                  <Link
+                    href={`/mapa?courier=${courier.id}`}
+                    className="secondary"
+                    title="Abrir localização do entregador no mapa"
+                  >
+                    <Icon name="pin" size={16}/> Ver no mapa
+                  </Link>
+                  {delivery ? (
+                    <Link href={`/chat?delivery=${delivery.id}`} className="primary" title="Abrir chat da corrida">
+                      <Icon name="chat" size={16}/> Chat da corrida
+                    </Link>
+                  ) : (
+                    <Link href="/entregas/nova" className="primary" title="Criar uma nova entrega">
+                      <Icon name="plus" size={16}/> Nova entrega
+                    </Link>
                   )}
                 </div>
               </article>
@@ -645,6 +695,524 @@ export function StoreCouriersPanel({
           )}
         </div>
       </section>
+      <style jsx global>{`
+        /* Entregadores: versão compacta e legível — 24/09/2026 */
+        .couriers-page {
+          width: 100%;
+          padding: 14px 18px 24px !important;
+          color: #171717;
+          font-size: 14px;
+        }
+
+        .couriers-page-head {
+          min-height: 0 !important;
+          margin: 0 !important;
+          padding: 16px 18px !important;
+          gap: 16px !important;
+          border: 1px solid #eadfce !important;
+          border-radius: 16px !important;
+          background: #fffaf2 !important;
+          box-shadow: 0 6px 20px rgba(87, 64, 24, .035) !important;
+          align-items: center !important;
+        }
+
+        .couriers-page-head .eyebrow,
+        .courier-network-requests .eyebrow {
+          font-size: 11px !important;
+          line-height: 1.1 !important;
+          letter-spacing: .11em !important;
+          font-weight: 900 !important;
+          color: #b97600 !important;
+        }
+
+        .couriers-page-head h1 {
+          margin: 4px 0 4px !important;
+          font-size: 31px !important;
+          line-height: 1 !important;
+          letter-spacing: -1px !important;
+          color: #151515 !important;
+        }
+
+        .couriers-page-head p {
+          margin: 0 !important;
+          font-size: 13px !important;
+          line-height: 1.35 !important;
+          color: #706a61 !important;
+        }
+
+        .couriers-head-actions {
+          gap: 8px !important;
+          flex-wrap: wrap !important;
+          justify-content: flex-end !important;
+        }
+
+        .couriers-live-pill,
+        .couriers-refresh-button,
+        .couriers-new-delivery-button,
+        .couriers-map-button {
+          min-height: 38px !important;
+          height: 38px !important;
+          padding: 0 13px !important;
+          border-radius: 10px !important;
+          font-size: 12px !important;
+          font-weight: 850 !important;
+          line-height: 1 !important;
+        }
+
+        .couriers-refresh-button:disabled {
+          opacity: .65 !important;
+        }
+
+        .couriers-stats {
+          margin-top: 10px !important;
+          gap: 10px !important;
+        }
+
+        .couriers-stats > button {
+          min-height: 78px !important;
+          height: 78px !important;
+          padding: 10px 13px !important;
+          gap: 10px !important;
+          border-radius: 14px !important;
+          background: #fffdf8 !important;
+          border-color: #eadfce !important;
+        }
+
+        .couriers-stats > button.active {
+          border-color: #efb222 !important;
+          box-shadow: inset 0 0 0 1px rgba(239,178,34,.22) !important;
+        }
+
+        .couriers-stat-icon {
+          width: 42px !important;
+          height: 42px !important;
+          min-width: 42px !important;
+          border-radius: 12px !important;
+        }
+
+        .couriers-stats small {
+          font-size: 12px !important;
+          line-height: 1.1 !important;
+          color: #5f5a52 !important;
+        }
+
+        .couriers-stats strong {
+          margin-top: 2px !important;
+          font-size: 27px !important;
+          line-height: 1 !important;
+          color: #111 !important;
+        }
+
+        .couriers-stats span:not(.couriers-stat-icon) {
+          margin-top: 3px !important;
+          font-size: 11px !important;
+          line-height: 1.1 !important;
+          color: #777168 !important;
+        }
+
+        .courier-network-requests {
+          margin-top: 10px !important;
+          border-radius: 15px !important;
+          border-color: #eadfce !important;
+          background: #fffdf9 !important;
+        }
+
+        .courier-network-requests-head {
+          min-height: 0 !important;
+          padding: 12px 14px !important;
+          gap: 14px !important;
+        }
+
+        .courier-network-requests-head h2 {
+          margin: 3px 0 2px !important;
+          font-size: 20px !important;
+          line-height: 1.05 !important;
+          color: #171717 !important;
+        }
+
+        .courier-network-requests-head p {
+          margin: 0 !important;
+          font-size: 12px !important;
+          line-height: 1.25 !important;
+          color: #766f65 !important;
+        }
+
+        .network-request-count {
+          min-height: 30px !important;
+          padding: 0 12px !important;
+          font-size: 11px !important;
+        }
+
+        .courier-network-request-list {
+          gap: 7px !important;
+          padding: 0 10px 10px !important;
+        }
+
+        .courier-network-request-list article {
+          min-height: 68px !important;
+          padding: 9px 12px !important;
+          gap: 12px !important;
+          border-radius: 12px !important;
+        }
+
+        .network-request-avatar {
+          width: 44px !important;
+          height: 44px !important;
+          min-width: 44px !important;
+          font-size: 15px !important;
+        }
+
+        .network-request-person strong,
+        .network-request-contact strong {
+          font-size: 13px !important;
+          line-height: 1.15 !important;
+        }
+
+        .network-request-person small,
+        .network-request-person em,
+        .network-request-contact small {
+          font-size: 11px !important;
+          line-height: 1.2 !important;
+        }
+
+        .network-request-contact a {
+          color: inherit !important;
+          text-decoration: none !important;
+        }
+
+        .network-request-contact a:hover strong {
+          text-decoration: underline !important;
+        }
+
+        .network-request-actions {
+          gap: 7px !important;
+        }
+
+        .network-request-actions button {
+          min-height: 36px !important;
+          height: 36px !important;
+          padding: 0 12px !important;
+          border-radius: 9px !important;
+          font-size: 12px !important;
+          font-weight: 850 !important;
+        }
+
+        .network-review-message {
+          margin: 0 10px 8px !important;
+          padding: 8px 10px !important;
+          font-size: 12px !important;
+        }
+
+        .couriers-list-card {
+          margin-top: 10px !important;
+          border-radius: 15px !important;
+          border-color: #eadfce !important;
+          background: #fffdf9 !important;
+        }
+
+        .couriers-toolbar {
+          min-height: 56px !important;
+          padding: 9px 12px !important;
+          gap: 12px !important;
+        }
+
+        .couriers-toolbar > div:first-child > strong {
+          font-size: 20px !important;
+          line-height: 1 !important;
+          color: #171717 !important;
+        }
+
+        .couriers-toolbar > div:first-child > span {
+          margin-top: 3px !important;
+          font-size: 11px !important;
+          color: #777168 !important;
+        }
+
+        .couriers-toolbar-controls {
+          gap: 8px !important;
+        }
+
+        .couriers-search {
+          min-width: 250px !important;
+          height: 38px !important;
+          border-radius: 9px !important;
+        }
+
+        .couriers-search input {
+          font-size: 12px !important;
+        }
+
+        .couriers-filters {
+          gap: 5px !important;
+        }
+
+        .couriers-filters button {
+          min-height: 36px !important;
+          height: 36px !important;
+          padding: 0 12px !important;
+          border-radius: 8px !important;
+          font-size: 12px !important;
+          font-weight: 800 !important;
+        }
+
+        .couriers-grid {
+          padding: 10px !important;
+          gap: 8px !important;
+        }
+
+        .couriers-grid .courier-card {
+          border-radius: 13px !important;
+          border-color: #eddfc7 !important;
+          background: #fffdfa !important;
+          overflow: hidden !important;
+        }
+
+        .courier-card-top {
+          min-height: 0 !important;
+          padding: 10px 12px 8px !important;
+          gap: 10px !important;
+          align-items: center !important;
+        }
+
+        .courier-card-person {
+          gap: 10px !important;
+        }
+
+        .courier-card-avatar {
+          width: 50px !important;
+          height: 50px !important;
+          min-width: 50px !important;
+        }
+
+        .courier-card-name strong {
+          font-size: 16px !important;
+          line-height: 1.05 !important;
+          color: #171717 !important;
+        }
+
+        .courier-card-name small {
+          margin-top: 3px !important;
+          font-size: 12px !important;
+          line-height: 1.15 !important;
+        }
+
+        .courier-card-name > span {
+          margin-top: 3px !important;
+          font-size: 10px !important;
+          line-height: 1.1 !important;
+        }
+
+        .courier-status-pill {
+          min-height: 30px !important;
+          height: 30px !important;
+          padding: 0 11px !important;
+          border-radius: 999px !important;
+          font-size: 11px !important;
+          font-weight: 850 !important;
+        }
+
+        .courier-card-metrics {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          margin: 0 12px !important;
+          min-height: 50px !important;
+          border-radius: 9px !important;
+          overflow: hidden !important;
+        }
+
+        .courier-card-metrics > div {
+          min-height: 50px !important;
+          padding: 8px 11px !important;
+        }
+
+        .courier-card-metrics small {
+          font-size: 10px !important;
+          line-height: 1.05 !important;
+        }
+
+        .courier-card-metrics strong {
+          margin-top: 3px !important;
+          font-size: 13px !important;
+          line-height: 1.05 !important;
+        }
+
+        .courier-active-delivery {
+          margin: 8px 12px 0 !important;
+          padding: 8px 10px !important;
+          border-radius: 10px !important;
+          display: grid !important;
+          grid-template-columns: minmax(150px,.7fr) minmax(260px,1.5fr) auto !important;
+          align-items: center !important;
+          gap: 10px !important;
+        }
+
+        .courier-route-head {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 2px !important;
+        }
+
+        .courier-route-head span,
+        .courier-route-head strong {
+          font-size: 10px !important;
+          line-height: 1.15 !important;
+        }
+
+        .courier-route-customer strong {
+          font-size: 13px !important;
+          line-height: 1.1 !important;
+        }
+
+        .courier-route-customer span {
+          margin-top: 2px !important;
+          font-size: 10px !important;
+          line-height: 1.15 !important;
+        }
+
+        .courier-route-meta {
+          gap: 8px !important;
+          font-size: 11px !important;
+          white-space: nowrap !important;
+        }
+
+        .courier-no-route {
+          margin: 8px 12px 0 !important;
+          min-height: 34px !important;
+          padding: 7px 10px !important;
+          border-radius: 9px !important;
+          font-size: 11px !important;
+        }
+
+        .courier-card-actions {
+          padding: 8px 12px 10px !important;
+          gap: 6px !important;
+          flex-wrap: wrap !important;
+          justify-content: flex-end !important;
+        }
+
+        .courier-card-actions a,
+        .courier-card-actions button {
+          min-height: 36px !important;
+          height: 36px !important;
+          padding: 0 11px !important;
+          border-radius: 9px !important;
+          font-size: 12px !important;
+          font-weight: 850 !important;
+          line-height: 1 !important;
+        }
+
+        .courier-card-actions button.secondary {
+          border: 1px solid #ddd2c2 !important;
+          background: #fff !important;
+          color: #7f786e !important;
+        }
+
+        .courier-card-actions button:disabled {
+          opacity: .48 !important;
+          cursor: not-allowed !important;
+        }
+
+        .couriers-empty {
+          min-height: 150px !important;
+          padding: 24px !important;
+        }
+
+        @media (max-width: 1180px) {
+          .couriers-page-head {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+          }
+
+          .couriers-head-actions {
+            justify-content: flex-start !important;
+          }
+
+          .couriers-stats {
+            grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+          }
+
+          .courier-active-delivery {
+            grid-template-columns: 1fr 1.4fr !important;
+          }
+
+          .courier-route-meta {
+            grid-column: 1 / -1 !important;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .couriers-page {
+            padding: 10px 10px 90px !important;
+          }
+
+          .couriers-page-head {
+            padding: 14px !important;
+          }
+
+          .couriers-page-head h1 {
+            font-size: 28px !important;
+          }
+
+          .couriers-head-actions > * {
+            flex: 1 1 calc(50% - 5px) !important;
+          }
+
+          .couriers-stats {
+            grid-template-columns: 1fr 1fr !important;
+          }
+
+          .couriers-stats > button {
+            height: auto !important;
+            min-height: 82px !important;
+          }
+
+          .courier-network-request-list article {
+            grid-template-columns: auto 1fr !important;
+          }
+
+          .network-request-contact,
+          .network-request-actions {
+            grid-column: 1 / -1 !important;
+          }
+
+          .couriers-toolbar {
+            align-items: stretch !important;
+            flex-direction: column !important;
+          }
+
+          .couriers-toolbar-controls {
+            width: 100% !important;
+            align-items: stretch !important;
+            flex-direction: column !important;
+          }
+
+          .couriers-search {
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+
+          .couriers-filters {
+            overflow-x: auto !important;
+          }
+
+          .courier-card-metrics {
+            grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+          }
+
+          .courier-active-delivery {
+            grid-template-columns: 1fr !important;
+          }
+
+          .courier-card-actions {
+            justify-content: stretch !important;
+          }
+
+          .courier-card-actions a,
+          .courier-card-actions button {
+            flex: 1 1 calc(50% - 4px) !important;
+          }
+        }
+      `}</style>
+
     </div>
   )
 }
