@@ -42,6 +42,7 @@ type Props = {
   storeLongitude: number | null
   initialDeliveries: DispatchDelivery[]
   initialCouriers: DispatchCourier[]
+  initialFocusDeliveryId?: string | null
 }
 
 const statusLabel: Record<string,string> = {
@@ -125,9 +126,15 @@ export function SmartDispatchBoard({
   storeLongitude,
   initialDeliveries,
   initialCouriers,
+  initialFocusDeliveryId = null,
 }:Props) {
   const router = useRouter()
-  const [selectedIds,setSelectedIds] = useState<string[]>(() => initialSelection(initialDeliveries))
+  const [selectedIds,setSelectedIds] = useState<string[]>(() => {
+    if (initialFocusDeliveryId && initialDeliveries.some(item => item.id === initialFocusDeliveryId)) {
+      return [initialFocusDeliveryId]
+    }
+    return initialSelection(initialDeliveries)
+  })
   const [autoMode,setAutoMode] = useState(false)
   const [dispatchMessage,setDispatchMessage] = useState('')
   const [dispatchError,setDispatchError] = useState(false)
