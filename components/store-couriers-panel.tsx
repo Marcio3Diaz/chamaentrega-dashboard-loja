@@ -148,6 +148,7 @@ export function StoreCouriersPanel({
   const [couriers, setCouriers] = useState(initialCouriers)
   const [requests, setRequests] = useState(initialRequests)
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set())
+  const [reviewingActions, setReviewingActions] = useState<Record<string,'connected'|'rejected'>>({})
   const [reviewMessage, setReviewMessage] = useState('')
   const [, startReviewTransition] = useTransition()
   const [filter, setFilter] = useState<Filter>('all')
@@ -374,6 +375,7 @@ export function StoreCouriersPanel({
 
     setReviewMessage('')
     setReviewingIds(current => new Set(current).add(courierId))
+    setReviewingActions(current => ({ ...current, [courierId]: decision }))
 
     startReviewTransition(async () => {
       const result = await reviewCourierNetworkRequestAction(
@@ -395,6 +397,11 @@ export function StoreCouriersPanel({
       setReviewingIds(current => {
         const next = new Set(current)
         next.delete(courierId)
+        return next
+      })
+      setReviewingActions(current => {
+        const next = { ...current }
+        delete next[courierId]
         return next
       })
     })
@@ -495,9 +502,24 @@ export function StoreCouriersPanel({
                       : <strong>Não informado</strong>}
                   </div>
                   <div className="ce2-request-actions">
-                    <button type="button" className="reject" disabled={busy} onClick={() => reviewRequest(request.courierId,'rejected')}>Recusar</button>
-                    <button type="button" className="approve" disabled={busy} onClick={() => reviewRequest(request.courierId,'connected')}>
-                      <Icon name="check" size={16}/> Aprovar na rede
+                    <button
+                      type="button"
+                      className="reject"
+                      disabled={busy}
+                      aria-busy={busy && reviewingActions[request.courierId] === 'rejected'}
+                      onClick={() => reviewRequest(request.courierId,'rejected')}
+                    >
+                      {busy && reviewingActions[request.courierId] === 'rejected' ? 'Recusando...' : 'Recusar'}
+                    </button>
+                    <button
+                      type="button"
+                      className="approve"
+                      disabled={busy}
+                      aria-busy={busy && reviewingActions[request.courierId] === 'connected'}
+                      onClick={() => reviewRequest(request.courierId,'connected')}
+                    >
+                      <Icon name="check" size={16}/>
+                      {busy && reviewingActions[request.courierId] === 'connected' ? 'Aprovando...' : 'Aprovar'}
                     </button>
                   </div>
                 </article>
