@@ -29,6 +29,7 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
     shield: <><path d="M12 3 5 6v5c0 5 3.5 8.5 7 10 3.5-1.5 7-5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></>,
     activity: <path d="M3 12h4l2.5-6 5 12 2.5-6H21"/>,
     pause: <><path d="M8 5v14"/><path d="M16 5v14"/></>,
+    phone: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.28-1.26a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z"/></>,
   }
   return <svg {...common} aria-hidden="true">{paths[name] ?? paths.box}</svg>
 }
