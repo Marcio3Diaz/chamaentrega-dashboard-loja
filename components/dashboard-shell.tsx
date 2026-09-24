@@ -97,7 +97,7 @@ export function DashboardShell({
       <aside className="sidebar premium-sidebar">
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
-            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores') || pathname === '/entregas') ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
+            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores') || pathname === '/entregas' || pathname === '/painel') ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
             width={420}
             height={140}
             alt="ChamaEntrega — Chamou, Chegou"
