@@ -48,6 +48,7 @@ export type StoreCourier = {
 
 type Props = {
   storeId: string
+  storeName: string
   storeLatitude: number | null
   storeLongitude: number | null
   initialCouriers: StoreCourier[]
@@ -136,6 +137,7 @@ function distanceKm(
 
 export function StoreCouriersPanel({
   storeId,
+  storeName,
   storeLatitude,
   storeLongitude,
   initialCouriers,
@@ -153,6 +155,7 @@ export function StoreCouriersPanel({
   const [liveState, setLiveState] = useState('CONECTANDO')
   const [now, setNow] = useState(Date.now())
   const [refreshing, setRefreshing] = useState(false)
+  const [expandedCourierId, setExpandedCourierId] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     const { data: networkRows } = await supabase
@@ -407,124 +410,84 @@ export function StoreCouriersPanel({
   }
 
   return (
-    <div className="couriers-page">
-      <section className="couriers-page-head">
-        <div>
-          <div className="eyebrow">REDE DE ENTREGADORES</div>
+    <div className="ce2-page">
+      <section className="ce2-head">
+        <div className="ce2-head-copy">
+          <div className="ce2-eyebrow">REDE DE ENTREGADORES</div>
           <h1>Entregadores</h1>
           <p>Acompanhe sua rede conectada, disponibilidade, corridas e localização em tempo real.</p>
         </div>
 
-        <div className="couriers-head-actions">
-          <span className={`couriers-live-pill ${liveState === 'AO VIVO' ? 'online' : ''}`}><i />{liveState}</span>
-          <button
-            type="button"
-            className="couriers-refresh-button"
-            onClick={() => void manualRefresh()}
-            disabled={refreshing}
-            aria-busy={refreshing}
-          >
-            <Icon name="activity" size={16}/> {refreshing ? 'Atualizando...' : 'Atualizar'}
+        <div className="ce2-head-actions">
+          <span className={`ce2-live ${liveState === 'AO VIVO' ? 'online' : ''}`}><i />{liveState}</span>
+          <button type="button" className="ce2-btn ghost" onClick={() => void manualRefresh()} disabled={refreshing}>
+            <Icon name="activity" size={17}/> {refreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
-          <Link href="/entregas/nova" className="couriers-new-delivery-button"><Icon name="plus" size={16}/> Nova entrega</Link>
-          <Link href="/mapa" className="couriers-map-button"><Icon name="map" size={16}/> Mapa ao vivo</Link>
+          <Link href="/entregas/nova" className="ce2-btn gold"><Icon name="plus" size={18}/> Nova entrega</Link>
+          <Link href="/mapa" className="ce2-btn ghost"><Icon name="map" size={17}/> Mapa ao vivo</Link>
         </div>
       </section>
 
-      <section className="couriers-stats">
+      <section className="ce2-stats">
         <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
-          <span className="couriers-stat-icon gold"><Icon name="user" size={20}/></span>
-          <div><small>Rede conectada</small><strong>{stats.connected}</strong><span>entregadores parceiros</span></div>
-          <Icon name="chevron" size={18}/>
+          <span className="ce2-stat-icon gold"><Icon name="user" size={22}/></span>
+          <span className="ce2-stat-copy"><small>Rede conectada</small><strong>{stats.connected}</strong><em>entregadores parceiros</em></span>
+          <Icon name="chevron" size={20}/>
         </button>
         <button type="button" className={filter === 'online' ? 'active' : ''} onClick={() => setFilter('online')}>
-          <span className="couriers-stat-icon green">●</span>
-          <div><small>Online agora</small><strong>{stats.online}</strong><span>conectados ao app</span></div>
-          <Icon name="chevron" size={18}/>
+          <span className="ce2-stat-icon green">●</span>
+          <span className="ce2-stat-copy"><small>Online agora</small><strong>{stats.online}</strong><em>conectados ao app</em></span>
+          <Icon name="chevron" size={20}/>
         </button>
         <button type="button" className={filter === 'available' ? 'active' : ''} onClick={() => setFilter('available')}>
-          <span className="couriers-stat-icon blue"><Icon name="lightning" size={20}/></span>
-          <div><small>Disponíveis</small><strong>{stats.available}</strong><span>prontos para oferta</span></div>
-          <Icon name="chevron" size={18}/>
+          <span className="ce2-stat-icon blue"><Icon name="lightning" size={22}/></span>
+          <span className="ce2-stat-copy"><small>Disponíveis</small><strong>{stats.available}</strong><em>prontos para oferta</em></span>
+          <Icon name="chevron" size={20}/>
         </button>
         <button type="button" className={filter === 'route' ? 'active' : ''} onClick={() => setFilter('route')}>
-          <span className="couriers-stat-icon amber"><Icon name="truck" size={20}/></span>
-          <div><small>Em rota</small><strong>{stats.routes}</strong><span>com corrida ativa</span></div>
-          <Icon name="chevron" size={18}/>
+          <span className="ce2-stat-icon amber"><Icon name="truck" size={22}/></span>
+          <span className="ce2-stat-copy"><small>Em rota</small><strong>{stats.routes}</strong><em>com corrida ativa</em></span>
+          <Icon name="chevron" size={20}/>
         </button>
       </section>
 
-
-      <section className="courier-network-requests">
-        <div className="courier-network-requests-head">
+      <section className="ce2-requests">
+        <div className="ce2-section-head">
           <div>
-            <span className="eyebrow">REDE PARTICULAR DA LOJA</span>
+            <span className="ce2-eyebrow">REDE PARTICULAR DA LOJA</span>
             <h2>Solicitações de entrada</h2>
-            <p>
-              Entregadores podem encontrar sua loja no app e pedir para entrar na rede particular.
-            </p>
+            <p>Entregadores podem encontrar sua loja no app e pedir para entrar na rede particular.</p>
           </div>
-          <span className={requests.length ? 'network-request-count active' : 'network-request-count'}>
-            {requests.length} pendente{requests.length === 1 ? '' : 's'}
-          </span>
+          <span className="ce2-count">{requests.length} pendente{requests.length === 1 ? '' : 's'}</span>
         </div>
 
-        {reviewMessage ? (
-          <div className="network-review-message">{reviewMessage}</div>
-        ) : null}
+        {reviewMessage ? <div className="ce2-message">{reviewMessage}</div> : null}
 
         {requests.length ? (
-          <div className="courier-network-request-list">
+          <div className="ce2-request-list">
             {requests.map(request => {
               const busy = reviewingIds.has(request.courierId)
-
               return (
-                <article key={request.courierId}>
-                  <span className="network-request-avatar">
-                    {request.avatarUrl
-                      ? <img src={request.avatarUrl} alt="" />
-                      : request.fullName.slice(0,1).toUpperCase()}
+                <article key={request.courierId} className="ce2-request">
+                  <span className="ce2-avatar request">
+                    {request.avatarUrl ? <img src={request.avatarUrl} alt="" /> : request.fullName.slice(0,1).toUpperCase()}
                     <i className={request.isOnline ? 'online' : ''}/>
                   </span>
-
-                  <span className="network-request-person">
+                  <div className="ce2-request-person">
                     <strong>{request.fullName}</strong>
-                    <small>
-                      {vehicleLabel(request.vehicleType)} · ★ {request.rating.toFixed(1)}
-                    </small>
-                    <em>
-                      {request.totalDeliveries} entregas · solicitado em {requestedLabel(request.requestedAt)}
-                    </em>
-                  </span>
-
-                  <span className="network-request-contact">
+                    <span>{vehicleLabel(request.vehicleType)} · ★ {request.rating.toFixed(1)} · {request.totalDeliveries} entregas</span>
+                    <small>Solicitado em {requestedLabel(request.requestedAt)}</small>
+                  </div>
+                  <div className="ce2-request-contact">
                     <small>Contato</small>
-                    {request.phone ? (
-                      <a href={`tel:${request.phone.replace(/\D/g,'')}`} title="Ligar para o entregador">
-                        <strong>{request.phone}</strong>
-                      </a>
-                    ) : (
-                      <strong>Não informado</strong>
-                    )}
-                  </span>
-
-                  <div className="network-request-actions">
-                    <button
-                      type="button"
-                      className="reject"
-                      disabled={busy}
-                      onClick={() => reviewRequest(request.courierId,'rejected')}
-                    >
-                      Recusar
-                    </button>
-                    <button
-                      type="button"
-                      className="approve"
-                      disabled={busy}
-                      onClick={() => reviewRequest(request.courierId,'connected')}
-                    >
-                      <Icon name="check" size={14}/>
-                      Aprovar na rede
+                    {request.phone
+                      ? <a href={`tel:${request.phone.replace(/\D/g,'')}`}>{request.phone}</a>
+                      : <strong>Não informado</strong>}
+                  </div>
+                  <div className="ce2-request-actions">
+                    <button type="button" className="reject" disabled={busy} onClick={() => reviewRequest(request.courierId,'rejected')}>Recusar</button>
+                    <button type="button" className="approve" disabled={busy} onClick={() => reviewRequest(request.courierId,'connected')}>
+                      <Icon name="check" size={16}/> Aprovar na rede
                     </button>
                   </div>
                 </article>
@@ -532,30 +495,22 @@ export function StoreCouriersPanel({
             })}
           </div>
         ) : (
-          <div className="network-requests-empty">
-            <span><Icon name="users" size={22}/></span>
-            <div>
-              <strong>Nenhuma solicitação pendente</strong>
-              <p>Quando um entregador tocar em “Solicitar entrada” no app, ele aparecerá aqui.</p>
-            </div>
-          </div>
+          <div className="ce2-empty-request"><Icon name="users" size={22}/> Nenhuma solicitação pendente.</div>
         )}
       </section>
 
-      <section className="couriers-list-card">
-        <div className="couriers-toolbar">
-          <div>
+      <section className="ce2-network">
+        <div className="ce2-toolbar">
+          <div className="ce2-toolbar-title">
             <strong>Sua rede</strong>
             <span>{shown.length} de {couriers.length} entregador{couriers.length === 1 ? '' : 'es'}</span>
           </div>
-
-          <div className="couriers-toolbar-controls">
-            <label className="couriers-search">
-              <span>⌕</span>
+          <div className="ce2-toolbar-controls">
+            <label className="ce2-search">
+              <Icon name="search" size={16}/>
               <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar entregador..." />
             </label>
-
-            <div className="couriers-filters">
+            <div className="ce2-filters">
               <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Todos</button>
               <button className={filter === 'online' ? 'active' : ''} onClick={() => setFilter('online')}>Online</button>
               <button className={filter === 'available' ? 'active' : ''} onClick={() => setFilter('available')}>Disponíveis</button>
@@ -564,655 +519,134 @@ export function StoreCouriersPanel({
           </div>
         </div>
 
-        <div className="couriers-grid">
+        <div className="ce2-grid">
           {shown.length ? shown.map(courier => {
             const gps = gpsAge(courier.lastLocationAt, now)
             const delivery = courier.activeDelivery
-            const distance = distanceKm(
-              storeLatitude,
-              storeLongitude,
-              courier.currentLatitude,
-              courier.currentLongitude,
-            )
-            const availabilityLabel = delivery
+            const distance = distanceKm(storeLatitude,storeLongitude,courier.currentLatitude,courier.currentLongitude)
+            const status = delivery
               ? statusLabels[delivery.status] ?? 'Em rota'
               : courier.isOnline
                 ? courier.isAvailable ? 'Disponível' : 'Online · ocupado'
                 : 'Offline'
+            const expanded = expandedCourierId === courier.id
 
             return (
-              <article key={courier.id} className={`courier-card ${delivery ? 'in-route' : ''}`}>
-                <div className="courier-card-top">
-                  <div className="courier-card-person">
-                    <span className="courier-card-avatar">
-                      {courier.avatarUrl
-                        ? <img src={courier.avatarUrl} alt="" />
-                        : <span>{courier.fullName.slice(0,1).toUpperCase()}</span>}
-                      <i className={courier.isOnline ? 'online' : ''} />
+              <article key={courier.id} className={`ce2-courier-card ${delivery ? 'route' : ''}`}>
+                <div className="ce2-courier-top">
+                  <div className="ce2-person">
+                    <span className="ce2-avatar">
+                      {courier.avatarUrl ? <img src={courier.avatarUrl} alt="" /> : courier.fullName.slice(0,1).toUpperCase()}
+                      <i className={courier.isOnline ? 'online' : ''}/>
                     </span>
-                    <span className="courier-card-name">
+                    <div>
                       <strong>{courier.fullName}</strong>
-                      <small>{vehicleLabel(courier.vehicleType)} · ★ {courier.rating.toFixed(1)}</small>
-                      <span>{connectedLabel(courier.connectedAt)}</span>
-                    </span>
+                      <span>{vehicleLabel(courier.vehicleType)} · <b>★ {courier.rating.toFixed(1)}</b> · {courier.totalDeliveries} entregas</span>
+                      <small>{connectedLabel(courier.connectedAt)}</small>
+                    </div>
                   </div>
 
-                  <span className={`courier-status-pill ${delivery ? 'route' : courier.isOnline && courier.isAvailable ? 'available' : courier.isOnline ? 'online' : 'offline'}`}>
-                    {availabilityLabel}
-                  </span>
+                  <div className="ce2-courier-actions">
+                    <span className={`ce2-status ${delivery ? 'route' : courier.isOnline && courier.isAvailable ? 'available' : courier.isOnline ? 'online' : 'offline'}`}>{status}</span>
+                    <button type="button" className="ce2-mini" onClick={() => setExpandedCourierId(expanded ? null : courier.id)}>
+                      <Icon name="user" size={16}/> {expanded ? 'Fechar perfil' : 'Ver perfil'}
+                    </button>
+                    {courier.phone ? (
+                      <>
+                        <a className="ce2-mini call" href={`tel:${courier.phone.replace(/\D/g,'')}`}><Icon name="phone" size={16}/> Chamar</a>
+                        <a className="ce2-mini" target="_blank" rel="noreferrer" href={`https://wa.me/55${courier.phone.replace(/\D/g,'').replace(/^55/,'')}`}><Icon name="chat" size={16}/> Mensagem</a>
+                      </>
+                    ) : (
+                      <button className="ce2-mini" type="button" disabled><Icon name="phone" size={16}/> Sem telefone</button>
+                    )}
+                    <Link className="ce2-mini" href={`/mapa?courier=${courier.id}`}><Icon name="map" size={16}/> Ver no mapa</Link>
+                  </div>
                 </div>
 
-                <div className="courier-card-metrics">
-                  <div><small>Entregas</small><strong>{courier.totalDeliveries}</strong></div>
-                  <div><small>Avaliação</small><strong>★ {courier.rating.toFixed(1)}</strong></div>
-                  <div>
-                    <small>Distância da loja</small>
-                    <strong>{distance == null ? '—' : distance < 1 ? Math.round(distance * 1000) + ' m' : distance.toFixed(1).replace('.', ',') + ' km'}</strong>
-                  </div>
-                  <div>
-                    <small>Localização</small>
-                    <strong className={gps.stale ? 'stale' : ''}>{gps.label}</strong>
-                  </div>
+                <div className="ce2-metrics">
+                  <div><span><Icon name="box" size={16}/></span><small>Entregas</small><strong>{courier.totalDeliveries}</strong></div>
+                  <div><span>☆</span><small>Avaliação</small><strong>{courier.rating.toFixed(1)}</strong></div>
+                  <div><span><Icon name="route" size={16}/></span><small>Distância da loja</small><strong>{distance == null ? '—' : distance < 1 ? Math.round(distance * 1000) + ' m' : distance.toFixed(1).replace('.', ',') + ' km'}</strong></div>
+                  <div><span><Icon name="pin" size={16}/></span><small>Localização</small><strong className={gps.stale ? 'stale' : ''}>{gps.label}</strong></div>
                 </div>
+
+                {expanded ? (
+                  <div className="ce2-profile-strip">
+                    <div><small>Telefone</small><strong>{courier.phone || 'Não informado'}</strong></div>
+                    <div><small>Veículo</small><strong>{vehicleLabel(courier.vehicleType)}</strong></div>
+                    <div><small>Status no app</small><strong>{courier.isOnline ? 'Online' : 'Offline'}</strong></div>
+                    <div><small>Disponibilidade</small><strong>{courier.isAvailable ? 'Disponível' : 'Indisponível'}</strong></div>
+                  </div>
+                ) : null}
 
                 {delivery ? (
-                  <div className="courier-active-delivery">
-                    <div className="courier-route-head">
-                      <span><Icon name="box" size={14}/> Corrida ativa</span>
+                  <div className="ce2-active-route">
+                    <div className="ce2-route-id">
+                      <span><Icon name="box" size={16}/> CORRIDA ATIVA</span>
                       <strong>#{shortId(delivery.id)}</strong>
                     </div>
-                    <div className="courier-route-customer">
-                      <strong>{delivery.customerName?.trim() || 'Cliente'}</strong>
-                      <span>{delivery.deliveryAddress}</span>
+                    <div className="ce2-route-flow">
+                      <span><Icon name="store" size={17}/>{storeName}</span>
+                      <Icon name="arrow" size={18}/>
+                      <span><Icon name="pin" size={17}/>{delivery.customerName?.trim() || 'Cliente'}</span>
                     </div>
-                    <div className="courier-route-meta">
-                      <span>{money(delivery.deliveryFee)}</span>
+                    <div className="ce2-route-summary">
+                      <strong>{money(delivery.deliveryFee)}</strong>
                       <span>{delivery.estimatedMinutes ? `~${delivery.estimatedMinutes} min` : 'Tempo calculando'}</span>
                     </div>
+                    <Link href={`/chat?delivery=${delivery.id}`} className="ce2-details"><Icon name="chat" size={16}/> Ver detalhes</Link>
                   </div>
                 ) : (
-                  <div className="courier-no-route">
-                    <Icon name="check" size={17}/>
+                  <div className="ce2-no-route">
+                    <Icon name="check" size={18}/>
                     <span>{courier.isOnline && courier.isAvailable ? 'Pronto para receber novas ofertas.' : 'Sem corrida ativa no momento.'}</span>
+                    <Link href="/entregas/nova">Criar entrega</Link>
                   </div>
                 )}
-
-                <div className="courier-card-actions">
-                  {courier.phone ? (
-                    <>
-                      <a
-                        href={`tel:${courier.phone.replace(/\D/g,'')}`}
-                        className="secondary"
-                        title="Chamar entregador"
-                      >
-                        <Icon name="phone" size={16}/> Chamar
-                      </a>
-                      <a
-                        href={`https://wa.me/55${courier.phone.replace(/\D/g,'').replace(/^55/,'')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="secondary"
-                        title="Abrir conversa no WhatsApp"
-                      >
-                        <Icon name="chat" size={16}/> Mensagem
-                      </a>
-                    </>
-                  ) : (
-                    <>
-                      <button type="button" className="secondary" disabled title="Telefone não informado">
-                        <Icon name="phone" size={16}/> Chamar
-                      </button>
-                      <button type="button" className="secondary" disabled title="Telefone não informado">
-                        <Icon name="chat" size={16}/> Mensagem
-                      </button>
-                    </>
-                  )}
-                  <Link
-                    href={`/mapa?courier=${courier.id}`}
-                    className="secondary"
-                    title="Abrir localização do entregador no mapa"
-                  >
-                    <Icon name="pin" size={16}/> Ver no mapa
-                  </Link>
-                  {delivery ? (
-                    <Link href={`/chat?delivery=${delivery.id}`} className="primary" title="Abrir chat da corrida">
-                      <Icon name="chat" size={16}/> Chat da corrida
-                    </Link>
-                  ) : (
-                    <Link href="/entregas/nova" className="primary" title="Criar uma nova entrega">
-                      <Icon name="plus" size={16}/> Nova entrega
-                    </Link>
-                  )}
-                </div>
               </article>
             )
           }) : (
-            <div className="couriers-empty">
-              <span className="couriers-empty-icon"><Icon name="user" size={26}/></span>
-              <strong>Nenhum entregador neste filtro</strong>
-              <span>Os entregadores conectados à rede da loja aparecerão aqui.</span>
-            </div>
+            <div className="ce2-empty"><Icon name="user" size={28}/><strong>Nenhum entregador neste filtro</strong><span>Os entregadores conectados à rede da loja aparecerão aqui.</span></div>
           )}
         </div>
       </section>
+
       <style jsx global>{`
-        /* Entregadores: versão compacta e legível — 24/09/2026 */
-        .couriers-page {
-          width: 100%;
-          padding: 14px 18px 24px !important;
-          color: #171717;
-          font-size: 14px;
-        }
-
-        .couriers-page-head {
-          min-height: 0 !important;
-          margin: 0 !important;
-          padding: 16px 18px !important;
-          gap: 16px !important;
-          border: 1px solid #eadfce !important;
-          border-radius: 16px !important;
-          background: #fffaf2 !important;
-          box-shadow: 0 6px 20px rgba(87, 64, 24, .035) !important;
-          align-items: center !important;
-        }
-
-        .couriers-page-head .eyebrow,
-        .courier-network-requests .eyebrow {
-          font-size: 11px !important;
-          line-height: 1.1 !important;
-          letter-spacing: .11em !important;
-          font-weight: 900 !important;
-          color: #b97600 !important;
-        }
-
-        .couriers-page-head h1 {
-          margin: 4px 0 4px !important;
-          font-size: 31px !important;
-          line-height: 1 !important;
-          letter-spacing: -1px !important;
-          color: #151515 !important;
-        }
-
-        .couriers-page-head p {
-          margin: 0 !important;
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          color: #706a61 !important;
-        }
-
-        .couriers-head-actions {
-          gap: 8px !important;
-          flex-wrap: wrap !important;
-          justify-content: flex-end !important;
-        }
-
-        .couriers-live-pill,
-        .couriers-refresh-button,
-        .couriers-new-delivery-button,
-        .couriers-map-button {
-          min-height: 38px !important;
-          height: 38px !important;
-          padding: 0 13px !important;
-          border-radius: 10px !important;
-          font-size: 12px !important;
-          font-weight: 850 !important;
-          line-height: 1 !important;
-        }
-
-        .couriers-refresh-button:disabled {
-          opacity: .65 !important;
-        }
-
-        .couriers-stats {
-          margin-top: 10px !important;
-          gap: 10px !important;
-        }
-
-        .couriers-stats > button {
-          min-height: 78px !important;
-          height: 78px !important;
-          padding: 10px 13px !important;
-          gap: 10px !important;
-          border-radius: 14px !important;
-          background: #fffdf8 !important;
-          border-color: #eadfce !important;
-        }
-
-        .couriers-stats > button.active {
-          border-color: #efb222 !important;
-          box-shadow: inset 0 0 0 1px rgba(239,178,34,.22) !important;
-        }
-
-        .couriers-stat-icon {
-          width: 42px !important;
-          height: 42px !important;
-          min-width: 42px !important;
-          border-radius: 12px !important;
-        }
-
-        .couriers-stats small {
-          font-size: 12px !important;
-          line-height: 1.1 !important;
-          color: #5f5a52 !important;
-        }
-
-        .couriers-stats strong {
-          margin-top: 2px !important;
-          font-size: 27px !important;
-          line-height: 1 !important;
-          color: #111 !important;
-        }
-
-        .couriers-stats span:not(.couriers-stat-icon) {
-          margin-top: 3px !important;
-          font-size: 11px !important;
-          line-height: 1.1 !important;
-          color: #777168 !important;
-        }
-
-        .courier-network-requests {
-          margin-top: 10px !important;
-          border-radius: 15px !important;
-          border-color: #eadfce !important;
-          background: #fffdf9 !important;
-        }
-
-        .courier-network-requests-head {
-          min-height: 0 !important;
-          padding: 12px 14px !important;
-          gap: 14px !important;
-        }
-
-        .courier-network-requests-head h2 {
-          margin: 3px 0 2px !important;
-          font-size: 20px !important;
-          line-height: 1.05 !important;
-          color: #171717 !important;
-        }
-
-        .courier-network-requests-head p {
-          margin: 0 !important;
-          font-size: 12px !important;
-          line-height: 1.25 !important;
-          color: #766f65 !important;
-        }
-
-        .network-request-count {
-          min-height: 30px !important;
-          padding: 0 12px !important;
-          font-size: 11px !important;
-        }
-
-        .courier-network-request-list {
-          gap: 7px !important;
-          padding: 0 10px 10px !important;
-        }
-
-        .courier-network-request-list article {
-          min-height: 68px !important;
-          padding: 9px 12px !important;
-          gap: 12px !important;
-          border-radius: 12px !important;
-        }
-
-        .network-request-avatar {
-          width: 44px !important;
-          height: 44px !important;
-          min-width: 44px !important;
-          font-size: 15px !important;
-        }
-
-        .network-request-person strong,
-        .network-request-contact strong {
-          font-size: 13px !important;
-          line-height: 1.15 !important;
-        }
-
-        .network-request-person small,
-        .network-request-person em,
-        .network-request-contact small {
-          font-size: 11px !important;
-          line-height: 1.2 !important;
-        }
-
-        .network-request-contact a {
-          color: inherit !important;
-          text-decoration: none !important;
-        }
-
-        .network-request-contact a:hover strong {
-          text-decoration: underline !important;
-        }
-
-        .network-request-actions {
-          gap: 7px !important;
-        }
-
-        .network-request-actions button {
-          min-height: 36px !important;
-          height: 36px !important;
-          padding: 0 12px !important;
-          border-radius: 9px !important;
-          font-size: 12px !important;
-          font-weight: 850 !important;
-        }
-
-        .network-review-message {
-          margin: 0 10px 8px !important;
-          padding: 8px 10px !important;
-          font-size: 12px !important;
-        }
-
-        .couriers-list-card {
-          margin-top: 10px !important;
-          border-radius: 15px !important;
-          border-color: #eadfce !important;
-          background: #fffdf9 !important;
-        }
-
-        .couriers-toolbar {
-          min-height: 56px !important;
-          padding: 9px 12px !important;
-          gap: 12px !important;
-        }
-
-        .couriers-toolbar > div:first-child > strong {
-          font-size: 20px !important;
-          line-height: 1 !important;
-          color: #171717 !important;
-        }
-
-        .couriers-toolbar > div:first-child > span {
-          margin-top: 3px !important;
-          font-size: 11px !important;
-          color: #777168 !important;
-        }
-
-        .couriers-toolbar-controls {
-          gap: 8px !important;
-        }
-
-        .couriers-search {
-          min-width: 250px !important;
-          height: 38px !important;
-          border-radius: 9px !important;
-        }
-
-        .couriers-search input {
-          font-size: 12px !important;
-        }
-
-        .couriers-filters {
-          gap: 5px !important;
-        }
-
-        .couriers-filters button {
-          min-height: 36px !important;
-          height: 36px !important;
-          padding: 0 12px !important;
-          border-radius: 8px !important;
-          font-size: 12px !important;
-          font-weight: 800 !important;
-        }
-
-        .couriers-grid {
-          padding: 10px !important;
-          gap: 8px !important;
-        }
-
-        .couriers-grid .courier-card {
-          border-radius: 13px !important;
-          border-color: #eddfc7 !important;
-          background: #fffdfa !important;
-          overflow: hidden !important;
-        }
-
-        .courier-card-top {
-          min-height: 0 !important;
-          padding: 10px 12px 8px !important;
-          gap: 10px !important;
-          align-items: center !important;
-        }
-
-        .courier-card-person {
-          gap: 10px !important;
-        }
-
-        .courier-card-avatar {
-          width: 50px !important;
-          height: 50px !important;
-          min-width: 50px !important;
-        }
-
-        .courier-card-name strong {
-          font-size: 16px !important;
-          line-height: 1.05 !important;
-          color: #171717 !important;
-        }
-
-        .courier-card-name small {
-          margin-top: 3px !important;
-          font-size: 12px !important;
-          line-height: 1.15 !important;
-        }
-
-        .courier-card-name > span {
-          margin-top: 3px !important;
-          font-size: 10px !important;
-          line-height: 1.1 !important;
-        }
-
-        .courier-status-pill {
-          min-height: 30px !important;
-          height: 30px !important;
-          padding: 0 11px !important;
-          border-radius: 999px !important;
-          font-size: 11px !important;
-          font-weight: 850 !important;
-        }
-
-        .courier-card-metrics {
-          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-          margin: 0 12px !important;
-          min-height: 50px !important;
-          border-radius: 9px !important;
-          overflow: hidden !important;
-        }
-
-        .courier-card-metrics > div {
-          min-height: 50px !important;
-          padding: 8px 11px !important;
-        }
-
-        .courier-card-metrics small {
-          font-size: 10px !important;
-          line-height: 1.05 !important;
-        }
-
-        .courier-card-metrics strong {
-          margin-top: 3px !important;
-          font-size: 13px !important;
-          line-height: 1.05 !important;
-        }
-
-        .courier-active-delivery {
-          margin: 8px 12px 0 !important;
-          padding: 8px 10px !important;
-          border-radius: 10px !important;
-          display: grid !important;
-          grid-template-columns: minmax(150px,.7fr) minmax(260px,1.5fr) auto !important;
-          align-items: center !important;
-          gap: 10px !important;
-        }
-
-        .courier-route-head {
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 2px !important;
-        }
-
-        .courier-route-head span,
-        .courier-route-head strong {
-          font-size: 10px !important;
-          line-height: 1.15 !important;
-        }
-
-        .courier-route-customer strong {
-          font-size: 13px !important;
-          line-height: 1.1 !important;
-        }
-
-        .courier-route-customer span {
-          margin-top: 2px !important;
-          font-size: 10px !important;
-          line-height: 1.15 !important;
-        }
-
-        .courier-route-meta {
-          gap: 8px !important;
-          font-size: 11px !important;
-          white-space: nowrap !important;
-        }
-
-        .courier-no-route {
-          margin: 8px 12px 0 !important;
-          min-height: 34px !important;
-          padding: 7px 10px !important;
-          border-radius: 9px !important;
-          font-size: 11px !important;
-        }
-
-        .courier-card-actions {
-          padding: 8px 12px 10px !important;
-          gap: 6px !important;
-          flex-wrap: wrap !important;
-          justify-content: flex-end !important;
-        }
-
-        .courier-card-actions a,
-        .courier-card-actions button {
-          min-height: 36px !important;
-          height: 36px !important;
-          padding: 0 11px !important;
-          border-radius: 9px !important;
-          font-size: 12px !important;
-          font-weight: 850 !important;
-          line-height: 1 !important;
-        }
-
-        .courier-card-actions button.secondary {
-          border: 1px solid #ddd2c2 !important;
-          background: #fff !important;
-          color: #7f786e !important;
-        }
-
-        .courier-card-actions button:disabled {
-          opacity: .48 !important;
-          cursor: not-allowed !important;
-        }
-
-        .couriers-empty {
-          min-height: 150px !important;
-          padding: 24px !important;
-        }
-
-        @media (max-width: 1180px) {
-          .couriers-page-head {
-            align-items: flex-start !important;
-            flex-direction: column !important;
-          }
-
-          .couriers-head-actions {
-            justify-content: flex-start !important;
-          }
-
-          .couriers-stats {
-            grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-          }
-
-          .courier-active-delivery {
-            grid-template-columns: 1fr 1.4fr !important;
-          }
-
-          .courier-route-meta {
-            grid-column: 1 / -1 !important;
-          }
-        }
-
-        @media (max-width: 760px) {
-          .couriers-page {
-            padding: 10px 10px 90px !important;
-          }
-
-          .couriers-page-head {
-            padding: 14px !important;
-          }
-
-          .couriers-page-head h1 {
-            font-size: 28px !important;
-          }
-
-          .couriers-head-actions > * {
-            flex: 1 1 calc(50% - 5px) !important;
-          }
-
-          .couriers-stats {
-            grid-template-columns: 1fr 1fr !important;
-          }
-
-          .couriers-stats > button {
-            height: auto !important;
-            min-height: 82px !important;
-          }
-
-          .courier-network-request-list article {
-            grid-template-columns: auto 1fr !important;
-          }
-
-          .network-request-contact,
-          .network-request-actions {
-            grid-column: 1 / -1 !important;
-          }
-
-          .couriers-toolbar {
-            align-items: stretch !important;
-            flex-direction: column !important;
-          }
-
-          .couriers-toolbar-controls {
-            width: 100% !important;
-            align-items: stretch !important;
-            flex-direction: column !important;
-          }
-
-          .couriers-search {
-            min-width: 0 !important;
-            width: 100% !important;
-          }
-
-          .couriers-filters {
-            overflow-x: auto !important;
-          }
-
-          .courier-card-metrics {
-            grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-          }
-
-          .courier-active-delivery {
-            grid-template-columns: 1fr !important;
-          }
-
-          .courier-card-actions {
-            justify-content: stretch !important;
-          }
-
-          .courier-card-actions a,
-          .courier-card-actions button {
-            flex: 1 1 calc(50% - 4px) !important;
-          }
-        }
+        .ce2-page{display:grid;gap:10px;width:100%;padding:14px 18px 28px;color:#171717;font-size:14px}
+        .ce2-head,.ce2-requests,.ce2-network,.ce2-stats>button,.ce2-courier-card{border:1px solid #e8dfd2;background:#fffdf9;box-shadow:0 6px 18px rgba(64,47,20,.035)}
+        .ce2-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 18px;border-radius:16px;background:#fffaf2}
+        .ce2-eyebrow{font-size:11px;font-weight:950;letter-spacing:.1em;color:#b57400}
+        .ce2-head h1{margin:4px 0 4px;font-size:32px;line-height:1;letter-spacing:-1.1px;color:#141414}
+        .ce2-head p,.ce2-section-head p{margin:0;color:#716a61;font-size:13px;line-height:1.3}
+        .ce2-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+        .ce2-live,.ce2-btn{height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;border-radius:10px;font-size:12px;font-weight:900;white-space:nowrap}
+        .ce2-live{border:1px solid #cfe6d9;background:#eefaf4;color:#21784d}.ce2-live i{width:8px;height:8px;border-radius:50%;background:#87938d}.ce2-live.online i{background:#20c878}
+        .ce2-btn{border:1px solid #dfd6c9}.ce2-btn.ghost{background:#fff;color:#1e1e1e}.ce2-btn.gold{border-color:#ffb300;background:linear-gradient(135deg,#ffb000,#ffd249);color:#17120a}
+        .ce2-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+        .ce2-stats>button{min-height:88px;display:grid;grid-template-columns:48px 1fr 22px;align-items:center;gap:11px;padding:12px 14px;border-radius:14px;text-align:left;color:#1b1b1b}
+        .ce2-stats>button.active{border-color:#f0ad13;box-shadow:0 0 0 2px rgba(240,173,19,.10)}
+        .ce2-stat-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-weight:950}.ce2-stat-icon.gold,.ce2-stat-icon.amber{color:#e8a400;background:#fff5d6}.ce2-stat-icon.green{color:#18b96b;background:#e7f8ee;font-size:23px}.ce2-stat-icon.blue{color:#2299eb;background:#eaf6fd}
+        .ce2-stat-copy{display:block}.ce2-stat-copy small,.ce2-stat-copy strong,.ce2-stat-copy em{display:block;font-style:normal}.ce2-stat-copy small{font-size:12px;color:#5f5951;font-weight:800}.ce2-stat-copy strong{margin-top:1px;font-size:28px;line-height:1;color:#111}.ce2-stat-copy em{margin-top:3px;font-size:11px;color:#777067}
+        .ce2-requests{border-radius:15px;overflow:hidden}.ce2-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;border-bottom:1px solid #eee4d6}.ce2-section-head h2{margin:3px 0 2px;font-size:21px;color:#171717}.ce2-count{padding:8px 13px;border-radius:999px;border:1px solid #eed49a;background:#fff7da;color:#7d5a09;font-size:11px;font-weight:900}
+        .ce2-message{margin:8px 10px 0;padding:8px 10px;border-radius:9px;background:#eefaf4;color:#227149;font-size:12px;font-weight:750}
+        .ce2-request-list{padding:8px}.ce2-request{display:grid;grid-template-columns:48px minmax(260px,1.1fr) minmax(180px,.7fr) auto;align-items:center;gap:12px;min-height:70px;padding:9px 10px;border:1px solid #eee5d9;border-radius:11px;background:#fff}
+        .ce2-avatar{position:relative;width:56px;height:56px;display:grid;place-items:center;flex:0 0 56px;border-radius:50%;overflow:visible;border:2px solid #e7b324;background:#fff3cc;font-size:18px;font-weight:900}.ce2-avatar.request{width:46px;height:46px;flex-basis:46px;border-width:1px}.ce2-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}.ce2-avatar i{position:absolute;right:-1px;bottom:4px;width:11px;height:11px;border-radius:50%;border:2px solid white;background:#aaa}.ce2-avatar i.online{background:#1dcc75}
+        .ce2-request-person strong{display:block;font-size:14px}.ce2-request-person span,.ce2-request-person small{display:block;margin-top:2px;font-size:11px;color:#716b63}.ce2-request-contact small{display:block;font-size:10px;color:#847c72}.ce2-request-contact a,.ce2-request-contact strong{font-size:13px;font-weight:900;color:#171717}.ce2-request-actions{display:flex;gap:7px}.ce2-request-actions button{height:36px;padding:0 12px;border-radius:9px;font-size:12px;font-weight:900}.ce2-request-actions .reject{border:1px solid #f2c8cc;background:#fff4f5;color:#c92f3d}.ce2-request-actions .approve{display:flex;align-items:center;gap:6px;border:1px solid #bce5d0;background:#eefaf4;color:#167248}
+        .ce2-empty-request{padding:14px;display:flex;align-items:center;gap:8px;color:#746e66;font-size:12px}
+        .ce2-network{border-radius:15px;overflow:hidden}.ce2-toolbar{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid #eee4d6}.ce2-toolbar-title strong{display:block;font-size:21px}.ce2-toolbar-title span{display:block;margin-top:3px;font-size:11px;color:#777067}
+        .ce2-toolbar-controls{display:flex;align-items:center;gap:8px}.ce2-search{height:38px;min-width:270px;display:flex;align-items:center;gap:7px;padding:0 11px;border:1px solid #ded5c8;border-radius:9px;background:#fff}.ce2-search input{width:100%;border:0;outline:0;background:transparent;color:#222;font-size:12px}.ce2-filters{display:flex;gap:5px}.ce2-filters button{height:36px;padding:0 13px;border:1px solid #ddd3c5;border-radius:8px;background:#fff;color:#262626;font-size:12px;font-weight:850}.ce2-filters button.active{border-color:#171717;background:#ffc232;box-shadow:inset 0 0 0 1px #171717}
+        .ce2-grid{display:grid;grid-template-columns:1fr;gap:9px;padding:10px}.ce2-courier-card{width:100%;border-radius:13px;overflow:hidden}.ce2-courier-card.route{border-color:#e8b026}
+        .ce2-courier-top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px}.ce2-person{display:flex;align-items:center;gap:11px;min-width:260px}.ce2-person>div>strong{display:block;font-size:18px;line-height:1.05}.ce2-person>div>span{display:block;margin-top:4px;font-size:12px;color:#625d56}.ce2-person>div>span b{color:#8d6300}.ce2-person>div>small{display:block;margin-top:3px;font-size:10px;color:#8a8277}
+        .ce2-courier-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.ce2-status{height:32px;display:inline-flex;align-items:center;padding:0 12px;border-radius:999px;font-size:11px;font-weight:900}.ce2-status.route{background:#e9f6ff;color:#1688d4}.ce2-status.available{background:#e9f9ef;color:#168254}.ce2-status.online{background:#f0f3f6;color:#56616c}.ce2-status.offline{background:#f2f2f2;color:#777}
+        .ce2-mini{height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border:1px solid #ddd4c7;border-radius:9px;background:#fff;color:#222;font-size:12px;font-weight:850}.ce2-mini.call{border-color:#188e59;background:#239b61;color:#fff}.ce2-mini:disabled{opacity:.45}
+        .ce2-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 12px;border:1px solid #e9dfd2;border-radius:9px;overflow:hidden;background:#fffaf3}.ce2-metrics>div{position:relative;display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto;column-gap:7px;min-height:54px;padding:7px 10px;border-right:1px solid #e9dfd2}.ce2-metrics>div:last-child{border-right:0}.ce2-metrics>div>span{grid-row:1/3;align-self:center;color:#6b655d}.ce2-metrics small{font-size:10px;color:#7a7369}.ce2-metrics strong{font-size:14px;color:#171717}.ce2-metrics strong.stale{color:#a86d00}
+        .ce2-profile-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:8px 12px 0;border:1px dashed #dacdbb;border-radius:9px;background:#fff;padding:8px}.ce2-profile-strip>div{padding:4px 10px;border-right:1px solid #eee4d7}.ce2-profile-strip>div:last-child{border-right:0}.ce2-profile-strip small,.ce2-profile-strip strong{display:block}.ce2-profile-strip small{font-size:10px;color:#80776c}.ce2-profile-strip strong{margin-top:2px;font-size:12px}
+        .ce2-active-route{display:grid;grid-template-columns:minmax(150px,.72fr) minmax(330px,1.5fr) auto auto;align-items:center;gap:12px;margin:8px 12px 10px;padding:8px 10px;border:1px solid #f0d88d;border-radius:9px;background:#fff7d9}.ce2-route-id span{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#795914}.ce2-route-id strong{display:block;margin-top:2px;font-size:12px}.ce2-route-flow{display:flex;align-items:center;justify-content:center;gap:10px}.ce2-route-flow span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ce2-route-summary{display:flex;align-items:center;gap:7px;white-space:nowrap}.ce2-route-summary strong{font-size:13px}.ce2-route-summary span{font-size:11px;color:#71684f}.ce2-details{height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;background:#ffc232;color:#17130a;font-size:11px;font-weight:900;white-space:nowrap}
+        .ce2-no-route{display:flex;align-items:center;gap:8px;margin:8px 12px 10px;padding:8px 10px;border-radius:9px;background:#f2faf5;color:#2c6f4c;font-size:11px}.ce2-no-route a{margin-left:auto;font-weight:900;color:#156b43}
+        .ce2-empty{min-height:160px;display:grid;place-items:center;align-content:center;gap:6px;color:#777}.ce2-empty strong{font-size:14px}.ce2-empty span{font-size:11px}
+        @media(max-width:1250px){.ce2-head{align-items:flex-start;flex-direction:column}.ce2-head-actions{justify-content:flex-start}.ce2-stats{grid-template-columns:repeat(2,1fr)}.ce2-courier-top{align-items:flex-start;flex-direction:column}.ce2-courier-actions{justify-content:flex-start}.ce2-active-route{grid-template-columns:1fr 1.4fr auto}.ce2-details{grid-column:1/-1;justify-self:end}.ce2-request{grid-template-columns:48px 1fr auto}.ce2-request-contact{display:none}}
+        @media(max-width:760px){.ce2-page{padding:10px 10px 90px}.ce2-stats{grid-template-columns:1fr 1fr}.ce2-stats>button{grid-template-columns:40px 1fr;height:auto;padding:10px}.ce2-stats>button>svg{display:none}.ce2-toolbar{align-items:stretch;flex-direction:column}.ce2-toolbar-controls{align-items:stretch;flex-direction:column}.ce2-search{min-width:0;width:100%}.ce2-filters{overflow-x:auto}.ce2-request{grid-template-columns:42px 1fr}.ce2-request-actions{grid-column:1/-1}.ce2-courier-actions{width:100%}.ce2-mini{flex:1 1 calc(50% - 4px);justify-content:center}.ce2-metrics{grid-template-columns:repeat(2,1fr)}.ce2-metrics>div:nth-child(2){border-right:0}.ce2-profile-strip{grid-template-columns:repeat(2,1fr)}.ce2-active-route{grid-template-columns:1fr}.ce2-route-flow{justify-content:flex-start;flex-wrap:wrap}.ce2-details{grid-column:auto;justify-self:stretch;justify-content:center}}
       `}</style>
-
     </div>
   )
 }
