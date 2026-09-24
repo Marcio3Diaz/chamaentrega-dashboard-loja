@@ -72,8 +72,8 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
     roundStep: Number(pricingRow?.round_step ?? .5),
   }
 
-  return <>
-    <div className="hero">
+  return <div className="create-delivery-page">
+    <div className="hero create-delivery-hero">
       <div>
         <div className="eyebrow">{initialOrder ? 'Pedido integrado' : 'Nova corrida'}</div>
         <h1>Criar entrega</h1>
@@ -95,5 +95,5 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
       storeState={store.state ?? null}
       pricing={pricing}
     />
-  </>
+  </div>
 }
