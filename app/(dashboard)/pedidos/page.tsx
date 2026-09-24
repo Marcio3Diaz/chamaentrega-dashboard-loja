@@ -10,7 +10,14 @@ function statusFromDelivery(status:string):IntegratedOrder['status'] {
   return 'seeking_courier'
 }
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string,string | string[] | undefined>>
+}) {
+  const params = searchParams ? await searchParams : {}
+  const initialSelectedId = typeof params.pedido === 'string' ? params.pedido : null
+  const initialMessage = typeof params.message === 'string' ? params.message : ''
   const { store } = await requireStore()
   const supabase = await createClient()
 
@@ -136,6 +143,8 @@ export default async function OrdersPage() {
       storeId={store.id}
       initialOrders={orders}
       initialDeliveries={linkedDeliveries}
+      initialSelectedId={initialSelectedId}
+      initialMessage={initialMessage}
     />
   )
 }
