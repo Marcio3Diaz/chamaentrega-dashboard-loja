@@ -21922,3 +21922,45 @@ html[data-theme="light"] .premium-shell:has(.wallet-page) .mobile-nav a{
     transform-origin:bottom right!important;
   }
 }
+
+
+/* =================================================================
+   HOME V4.1 — PNG renderizado como <img>, não como background
+   ================================================================= */
+.reference-dashboard .reference-hero.generic-hero-banner.official-png-banner{
+  position:relative!important;
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:1000 / 181!important;
+  display:block!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#111!important;
+}
+.reference-dashboard .official-png-banner-image{
+  position:absolute!important;
+  inset:0!important;
+  z-index:1!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:none!important;
+}
+.reference-dashboard .reference-hero.generic-hero-banner.official-png-banner .reference-clock-card{
+  z-index:4!important;
+}
+@media(max-width:760px){
+  .reference-dashboard .reference-hero.generic-hero-banner.official-png-banner{
+    height:220px!important;
+    aspect-ratio:auto!important;
+  }
+  .reference-dashboard .official-png-banner-image{
+    object-fit:cover!important;
+    object-position:center!important;
+  }
+}
