@@ -19300,3 +19300,424 @@ html[data-theme="light"] .store-switcher-avatar{
   .couriers-head-actions{width:100%!important}
   .couriers-head-actions>*{flex:1}
 }
+
+
+/* ===== Entregadores compacto + legível 24/09/2026 ===== */
+.couriers-page{
+  display:grid;
+  gap:12px;
+  padding:14px 0 28px;
+}
+
+.couriers-page-head{
+  min-height:108px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 20px;
+  border-radius:18px;
+}
+
+.couriers-page-head .eyebrow{
+  font-size:12px;
+  letter-spacing:.11em;
+}
+
+.couriers-page-head h1{
+  margin:3px 0 4px;
+  font-size:34px;
+  line-height:1;
+  letter-spacing:-1.2px;
+}
+
+.couriers-page-head p{
+  margin:0;
+  font-size:14px;
+  line-height:1.35;
+}
+
+.couriers-head-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.couriers-head-actions a,
+.couriers-head-actions button,
+.couriers-live-pill{
+  min-height:42px;
+  padding:0 14px;
+  border-radius:11px;
+  font-size:13px;
+  font-weight:850;
+}
+
+.couriers-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+
+.couriers-stats>button{
+  min-width:0;
+  min-height:88px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:11px;
+  padding:12px 14px;
+  border:1px solid #eadfce;
+  border-radius:15px;
+  background:#fffaf3;
+  color:#171717;
+  text-align:left;
+  cursor:pointer;
+  transition:.16s ease;
+}
+
+.couriers-stats>button:hover{
+  transform:translateY(-1px);
+  border-color:#e8b623;
+  box-shadow:0 7px 20px rgba(79,57,14,.08);
+}
+
+.couriers-stats>button.active{
+  border-color:#f2b70d;
+  box-shadow:inset 0 0 0 1px rgba(242,183,13,.18);
+}
+
+.couriers-stat-icon{
+  width:46px;
+  height:46px;
+}
+
+.couriers-stats small{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+}
+
+.couriers-stats strong{
+  display:block;
+  margin:1px 0 0;
+  font-size:28px;
+  line-height:1;
+}
+
+.couriers-stats span:not(.couriers-stat-icon){
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+  line-height:1.25;
+}
+
+.courier-network-requests,
+.couriers-list-card{
+  border-radius:16px;
+}
+
+.courier-network-requests-head{
+  min-height:72px;
+  padding:13px 16px;
+}
+
+.courier-network-requests-head .eyebrow{
+  font-size:11px;
+}
+
+.courier-network-requests-head h2,
+.couriers-toolbar>div>strong{
+  font-size:24px;
+  line-height:1.05;
+}
+
+.courier-network-requests-head p{
+  margin-top:3px;
+  font-size:12px;
+}
+
+.network-request-count{
+  min-height:34px;
+  padding:0 13px;
+  font-size:11px;
+}
+
+.courier-network-request-list{
+  padding:0 10px 10px;
+}
+
+.courier-network-request-list article{
+  min-height:68px;
+  display:grid;
+  grid-template-columns:52px minmax(240px,1fr) minmax(180px,.55fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:12px;
+}
+
+.network-request-avatar{
+  width:44px;
+  height:44px;
+  font-size:16px;
+}
+
+.network-request-person strong,
+.network-request-contact strong{
+  font-size:14px;
+}
+
+.network-request-person small,
+.network-request-contact small{
+  font-size:11px;
+}
+
+.network-request-person em{
+  font-size:10px;
+}
+
+.network-request-actions{
+  display:flex;
+  gap:8px;
+}
+
+.network-request-actions button{
+  min-height:38px;
+  padding:0 13px;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:850;
+}
+
+.couriers-toolbar{
+  min-height:58px;
+  padding:9px 14px;
+}
+
+.couriers-toolbar>div>span{
+  font-size:11px;
+}
+
+.couriers-toolbar-controls{
+  gap:8px;
+}
+
+.couriers-search{
+  min-width:250px;
+  min-height:40px;
+}
+
+.couriers-search input{
+  font-size:12px;
+}
+
+.couriers-filters{
+  gap:5px;
+}
+
+.couriers-filters button{
+  min-height:38px;
+  padding:0 13px;
+  font-size:11px;
+  font-weight:850;
+  border-radius:9px;
+}
+
+.couriers-grid{
+  display:grid;
+  gap:9px;
+  padding:9px 10px 11px;
+}
+
+.courier-card{
+  padding:11px 12px;
+  border-radius:14px;
+}
+
+.courier-card-top{
+  gap:10px;
+}
+
+.courier-card-avatar{
+  width:50px;
+  height:50px;
+}
+
+.courier-card-name strong{
+  font-size:17px;
+}
+
+.courier-card-name small{
+  margin-top:2px;
+  font-size:12px;
+}
+
+.courier-card-name>span{
+  margin-top:2px;
+  font-size:10px;
+}
+
+.courier-status-pill{
+  min-height:30px;
+  padding:0 10px;
+  font-size:11px;
+}
+
+.courier-card-metrics{
+  margin-top:8px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+.courier-card-metrics>div{
+  min-height:48px;
+  padding:7px 10px;
+}
+
+.courier-card-metrics small{
+  font-size:10px;
+}
+
+.courier-card-metrics strong{
+  margin-top:1px;
+  font-size:13px;
+}
+
+.courier-active-delivery{
+  margin-top:8px;
+  padding:9px 10px;
+  border-radius:11px;
+}
+
+.courier-route-head span,
+.courier-route-head strong{
+  font-size:10px;
+}
+
+.courier-route-customer{
+  margin-top:5px;
+}
+
+.courier-route-customer strong{
+  font-size:13px;
+}
+
+.courier-route-customer span{
+  margin-top:1px;
+  font-size:11px;
+}
+
+.courier-route-meta{
+  margin-top:6px;
+  font-size:11px;
+}
+
+.courier-no-route{
+  min-height:40px;
+  margin-top:8px;
+  font-size:11px;
+}
+
+.courier-card-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.courier-card-actions a{
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:0 12px;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:850;
+}
+
+@media (min-width:1500px){
+  .couriers-page{
+    gap:10px;
+  }
+
+  .couriers-page-head{
+    min-height:96px;
+    padding:15px 18px;
+  }
+
+  .couriers-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .courier-card-metrics{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+
+@media (max-width:1180px){
+  .couriers-page-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .couriers-head-actions{
+    justify-content:flex-start;
+  }
+
+  .couriers-stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .couriers-toolbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .couriers-toolbar-controls{
+    width:100%;
+  }
+
+  .couriers-search{
+    flex:1;
+  }
+
+  .courier-network-request-list article{
+    grid-template-columns:52px minmax(0,1fr) auto;
+  }
+
+  .network-request-contact{
+    display:none;
+  }
+}
+
+@media (max-width:720px){
+  .couriers-stats{
+    grid-template-columns:1fr;
+  }
+
+  .couriers-toolbar-controls,
+  .couriers-filters{
+    width:100%;
+    flex-wrap:wrap;
+  }
+
+  .couriers-search{
+    min-width:100%;
+  }
+
+  .courier-card-metrics{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .courier-network-request-list article{
+    grid-template-columns:44px minmax(0,1fr);
+  }
+
+  .network-request-actions{
+    grid-column:1/-1;
+  }
+}
