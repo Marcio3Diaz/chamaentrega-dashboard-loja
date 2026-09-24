@@ -20751,3 +20751,95 @@ html[data-theme="light"] .store-switcher-avatar{
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* =================================================================
+   NOVA ENTREGA V4 — endereço identifica localização automaticamente
+   ================================================================= */
+.create-delivery-page .geo-map-preview{
+  overflow:hidden!important;
+  border:1px solid #e2d5c4!important;
+  border-radius:12px!important;
+  background:#fffdf9!important;
+}
+.create-delivery-page .geo-map-preview-head{
+  min-height:54px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:9px 11px!important;
+  border-bottom:1px solid #eadfce!important;
+  background:#fff8ec!important;
+}
+.create-delivery-page .geo-map-preview-head strong,
+.create-delivery-page .geo-map-preview-head span{
+  display:block!important;
+}
+.create-delivery-page .geo-map-preview-head strong{
+  color:#2c251e!important;
+  font-size:11px!important;
+}
+.create-delivery-page .geo-map-preview-head span{
+  margin-top:2px!important;
+  color:#7e7162!important;
+  font-size:8.8px!important;
+}
+.create-delivery-page .geo-map-preview-head button{
+  min-height:32px!important;
+  padding:0 10px!important;
+  border:1px solid #e0d3c2!important;
+  border-radius:8px!important;
+  color:#574b3e!important;
+  background:#fffdf9!important;
+  font-size:8.5px!important;
+  font-weight:900!important;
+}
+.create-delivery-page .geo-map-preview iframe{
+  width:100%!important;
+  height:190px!important;
+  display:block!important;
+  border:0!important;
+  background:#efe8dc!important;
+}
+.create-delivery-page .delivery-auto-summary{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.create-delivery-page .delivery-auto-summary>div{
+  min-height:58px!important;
+  padding:9px 10px!important;
+  border:1px solid #e7dbca!important;
+  border-radius:10px!important;
+  background:#fff8ec!important;
+}
+.create-delivery-page .delivery-auto-summary small,
+.create-delivery-page .delivery-auto-summary strong{
+  display:block!important;
+}
+.create-delivery-page .delivery-auto-summary small{
+  color:#857765!important;
+  font-size:8.5px!important;
+}
+.create-delivery-page .delivery-auto-summary strong{
+  margin-top:4px!important;
+  color:#2c251e!important;
+  font-size:11px!important;
+}
+.create-delivery-page .geo-warning{
+  color:#715516!important;
+  background:#fff4d2!important;
+}
+@media(max-width:760px){
+  .create-delivery-page .geo-map-preview-head{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+  .create-delivery-page .geo-map-preview-head button{
+    width:100%!important;
+  }
+  .create-delivery-page .delivery-auto-summary{
+    grid-template-columns:1fr!important;
+  }
+}
