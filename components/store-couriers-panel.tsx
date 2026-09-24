@@ -32,6 +32,7 @@ export type StoreCourierRequest = {
 export type StoreCourier = {
   id: string
   fullName: string
+  phone: string | null
   avatarUrl: string | null
   vehicleType: string | null
   isOnline: boolean
@@ -174,7 +175,7 @@ export function StoreCouriersPanel({
         .in('id', courierIds),
       supabase
         .from('profiles')
-        .select('id,full_name,avatar_url')
+        .select('id,full_name,phone,avatar_url')
         .in('id', courierIds),
       supabase
         .from('deliveries')
@@ -209,6 +210,7 @@ export function StoreCouriersPanel({
       return {
         id: item.id,
         fullName: profile?.full_name?.trim() || 'Entregador parceiro',
+        phone: profile?.phone ?? null,
         avatarUrl: profile?.avatar_url ?? null,
         vehicleType: item.vehicle_type,
         isOnline: Boolean(item.is_online),
@@ -403,6 +405,10 @@ export function StoreCouriersPanel({
 
         <div className="couriers-head-actions">
           <span className={`couriers-live-pill ${liveState === 'AO VIVO' ? 'online' : ''}`}><i />{liveState}</span>
+          <button type="button" className="couriers-refresh-button" onClick={() => void refresh()}>
+            <Icon name="activity" size={16}/> Atualizar
+          </button>
+          <Link href="/entregas/nova" className="couriers-new-delivery-button"><Icon name="plus" size={16}/> Nova entrega</Link>
           <Link href="/mapa" className="couriers-map-button"><Icon name="map" size={16}/> Mapa ao vivo</Link>
         </div>
       </section>
@@ -604,11 +610,14 @@ export function StoreCouriersPanel({
                 )}
 
                 <div className="courier-card-actions">
+                  {courier.phone ? (
+                    <a href={`tel:${courier.phone.replace(/\D/g,'')}`} className="secondary"><Icon name="phone" size={15}/> Ligar</a>
+                  ) : null}
                   <Link href="/mapa" className="secondary"><Icon name="pin" size={15}/> Ver no mapa</Link>
                   {delivery ? (
-                    <Link href={`/chat?delivery=${delivery.id}`} className="primary"><Icon name="chat" size={15}/> Chat</Link>
+                    <Link href={`/chat?delivery=${delivery.id}`} className="primary"><Icon name="chat" size={15}/> Chat da corrida</Link>
                   ) : (
-                    <span className="courier-chat-disabled"><Icon name="chat" size={15}/> Chat após aceitar</span>
+                    <Link href="/entregas/nova" className="primary"><Icon name="plus" size={15}/> Criar entrega</Link>
                   )}
                 </div>
               </article>
