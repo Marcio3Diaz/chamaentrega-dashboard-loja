@@ -15,7 +15,13 @@ const activeStatuses = [
   'at_dropoff',
 ]
 
-export default async function CouriersPage() {
+export default async function CouriersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string,string | string[] | undefined>>
+}) {
+  const params = searchParams ? await searchParams : {}
+  const reviewMessage = typeof params.message === 'string' ? params.message : ''
   const { store } = await requireStore()
   const supabase = await createClient()
 
@@ -132,6 +138,7 @@ export default async function CouriersPage() {
       storeLongitude={store.longitude == null ? null : Number(store.longitude)}
       initialCouriers={couriers}
       initialRequests={requests}
+      initialReviewMessage={reviewMessage}
     />
   )
 }
