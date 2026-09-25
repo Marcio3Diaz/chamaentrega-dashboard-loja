@@ -31,10 +31,17 @@ export type CourierOperationalRecord = {
   is_available: boolean
 }
 
+export type CourierProfileRecord = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+}
+
 export interface OperationalRepository {
   listStoresForUser(userId: string): Promise<Store[]>
   listDeliveriesByStore(storeId: string, limit?: number): Promise<Delivery[]>
   listDeliveriesSince(storeId: string, sinceIso: string, limit?: number): Promise<Delivery[]>
   listStoreOrders(storeId: string, limit?: number): Promise<StoreOrderRecord[]>
   listCouriers(): Promise<CourierOperationalRecord[]>
+  listCourierProfilesByIds(ids: string[]): Promise<CourierProfileRecord[]>
 }
