@@ -111,3 +111,63 @@ export async function shadowPublishedDeliveryToMySql(
     }
   }
 }
+
+
+async function callMigrationDeliveryCommand(
+  deliveryId:string,
+  command:'accept'|'reject'|'status'|'cancel'|'location',
+  payload:Record<string,unknown>,
+) {
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) throw new Error('migration_api_not_configured')
+
+  const response = await fetch(
+    `${baseUrl}/v1/internal/deliveries/${encodeURIComponent(deliveryId)}/${command}`,
+    {
+      method:'POST',
+      cache:'no-store',
+      signal:AbortSignal.timeout(8000),
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+      body:JSON.stringify(payload),
+    },
+  )
+
+  const body = await response.json().catch(() => ({})) as Record<string,unknown>
+  if (!response.ok) {
+    const error = new Error(String(body.error ?? 'migration_api_error'))
+    ;(error as Error & { status?:number }).status = response.status
+    throw error
+  }
+  return body
+}
+
+export async function shadowCancelledDeliveryToMySql(
+  deliveryId:string,
+  storeId:string,
+  reason?:string,
+):Promise<MigrationShadowWriteResult> {
+  if (!isMigrationShadowWriteEnabled()) {
+    return { attempted:false, ok:true }
+  }
+
+  try {
+    const response = await callMigrationDeliveryCommand(
+      deliveryId,
+      'cancel',
+      { storeId, reason:reason ?? 'cancelled_in_supabase' },
+    )
+    return { attempted:true, ok:true, response }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown_shadow_cancel_error'
+    console.error('[mysql-shadow] delivery cancel failed', {
+      deliveryId,
+      storeId,
+      error:message,
+    })
+    return { attempted:true, ok:false, error:message }
+  }
+}
