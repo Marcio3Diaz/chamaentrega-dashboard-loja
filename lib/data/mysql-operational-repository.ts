@@ -3,6 +3,7 @@ import type {
   OperationalRepository,
   StoreOrderRecord,
   CourierOperationalRecord,
+  CourierProfileRecord,
 } from '@/lib/data/operational-repository'
 
 function unavailable(): never {
@@ -30,6 +31,10 @@ export class MysqlOperationalRepository implements OperationalRepository {
   }
 
   async listCouriers(): Promise<CourierOperationalRecord[]> {
+    return unavailable()
+  }
+
+  async listCourierProfilesByIds(_ids: string[]): Promise<CourierProfileRecord[]> {
     return unavailable()
   }
 }
