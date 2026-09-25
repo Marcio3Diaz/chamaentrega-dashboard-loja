@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 import { activeStatuses, currency, shortId, statusLabel } from '@/lib/format'
 import type { Delivery } from '@/lib/types'
 import { LiveDeliveries } from '@/components/live-deliveries'
@@ -24,6 +25,7 @@ function dayLabel(date: Date) {
 export default async function OverviewPage() {
   const { store } = await requireStore()
   const supabase = await createClient()
+  const repository = getOperationalRepository()
 
   const now = new Date()
   const startToday = new Date(now)
@@ -32,23 +34,11 @@ export default async function OverviewPage() {
   const startWeek = new Date(startToday)
   startWeek.setDate(startWeek.getDate() - 6)
 
-  const [{ data: todayData }, { data: weekData }] = await Promise.all([
-    supabase
-      .from('deliveries')
-      .select('*')
-      .eq('store_id', store.id)
-      .gte('created_at', startToday.toISOString())
-      .order('created_at', { ascending:false }),
-    supabase
-      .from('deliveries')
-      .select('*')
-      .eq('store_id', store.id)
-      .gte('created_at', startWeek.toISOString())
-      .order('created_at', { ascending:false }),
+  const [deliveries, weekDeliveries, couriers] = await Promise.all([
+    repository.listDeliveriesSince(store.id, startToday.toISOString(), 500),
+    repository.listDeliveriesSince(store.id, startWeek.toISOString(), 2000),
+    repository.listCouriers(),
   ])
-
-  const deliveries = (todayData ?? []) as Delivery[]
-  const weekDeliveries = (weekData ?? []) as Delivery[]
 
   const active = deliveries.filter(item => activeStatuses.includes(item.status)).length
   const waiting = deliveries.filter(item => ['available','negotiating'].includes(item.status)).length
@@ -73,10 +63,6 @@ export default async function OverviewPage() {
   const walletReserved = Number(wallet?.reserved_balance ?? 0)
   const walletAvailable = Number(wallet?.available_balance ?? Math.max(walletBalance - walletReserved,0))
 
-  const { data: couriersData } = await supabase
-    .from('couriers')
-    .select('id,is_online,is_available')
-  const couriers = couriersData ?? []
   const couriersOnline = couriers.filter(item => item.is_online).length
 
   const metrics = [
@@ -96,7 +82,7 @@ export default async function OverviewPage() {
     cancelled,
   }
 
-  const activeMapDeliveries = (todayData ?? [])
+  const activeMapDeliveries = deliveries
     .filter((item:any) => activeStatuses.includes(item.status) || ['available','negotiating'].includes(item.status))
     .map((item:any) => ({
       id:item.id,
