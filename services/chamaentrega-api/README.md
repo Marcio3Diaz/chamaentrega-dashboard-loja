@@ -66,3 +66,28 @@ CHAMA_MYSQL_SHADOW_WRITE=false
 ```
 
 When later enabled, Supabase remains the production write. After the Supabase transaction succeeds, the same delivery UUID is copied to the MySQL API. A MySQL failure is logged but never blocks the production delivery during the migration phase.
+
+
+## Delivery command API
+
+The MySQL migration API now contains the courier/store command flow that will eventually replace the corresponding Supabase RPC/trigger behavior.
+
+All routes below currently use the internal migration key. They are **not yet exposed directly to the mobile app**; mobile authentication/authorization will be added before cutover.
+
+- `POST /v1/internal/deliveries/:id/accept` — accepts an available delivery, assigns/creates the courier batch and enforces the maximum of 3 active deliveries.
+- `POST /v1/internal/deliveries/:id/reject` — records the rejection and reopens a targeted offer to the network.
+- `POST /v1/internal/deliveries/:id/status` — only permits the sequence `accepted -> heading_to_pickup -> at_pickup -> heading_to_dropoff -> at_dropoff -> completed`.
+- `POST /v1/internal/deliveries/:id/location` — records live courier coordinates only for an active delivery assigned to that courier.
+- `POST /v1/internal/deliveries/:id/cancel` — store-side cancellation with wallet reservation release.
+
+On `completed`, the delivery fee is captured exactly once from the reserved store balance inside the same MySQL transaction. On `cancelled` or automatic `expired`, the reservation is released.
+
+## Delivery maintenance
+
+A disabled-by-default maintenance worker expires stale `available/negotiating` deliveries and releases their wallet reservations.
+
+```text
+DELIVERY_MAINTENANCE_ENABLED=false
+```
+
+Keep it disabled while Supabase is still the production source of truth.
