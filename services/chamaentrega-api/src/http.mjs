@@ -7,7 +7,16 @@ import {
 } from './delivery-service.mjs'
 import { pingDatabase } from './db.mjs'
 import { CourierNetworkError, reviewCourierNetworkRequest } from './courier-network-service.mjs'
-import { ApiSessionError, authenticateApiSession, createApiSession, revokeApiSession } from './auth-service.mjs'
+import {
+  ApiSessionError,
+  authenticateApiSession,
+  createApiSession,
+  revokeApiSession,
+  requireCourierSession,
+  requireDeliverySessionAccess,
+  requireSessionScope,
+  requireStoreSessionAccess,
+} from './auth-service.mjs'
 import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import {
   DeliveryCommandError,
@@ -66,6 +75,12 @@ function bearerToken(req) {
   return match?.[1]?.trim() || null
 }
 
+async function requireBearerSession(req, pool) {
+  const token = bearerToken(req)
+  if (!token) throw new ApiSessionError('authorization_required', 401)
+  return authenticateApiSession(pool, token)
+}
+
 function requireInternalKey(req, config) {
   const key = req.headers['x-chama-internal-key']
   if (typeof key !== 'string' || !secureEqual(key, config.internalApiKey)) {
@@ -88,6 +103,30 @@ export function createRequestHandler({ config, pool }) {
           mysql: ok ? 'connected' : 'unavailable',
           timestamp: new Date().toISOString(),
         })
+      }
+
+      const publicDeliveryReadMatch = url.pathname.match(/^\/v1\/deliveries\/([0-9a-f-]{36})$/i)
+      if (req.method === 'GET' && publicDeliveryReadMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:read')
+        await requireDeliverySessionAccess(pool, session, publicDeliveryReadMatch[1])
+        return json(res, 200, await getDelivery(pool, publicDeliveryReadMatch[1]))
+      }
+
+      const publicCourierActiveMatch = url.pathname.match(/^\/v1\/couriers\/me\/active-deliveries$/i)
+      if (req.method === 'GET' && publicCourierActiveMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:read')
+        const courierId = requireCourierSession(session)
+        return json(res, 200, await listCourierActiveDeliveries(pool, courierId))
+      }
+
+      const publicStoreLiveMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
+      if (req.method === 'GET' && publicStoreLiveMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'store:read')
+        const storeId = await requireStoreSessionAccess(pool, session, publicStoreLiveMatch[1])
+        return json(res, 200, await listStoreLiveDeliveries(pool, storeId, url.searchParams.get('limit')))
       }
 
       const deliveryReadMatch = url.pathname.match(/^\/v1\/internal\/deliveries\/([0-9a-f-]{36})$/i)
@@ -135,6 +174,21 @@ export function createRequestHandler({ config, pool }) {
         })
       }
 
+      const publicCreateDeliveryMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/deliveries$/i)
+      if (req.method === 'POST' && publicCreateDeliveryMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:write')
+        const storeId = await requireStoreSessionAccess(pool, session, publicCreateDeliveryMatch[1])
+        const idempotencyKey = req.headers['idempotency-key']
+        if (typeof idempotencyKey !== 'string' || idempotencyKey.trim().length < 8 || idempotencyKey.length > 200) {
+          return json(res, 400, { error:'invalid_idempotency_key' })
+        }
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const input = validateDeliveryInput({ ...payload, storeId })
+        const result = await createAvailableDelivery(pool, input, idempotencyKey.trim())
+        return json(res, result.replayed ? 200 : 201, result)
+      }
+
       if (req.method === 'POST' && url.pathname === '/v1/internal/deliveries') {
         requireInternalKey(req, config)
         const idempotencyKey = req.headers['idempotency-key']
@@ -145,6 +199,39 @@ export function createRequestHandler({ config, pool }) {
         const input = validateDeliveryInput(payload)
         const result = await createAvailableDelivery(pool, input, idempotencyKey.trim())
         return json(res, result.replayed ? 200 : 201, result)
+      }
+
+      const publicCourierCommandMatch = url.pathname.match(/^\/v1\/deliveries\/([0-9a-f-]{36})\/(accept|reject|status|location)$/i)
+      if (req.method === 'POST' && publicCourierCommandMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, publicCourierCommandMatch[2] === 'location' ? 'location:write' : 'delivery:command')
+        const courierId = requireCourierSession(session)
+        await requireDeliverySessionAccess(pool, session, publicCourierCommandMatch[1])
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const [, deliveryId, command] = publicCourierCommandMatch
+
+        if (command === 'accept') return json(res, 200, await acceptDelivery(pool, deliveryId, courierId))
+        if (command === 'reject') return json(res, 200, await rejectDelivery(pool, deliveryId, courierId, payload.reason))
+        if (command === 'status') return json(res, 200, await advanceDeliveryStatus(pool, deliveryId, courierId, payload.status))
+        if (command === 'location') {
+          return json(res, 200, await recordDeliveryLocation(
+            pool,
+            deliveryId,
+            courierId,
+            payload.latitude,
+            payload.longitude,
+            payload.accuracyMeters,
+          ))
+        }
+      }
+
+      const publicStoreCancelMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/deliveries\/([0-9a-f-]{36})\/cancel$/i)
+      if (req.method === 'POST' && publicStoreCancelMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:write')
+        const storeId = await requireStoreSessionAccess(pool, session, publicStoreCancelMatch[1])
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        return json(res, 200, await cancelDelivery(pool, publicStoreCancelMatch[2], storeId, payload.reason))
       }
 
       const commandMatch = url.pathname.match(/^\/v1\/internal\/deliveries\/([0-9a-f-]{36})\/(accept|reject|status|cancel|location)$/i)
@@ -177,6 +264,23 @@ export function createRequestHandler({ config, pool }) {
         }
       }
 
+      const publicNetworkReviewMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/courier-network\/review$/i)
+      if (req.method === 'POST' && publicNetworkReviewMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'courier-network:review')
+        const storeId = await requireStoreSessionAccess(pool, session, publicNetworkReviewMatch[1])
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const result = await reviewCourierNetworkRequest(
+          pool,
+          storeId,
+          payload.courierId,
+          session.subjectId,
+          payload.decision,
+          payload.note,
+        )
+        return json(res, 200, result)
+      }
+
       if (req.method === 'POST' && url.pathname === '/v1/internal/courier-network/review') {
         requireInternalKey(req, config)
         const payload = await readJson(req, config.requestBodyLimitBytes)
@@ -189,6 +293,20 @@ export function createRequestHandler({ config, pool }) {
           payload.note,
         )
         return json(res, 200, result)
+      }
+
+      const publicDispatchRouteMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/dispatch-route$/i)
+      if (req.method === 'POST' && publicDispatchRouteMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:write')
+        const storeId = await requireStoreSessionAccess(pool, session, publicDispatchRouteMatch[1])
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        return json(res, 200, await dispatchRouteToCourier(
+          pool,
+          storeId,
+          payload.courierId,
+          payload.deliveryIds,
+        ))
       }
 
       if (req.method === 'POST' && url.pathname === '/v1/internal/dispatch-route') {
