@@ -1,0 +1,36 @@
+name: MySQL migration API checks
+
+on:
+  pull_request:
+    paths:
+      - 'services/chamaentrega-api/**'
+      - 'database/mysql/**'
+      - '.github/workflows/mysql-migration-api-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/chamaentrega-api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install API dependencies
+        run: npm install --ignore-scripts
+
+      - name: Static syntax checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
