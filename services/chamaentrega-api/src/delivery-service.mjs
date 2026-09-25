@@ -168,6 +168,14 @@ export async function createAvailableDelivery(pool, input, idempotencyKey) {
         'delivery.available',
         eventPayload,
       )
+    } else {
+      await enqueueRealtimeEvent(
+        connection,
+        'courier_pool',
+        null,
+        'delivery.available',
+        eventPayload,
+      )
     }
 
     const response = {
