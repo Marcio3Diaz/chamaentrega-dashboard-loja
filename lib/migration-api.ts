@@ -395,3 +395,51 @@ export async function migrationStoreDeliveriesWithFallback(
     return { deliveries:await supabaseLoader(), source:'supabase' }
   }
 }
+
+
+export async function shadowDispatchRouteToMySql(
+  storeId:string,
+  courierId:string,
+  deliveryIds:string[],
+):Promise<MigrationShadowWriteResult> {
+  if (!isMigrationShadowWriteEnabled()) {
+    return { attempted:false, ok:true }
+  }
+
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) {
+    return { attempted:false, ok:false, error:'migration_api_not_configured' }
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v1/internal/dispatch-route`, {
+      method:'POST',
+      cache:'no-store',
+      signal:AbortSignal.timeout(8000),
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+      body:JSON.stringify({ storeId, courierId, deliveryIds }),
+    })
+
+    const body = await response.json().catch(() => ({})) as Record<string,unknown>
+    if (!response.ok) {
+      const error = new Error(String(body.error ?? 'migration_api_error'))
+      ;(error as Error & { status?:number }).status = response.status
+      throw error
+    }
+
+    return { attempted:true, ok:true, response:body }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown_dispatch_shadow_error'
+    console.error('[mysql-shadow] dispatch route failed', {
+      storeId,
+      courierId,
+      deliveryIds,
+      error:message,
+    })
+    return { attempted:true, ok:false, error:message }
+  }
+}
