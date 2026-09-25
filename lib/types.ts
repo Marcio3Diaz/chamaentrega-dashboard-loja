@@ -12,6 +12,7 @@ export type Store = {
   moderation_reason?: string | null
   city: string | null
   state: string | null
+  created_at?: string
 }
 
 export type Delivery = {
