@@ -15,7 +15,7 @@ export class SupabaseOperationalRepository implements OperationalRepository {
       await Promise.all([
         supabase
           .from('stores')
-          .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state')
+          .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
           .eq('owner_id', userId),
         supabase
           .from('store_members')
@@ -35,7 +35,7 @@ export class SupabaseOperationalRepository implements OperationalRepository {
     const { data: memberStores, error: memberStoresError } = memberIds.length
       ? await supabase
           .from('stores')
-          .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state')
+          .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
           .in('id', memberIds)
       : { data: [], error: null }
 
