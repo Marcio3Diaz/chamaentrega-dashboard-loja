@@ -40,6 +40,16 @@ export function startRealtimeServer({ server, pool, config }) {
         socket.destroy()
         return
       }
+
+      const origin = typeof request.headers.origin === 'string'
+        ? request.headers.origin
+        : null
+      if (origin && !config.realtimeAllowedOrigins.includes(origin)) {
+        socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n')
+        socket.destroy()
+        return
+      }
+
       wss.handleUpgrade(request, socket, head, ws => {
         wss.emit('connection', ws, request)
       })
