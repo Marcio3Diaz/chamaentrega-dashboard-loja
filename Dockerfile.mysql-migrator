@@ -1,0 +1,11 @@
+FROM node:22.13.0-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-fund
+
+COPY mysql ./mysql
+COPY scripts/apply-mysql-schema.mjs ./scripts/apply-mysql-schema.mjs
+
+CMD ["npm","run","db:apply:mysql"]
