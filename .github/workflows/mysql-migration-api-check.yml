@@ -71,6 +71,7 @@ jobs:
           mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/002_runtime_foundation.sql
           mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/003_mysql_compatibility_fixes.sql
           mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/004_text_capacity.sql
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/005_api_sessions_realtime.sql
 
       - name: Install API dependencies
         working-directory: services/chamaentrega-api
