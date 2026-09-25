@@ -74,12 +74,12 @@ export async function createApiSession(pool, input, ttlSecondsRaw = 28800) {
     if (!rows?.[0]) throw new ApiSessionError('store_access_required', 403)
   }
 
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000)
   await pool.execute(
     `INSERT INTO api_sessions
        (id, token_hash, subject_id, subject_role, issued_by, scopes, created_at, expires_at)
-     VALUES (?, ?, ?, ?, 'migration_bridge', ?, UTC_TIMESTAMP(6),
-       DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? SECOND))`,
-    [sessionId, hash, subjectId, subjectRole, JSON.stringify(scopes), ttlSeconds],
+     VALUES (?, ?, ?, ?, 'migration_bridge', ?, UTC_TIMESTAMP(6), ?)`,
+    [sessionId, hash, subjectId, subjectRole, JSON.stringify(scopes), expiresAt],
   )
 
   return {
