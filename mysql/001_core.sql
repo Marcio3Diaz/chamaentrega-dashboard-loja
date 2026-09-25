@@ -38,15 +38,13 @@ CREATE TABLE IF NOT EXISTS stores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS store_members (
-  id CHAR(36) NOT NULL,
   store_id CHAR(36) NOT NULL,
   user_id CHAR(36) NOT NULL,
   status VARCHAR(30) NOT NULL DEFAULT 'active',
-  role VARCHAR(40) NOT NULL DEFAULT 'member',
+  role VARCHAR(40) NOT NULL DEFAULT 'operator',
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_store_members_store_user (store_id,user_id),
+  PRIMARY KEY (store_id,user_id),
   KEY idx_store_members_user_status (user_id,status),
   CONSTRAINT fk_store_members_store FOREIGN KEY (store_id) REFERENCES stores(id)
     ON UPDATE CASCADE ON DELETE CASCADE,
