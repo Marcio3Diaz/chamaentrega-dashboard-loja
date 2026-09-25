@@ -216,3 +216,40 @@ export async function shadowCourierNetworkReviewToMySql(
     return { attempted:true, ok:false, error:message }
   }
 }
+
+
+export async function createMigrationApiSession(input:{
+  subjectId:string
+  subjectRole:'store_owner'|'store_member'|'courier'|'admin'
+  scopes?:string[]
+  ttlSeconds?:number
+}) {
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) throw new Error('migration_api_not_configured')
+
+  const response = await fetch(`${baseUrl}/v1/internal/auth/sessions`, {
+    method:'POST',
+    cache:'no-store',
+    signal:AbortSignal.timeout(8000),
+    headers:{
+      Accept:'application/json',
+      'Content-Type':'application/json',
+      'X-Chama-Internal-Key':key,
+    },
+    body:JSON.stringify(input),
+  })
+
+  const body = await response.json().catch(() => ({})) as Record<string,unknown>
+  if (!response.ok) {
+    const error = new Error(String(body.error ?? 'migration_api_error'))
+    ;(error as Error & { status?:number }).status = response.status
+    throw error
+  }
+  return body
+}
+
+export function migrationRealtimeUrl() {
+  const { baseUrl } = apiConfig()
+  if (!baseUrl) return null
+  return baseUrl.replace(/^http:/,'ws:').replace(/^https:/,'wss:') + '/realtime'
+}
