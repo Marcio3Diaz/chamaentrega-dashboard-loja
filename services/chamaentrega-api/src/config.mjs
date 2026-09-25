@@ -48,5 +48,10 @@ export function loadConfig() {
     deliveryMaintenanceEnabled: flag('DELIVERY_MAINTENANCE_ENABLED', false),
     deliveryMaintenancePollMs: integer('DELIVERY_MAINTENANCE_POLL_MS', 5000),
     deliveryMaintenanceBatchSize: integer('DELIVERY_MAINTENANCE_BATCH_SIZE', 100),
+    apiSessionTtlSeconds: integer('API_SESSION_TTL_SECONDS', 28800),
+    realtimeEnabled: flag('REALTIME_ENABLED', false),
+    realtimePollMs: integer('REALTIME_POLL_MS', 500),
+    realtimeBatchSize: integer('REALTIME_BATCH_SIZE', 250),
+    realtimeMaxPayloadBytes: integer('REALTIME_MAX_PAYLOAD_BYTES', 32 * 1024),
   })
 }
