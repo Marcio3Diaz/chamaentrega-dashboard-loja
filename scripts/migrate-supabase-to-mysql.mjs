@@ -18,8 +18,8 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 const TABLES = [
   {
     name: 'profiles',
-    select: 'id,full_name,avatar_url,role,created_at,updated_at',
-    columns: ['id','full_name','avatar_url','role','created_at','updated_at'],
+    select: 'id,full_name,avatar_url,role',
+    columns: ['id','full_name','avatar_url','role'],
   },
   {
     name: 'stores',
@@ -33,8 +33,8 @@ const TABLES = [
   },
   {
     name: 'couriers',
-    select: 'id,vehicle_type,is_online,is_available,created_at,updated_at',
-    columns: ['id','vehicle_type','is_online','is_available','created_at','updated_at'],
+    select: 'id,vehicle_type,is_online,is_available',
+    columns: ['id','vehicle_type','is_online','is_available'],
   },
   {
     name: 'deliveries',
