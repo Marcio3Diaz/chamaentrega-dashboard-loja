@@ -2,6 +2,7 @@ import http from 'node:http'
 import { loadConfig } from './config.mjs'
 import { createDatabase, pingDatabase } from './db.mjs'
 import { createRequestHandler } from './http.mjs'
+import { startOutboxWorker } from './outbox-worker.mjs'
 
 const config = loadConfig()
 const pool = createDatabase(config)
@@ -14,6 +15,8 @@ try {
   process.exit(1)
 }
 
+const outboxWorker = startOutboxWorker({ pool, config })
+
 const server = http.createServer(createRequestHandler({ config, pool }))
 server.requestTimeout = 15_000
 server.headersTimeout = 10_000
@@ -25,6 +28,7 @@ server.listen(config.port, '0.0.0.0', () => {
 
 async function shutdown(signal) {
   console.log(`[chamaentrega-api] ${signal}; shutting down`)
+  outboxWorker.stop()
   server.close(async () => {
     await pool.end()
     process.exit(0)
