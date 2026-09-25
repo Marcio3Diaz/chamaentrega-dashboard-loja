@@ -7,5 +7,6 @@ RUN npm ci --omit=dev --no-fund
 
 COPY mysql ./mysql
 COPY scripts/apply-mysql-schema.mjs ./scripts/apply-mysql-schema.mjs
+COPY scripts/import-mysql-payload.mjs ./scripts/import-mysql-payload.mjs
 
 CMD ["npm","run","db:apply:mysql"]
