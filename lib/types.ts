@@ -21,7 +21,11 @@ export type Delivery = {
   external_order_id: string | null
   status: string
   pickup_address: string
+  pickup_latitude?: number | null
+  pickup_longitude?: number | null
   delivery_address: string
+  delivery_latitude?: number | null
+  delivery_longitude?: number | null
   delivery_fee: number
   pickup_distance_km: number | null
   delivery_distance_km: number | null
