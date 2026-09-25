@@ -36,6 +36,8 @@ The bootstrap copies identities and operational configuration needed to test a n
 - couriers;
 - private courier/store network links;
 - store wallets;
+- courier delivery batches;
+- active deliveries and active wallet reservations (to preserve `reserved_balance` consistency);
 - courier FCM tokens;
 - delivery pricing;
 - platform billing settings.
