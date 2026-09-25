@@ -27,6 +27,18 @@ function quoteId(value) {
   return '\`'+value+'\`'
 }
 
+function normalizeValue(value) {
+  if (value == null) return null
+  if (typeof value === 'object') return JSON.stringify(value)
+  if (typeof value === 'string' && /^\\d{4}-\\d{2}-\\d{2}T/.test(value)) {
+    const date = new Date(value)
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 23).replace('T', ' ')
+    }
+  }
+  return value
+}
+
 try {
   await connection.beginTransaction()
 
@@ -50,7 +62,7 @@ try {
       : ''
 
     for (const row of rows) {
-      const values = columns.map(c => row[c] ?? null)
+      const values = columns.map(c => normalizeValue(row[c] ?? null))
       await connection.execute(
         'INSERT INTO '+quoteId(table)+' ('+colSql+') VALUES '+placeholders+updateSql,
         values
