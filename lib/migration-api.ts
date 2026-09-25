@@ -68,3 +68,46 @@ export async function createMigrationDelivery(
   }
   return body
 }
+
+
+export function isMigrationShadowWriteEnabled() {
+  const raw = process.env.CHAMA_MYSQL_SHADOW_WRITE?.trim().toLowerCase()
+  return ['1','true','yes','on'].includes(raw ?? '') && isMigrationApiConfigured()
+}
+
+export type MigrationShadowWriteResult = {
+  attempted:boolean
+  ok:boolean
+  response?:Record<string,unknown>
+  error?:string
+}
+
+export async function shadowPublishedDeliveryToMySql(
+  payload:Record<string,unknown>,
+  idempotencyKey:string,
+):Promise<MigrationShadowWriteResult> {
+  if (!isMigrationShadowWriteEnabled()) {
+    return { attempted:false, ok:true }
+  }
+
+  try {
+    const response = await createMigrationDelivery(payload,idempotencyKey)
+    return {
+      attempted:true,
+      ok:true,
+      response: response as Record<string,unknown>,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown_shadow_write_error'
+    console.error('[mysql-shadow] delivery write failed', {
+      deliveryId: payload.deliveryId ?? null,
+      storeId: payload.storeId ?? null,
+      error: message,
+    })
+    return {
+      attempted:true,
+      ok:false,
+      error:message,
+    }
+  }
+}
