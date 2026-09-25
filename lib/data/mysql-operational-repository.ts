@@ -61,7 +61,8 @@ export class MysqlOperationalRepository implements OperationalRepository {
         s.moderation_status,
         s.moderation_reason,
         s.city,
-        s.state
+        s.state,
+        s.created_at
       FROM stores s
       LEFT JOIN store_members sm
         ON sm.store_id = s.id
