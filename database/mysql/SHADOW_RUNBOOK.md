@@ -10,6 +10,7 @@ Apply, in order:
 2. `database/mysql/002_runtime_foundation.sql`
 3. `database/mysql/003_mysql_compatibility_fixes.sql`
 4. `database/mysql/004_text_capacity.sql`
+5. `database/mysql/005_api_sessions_realtime.sql`
 
 Do not point the apps at MySQL yet.
 
