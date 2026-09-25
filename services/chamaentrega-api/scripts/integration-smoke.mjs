@@ -13,6 +13,7 @@ import {
 import { reviewCourierNetworkRequest } from '../src/courier-network-service.mjs'
 import { listCourierAvailableOffers } from '../src/delivery-query-service.mjs'
 import { listStoreCouriers } from '../src/courier-query-service.mjs'
+import { getStoreWalletSnapshot } from '../src/wallet-query-service.mjs'
 import {
   authenticateApiSession,
   createApiSession,
@@ -147,6 +148,14 @@ async function main() {
 
     const created = await createAvailableDelivery(pool, payload(delivery1, 7.5), 'smoke-delivery-1')
     assert.equal(created.status, 'available')
+
+    const walletSnapshot = await getStoreWalletSnapshot(pool, storeId)
+    assert.equal(walletSnapshot.storeId, storeId)
+    assert.ok(walletSnapshot.reservedBalance >= 7.5)
+    assert.equal(
+      Number((walletSnapshot.balance - walletSnapshot.reservedBalance).toFixed(2)),
+      walletSnapshot.availableBalance,
+    )
 
     const openOfferAccess = await requireDeliverySessionAccess(pool, courierSession, delivery1)
     assert.equal(openOfferAccess.id, delivery1)
@@ -301,6 +310,7 @@ async function main() {
       targetedRouteGroup: route.groupId,
       realtimeEvents: Number(realtimeCount.count),
       connectedCouriers: courierSnapshot.connectedCount,
+      walletAvailable: walletSnapshot.availableBalance,
     }, null, 2))
   } finally {
     await pool.end()
