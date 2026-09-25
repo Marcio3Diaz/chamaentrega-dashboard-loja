@@ -57,7 +57,9 @@ The worker is **disabled by default**. Enable it only in the isolated MySQL envi
 1. `schema.sql`
 2. `002_runtime_foundation.sql`
 3. `003_mysql_compatibility_fixes.sql`
-4. start `services/chamaentrega-api`
-5. verify `/health`
-6. run isolated MySQL delivery tests
-7. only after parity is proven, enable shadow/dual-run
+4. `004_text_capacity.sql`
+5. start `services/chamaentrega-api`
+6. verify `/health`
+7. bootstrap the operational baseline into the isolated MySQL database
+8. run isolated MySQL delivery + FCM tests
+9. only after parity is proven, enable shadow/dual-run
