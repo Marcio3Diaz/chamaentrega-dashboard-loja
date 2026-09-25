@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { shadowCourierNetworkReviewToMySql } from '@/lib/migration-api'
 
 export type CourierNetworkReviewResult = {
   ok:boolean
@@ -46,6 +47,23 @@ export async function reviewCourierNetworkRequestAction(
     }
 
     return { ok:false,message:'Não foi possível analisar a solicitação agora.' }
+  }
+
+  const shadow = await shadowCourierNetworkReviewToMySql(
+    normalizedStoreId,
+    normalizedCourierId,
+    access.userId,
+    decision,
+    null,
+  )
+  if (shadow.attempted) {
+    console.info('[entregadores/actions] MySQL network shadow', {
+      storeId:normalizedStoreId,
+      courierId:normalizedCourierId,
+      decision,
+      ok:shadow.ok,
+      error:shadow.error ?? null,
+    })
   }
 
   revalidatePath('/entregadores')
