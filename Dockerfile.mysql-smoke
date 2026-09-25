@@ -1,0 +1,6 @@
+FROM node:22.13.0-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-fund
+COPY scripts/smoke-dashboard-mysql.mjs ./scripts/smoke-dashboard-mysql.mjs
+CMD ["node","scripts/smoke-dashboard-mysql.mjs"]
