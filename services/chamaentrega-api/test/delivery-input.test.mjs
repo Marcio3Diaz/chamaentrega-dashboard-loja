@@ -30,3 +30,17 @@ test('rejects unsupported payment methods', () => {
     /invalid_payment_method/,
   )
 })
+
+
+test('keeps a supplied delivery UUID for shadow-write parity', () => {
+  const deliveryId = '4f420612-7f8f-48a8-ac59-66858e813069'
+  const value = validateDeliveryInput({ ...base, deliveryId })
+  assert.equal(value.deliveryId, deliveryId)
+})
+
+test('rejects malformed store UUIDs', () => {
+  assert.throws(
+    () => validateDeliveryInput({ ...base, storeId: 'not-a-uuid' }),
+    /invalid_store_id/,
+  )
+})
