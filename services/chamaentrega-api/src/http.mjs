@@ -7,6 +7,7 @@ import {
 } from './delivery-service.mjs'
 import { pingDatabase } from './db.mjs'
 import { CourierNetworkError, reviewCourierNetworkRequest } from './courier-network-service.mjs'
+import { ApiSessionError, authenticateApiSession, createApiSession, revokeApiSession } from './auth-service.mjs'
 import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import {
   DeliveryCommandError,
@@ -58,6 +59,13 @@ async function readJson(req, limitBytes) {
   }
 }
 
+function bearerToken(req) {
+  const header = req.headers.authorization
+  if (typeof header !== 'string') return null
+  const match = header.match(/^Bearer\s+(.+)$/i)
+  return match?.[1]?.trim() || null
+}
+
 function requireInternalKey(req, config) {
   const key = req.headers['x-chama-internal-key']
   if (typeof key !== 'string' || !secureEqual(key, config.internalApiKey)) {
@@ -98,6 +106,33 @@ export function createRequestHandler({ config, pool }) {
       if (req.method === 'GET' && storeLiveMatch) {
         requireInternalKey(req, config)
         return json(res, 200, await listStoreLiveDeliveries(pool, storeLiveMatch[1], url.searchParams.get('limit')))
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/internal/auth/sessions') {
+        requireInternalKey(req, config)
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const result = await createApiSession(pool, payload, payload.ttlSeconds ?? config.apiSessionTtlSeconds)
+        return json(res, 201, result)
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/internal/auth/sessions/revoke') {
+        requireInternalKey(req, config)
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        return json(res, 200, await revokeApiSession(pool, payload.sessionId, payload.subjectId ?? null))
+      }
+
+      if (req.method === 'GET' && url.pathname === '/v1/session') {
+        const token = bearerToken(req)
+        if (!token) return json(res, 401, { error:'authorization_required' })
+        const session = await authenticateApiSession(pool, token)
+        return json(res, 200, {
+          session:{
+            id:session.id,
+            subjectId:session.subjectId,
+            subjectRole:session.subjectRole,
+            scopes:session.scopes,
+          },
+        })
       }
 
       if (req.method === 'POST' && url.pathname === '/v1/internal/deliveries') {
@@ -170,6 +205,9 @@ export function createRequestHandler({ config, pool }) {
 
       return json(res, 404, { error: 'not_found' })
     } catch (error) {
+      if (error instanceof ApiSessionError) {
+        return json(res, error.statusCode || 401, { error:error.message })
+      }
       if (error instanceof DeliveryQueryError) {
         return json(res, error.statusCode || 400, { error:error.message })
       }
