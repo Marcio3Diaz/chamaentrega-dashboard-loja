@@ -6,6 +6,7 @@ import {
   StoreUnavailableError,
 } from './delivery-service.mjs'
 import { pingDatabase } from './db.mjs'
+import { CourierNetworkError, reviewCourierNetworkRequest } from './courier-network-service.mjs'
 import {
   DeliveryCommandError,
   acceptDelivery,
@@ -122,6 +123,20 @@ export function createRequestHandler({ config, pool }) {
         }
       }
 
+      if (req.method === 'POST' && url.pathname === '/v1/internal/courier-network/review') {
+        requireInternalKey(req, config)
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const result = await reviewCourierNetworkRequest(
+          pool,
+          payload.storeId,
+          payload.courierId,
+          payload.reviewerId,
+          payload.decision,
+          payload.note,
+        )
+        return json(res, 200, result)
+      }
+
       if (req.method === 'POST' && url.pathname === '/v1/internal/dispatch-route') {
         requireInternalKey(req, config)
         const payload = await readJson(req, config.requestBodyLimitBytes)
@@ -136,6 +151,9 @@ export function createRequestHandler({ config, pool }) {
 
       return json(res, 404, { error: 'not_found' })
     } catch (error) {
+      if (error instanceof CourierNetworkError) {
+        return json(res, error.statusCode || 409, { error:error.message })
+      }
       if (error instanceof DeliveryCommandError) {
         return json(res, error.statusCode || 409, {
           error: error.message,
