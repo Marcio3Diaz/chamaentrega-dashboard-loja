@@ -148,7 +148,10 @@ export async function revokeApiSession(pool, sessionIdRaw, subjectIdRaw = null) 
 
 export async function canAccessRealtimeChannel(pool, session, channel) {
   if (typeof channel !== 'string') return false
-  if (session.subjectRole === 'admin') return /^admin$|^store:[0-9a-f-]{36}$|^courier:[0-9a-f-]{36}$/i.test(channel)
+  if (session.subjectRole === 'admin') {
+    return /^admin$|^courier_pool$|^store:[0-9a-f-]{36}$|^courier:[0-9a-f-]{36}$/i.test(channel)
+  }
+  if (channel === 'courier_pool') return session.subjectRole === 'courier'
 
   const courierMatch = channel.match(/^courier:([0-9a-f-]{36})$/i)
   if (courierMatch) {
