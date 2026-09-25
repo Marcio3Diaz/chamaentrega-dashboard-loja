@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getDatabaseProvider, mysqlRuntimeInfo } from '@/lib/database/provider'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,10 @@ export async function GET() {
       status: 'ok',
       service: 'chamaentrega-web',
       timestamp: new Date().toISOString(),
+      database: {
+        provider: getDatabaseProvider(),
+        mysql: mysqlRuntimeInfo(),
+      },
       supabase: supabaseRuntimeInfo(),
     },
     {
