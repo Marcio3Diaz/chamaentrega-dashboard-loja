@@ -162,6 +162,7 @@ GET  /v1/couriers/me/offers
 GET  /v1/couriers/me/active-deliveries
 GET  /v1/stores/:storeId/live-deliveries
 GET  /v1/stores/:storeId/couriers
+GET  /v1/stores/:storeId/wallet
 
 POST /v1/stores/:storeId/deliveries
 POST /v1/deliveries/:id/accept
@@ -271,3 +272,15 @@ The response contains:
 - the most recent active delivery for each connected courier.
 
 The dashboard's **Entregadores**, **Mapa ao vivo**, and **Despacho** pages can use this snapshot behind `CHAMA_MYSQL_READS`, with automatic Supabase fallback and optional parity logging.
+
+
+### Store wallet snapshot
+
+The migration API now exposes a read-only store wallet snapshot:
+
+```text
+GET /v1/stores/:storeId/wallet
+GET /v1/internal/stores/:storeId/wallet
+```
+
+It returns total balance, reserved balance and available balance from MySQL. The dashboard overview, create-delivery screen and finance screen can read this snapshot behind `CHAMA_MYSQL_READS`, with automatic Supabase fallback and parity comparison through `CHAMA_MYSQL_COMPARE_READS`.
