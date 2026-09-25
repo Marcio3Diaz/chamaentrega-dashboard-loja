@@ -34,6 +34,9 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level=high
 
+      - name: Migration scripts
+        run: npm run db:check:scripts
+
       - name: TypeScript
         run: npm run typecheck
 
