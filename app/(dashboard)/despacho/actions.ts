@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { shadowDispatchRouteToMySql } from '@/lib/migration-api'
 
 export type DispatchRouteResult = {
   ok: boolean
@@ -54,6 +55,22 @@ export async function dispatchRouteAction(
       ok:false,
       message:translations[error.message] ?? error.message ?? 'Não foi possível despachar a rota.',
     }
+  }
+
+  const shadow = await shadowDispatchRouteToMySql(
+    store.id,
+    normalizedCourierId,
+    normalizedIds,
+  )
+
+  if (shadow.attempted) {
+    console.info('[despacho/actions] MySQL dispatch shadow', {
+      storeId:store.id,
+      courierId:normalizedCourierId,
+      deliveryIds:normalizedIds,
+      ok:shadow.ok,
+      error:shadow.error ?? null,
+    })
   }
 
   revalidatePath('/despacho')
