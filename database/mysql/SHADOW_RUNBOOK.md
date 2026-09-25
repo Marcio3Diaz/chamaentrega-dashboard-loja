@@ -129,3 +129,35 @@ Do not switch source of truth until these flows have parity:
 - realtime dashboard/app updates.
 
 After parity, perform a final synchronized data copy and only then change runtime reads/writes.
+
+
+## 9. Read parity mode
+
+Before moving dashboard reads to MySQL, enable comparison only:
+
+```text
+CHAMA_MYSQL_COMPARE_READS=true
+CHAMA_MYSQL_READS=false
+```
+
+The dashboard still renders Supabase data, but selected delivery views also query MySQL and log parity results for:
+
+- delivery IDs present only on one side;
+- status divergence;
+- assigned courier divergence;
+- delivery-fee divergence.
+
+Current guarded pages:
+
+- dashboard overview;
+- deliveries list;
+- smart dispatch queue;
+- live map.
+
+After comparison logs stay clean, enable:
+
+```text
+CHAMA_MYSQL_READS=true
+```
+
+This remains fail-open: if a MySQL read fails, the page falls back to Supabase automatically.
