@@ -1,0 +1,36 @@
+name: Install mysql2 once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/install-mysql2-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install mysql2 and update lockfile
+        run: npm install mysql2@3.24.4 --save-exact
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Commit dependency files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes to commit"
+            exit 0
+          fi
+          git commit -m "build: instalar mysql2 para migracao MySQL"
+          git push origin HEAD:main
