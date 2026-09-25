@@ -17,7 +17,7 @@ import {
   requireSessionScope,
   requireStoreSessionAccess,
 } from './auth-service.mjs'
-import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreLiveDeliveries } from './delivery-query-service.mjs'
+import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import { SupabaseExchangeError, exchangeSupabaseAccessToken } from './supabase-auth-bridge.mjs'
 import {
   DeliveryCommandError,
@@ -166,6 +166,17 @@ export function createRequestHandler({ config, pool }) {
         return json(res, 200, await listCourierActiveDeliveries(pool, courierId))
       }
 
+      const publicStoreDeliveriesMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/deliveries$/i)
+      if (req.method === 'GET' && publicStoreDeliveriesMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'store:read')
+        const storeId = await requireStoreSessionAccess(pool, session, publicStoreDeliveriesMatch[1])
+        return json(res, 200, await listStoreDeliveries(pool, storeId, {
+          limit:url.searchParams.get('limit'),
+          since:url.searchParams.get('since'),
+        }))
+      }
+
       const publicStoreLiveMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
       if (req.method === 'GET' && publicStoreLiveMatch) {
         const session = await requireBearerSession(req, pool)
@@ -184,6 +195,15 @@ export function createRequestHandler({ config, pool }) {
       if (req.method === 'GET' && courierActiveMatch) {
         requireInternalKey(req, config)
         return json(res, 200, await listCourierActiveDeliveries(pool, courierActiveMatch[1]))
+      }
+
+      const internalStoreDeliveriesMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/deliveries$/i)
+      if (req.method === 'GET' && internalStoreDeliveriesMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await listStoreDeliveries(pool, internalStoreDeliveriesMatch[1], {
+          limit:url.searchParams.get('limit'),
+          since:url.searchParams.get('since'),
+        }))
       }
 
       const storeLiveMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
