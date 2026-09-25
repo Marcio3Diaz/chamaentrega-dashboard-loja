@@ -61,12 +61,15 @@ async function fetchTable({ baseUrl, serviceKey, table, pageSize = 500 }) {
     url.searchParams.set('select', '*')
     url.searchParams.set('limit', String(pageSize))
     url.searchParams.set('offset', String(offset))
+    const headers = {
+      apikey: serviceKey,
+      Accept: 'application/json',
+    }
+    if (serviceKey.split('.').length === 3) {
+      headers.Authorization = `Bearer ${serviceKey}`
+    }
     const response = await fetch(url, {
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        Accept: 'application/json',
-      },
+      headers,
       signal: AbortSignal.timeout(20_000),
     })
     const text = await response.text()
@@ -124,7 +127,12 @@ async function main() {
 
   const mysqlUrl = required('MYSQL_URL')
   const baseUrl = required('SUPABASE_SOURCE_URL')
-  const serviceKey = required('SUPABASE_SOURCE_SERVICE_ROLE_KEY')
+  const serviceKey =
+    process.env.SUPABASE_SOURCE_SECRET_KEY?.trim() ||
+    process.env.SUPABASE_SOURCE_SERVICE_ROLE_KEY?.trim()
+  if (!serviceKey) {
+    throw new Error('Set SUPABASE_SOURCE_SECRET_KEY or SUPABASE_SOURCE_SERVICE_ROLE_KEY')
+  }
   const connection = await mysql.createConnection(mysqlOptions(mysqlUrl))
 
   try {
