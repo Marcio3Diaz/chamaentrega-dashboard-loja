@@ -92,3 +92,38 @@ DELIVERY_MAINTENANCE_ENABLED=false
 ```
 
 Keep it disabled while Supabase is still the production source of truth.
+
+
+## Delivery command and read API
+
+The MySQL migration API now has the operational delivery lifecycle prepared:
+
+- accept and reject offers;
+- enforce at most 3 simultaneous active deliveries per courier;
+- create/maintain courier delivery batches;
+- advance status in the approved sequence;
+- record courier location points;
+- cancel deliveries and release wallet reservations;
+- expire stale offers automatically;
+- capture the reserved delivery fee only when the delivery completes;
+- write lifecycle events to the transactional outbox;
+- read one delivery with its status history;
+- list a courier's active deliveries;
+- list a store's live deliveries.
+
+Internal endpoints:
+
+```text
+POST /v1/internal/deliveries/:id/accept
+POST /v1/internal/deliveries/:id/reject
+POST /v1/internal/deliveries/:id/status
+POST /v1/internal/deliveries/:id/cancel
+POST /v1/internal/deliveries/:id/location
+POST /v1/internal/dispatch-route
+
+GET  /v1/internal/deliveries/:id
+GET  /v1/internal/couriers/:id/active-deliveries
+GET  /v1/internal/stores/:id/live-deliveries
+```
+
+All endpoints remain migration-only and require the internal API key. Production apps are not switched to these routes yet.
