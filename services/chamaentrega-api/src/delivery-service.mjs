@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from 'node:crypto'
+import { enqueueRealtimeEvent } from './realtime-events.mjs'
 
 export class InsufficientWalletBalanceError extends Error {
   constructor(available, required) {
@@ -151,6 +152,23 @@ export async function createAvailableDelivery(pool, input, idempotencyKey) {
         JSON.stringify(eventPayload), now, now, now,
       ],
     )
+
+    await enqueueRealtimeEvent(
+      connection,
+      'store',
+      input.storeId,
+      'delivery.available',
+      eventPayload,
+    )
+    if (input.targetCourierId) {
+      await enqueueRealtimeEvent(
+        connection,
+        'courier',
+        input.targetCourierId,
+        'delivery.available',
+        eventPayload,
+      )
+    }
 
     const response = {
       deliveryId,
