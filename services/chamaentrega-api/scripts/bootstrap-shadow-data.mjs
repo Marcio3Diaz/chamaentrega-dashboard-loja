@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise'
 
-const TABLES = [
+const BASELINE_TABLES = [
   'profiles',
   'organizations',
   'stores',
@@ -8,6 +8,7 @@ const TABLES = [
   'store_members',
   'couriers',
   'courier_store_networks',
+  'courier_delivery_batches',
   'store_wallets',
   'courier_push_tokens',
   'delivery_pricing_settings',
@@ -54,13 +55,14 @@ function adaptValue(value, mysqlType) {
   return value
 }
 
-async function fetchTable({ baseUrl, serviceKey, table, pageSize = 500 }) {
+async function fetchTable({ baseUrl, serviceKey, table, pageSize = 500, filters = {} }) {
   const rows = []
   for (let offset = 0; ; offset += pageSize) {
     const url = new URL(`/rest/v1/${encodeURIComponent(table)}`, baseUrl)
     url.searchParams.set('select', '*')
     url.searchParams.set('limit', String(pageSize))
     url.searchParams.set('offset', String(offset))
+    for (const [key, value] of Object.entries(filters)) url.searchParams.set(key, value)
     const headers = {
       apikey: serviceKey,
       Accept: 'application/json',
@@ -139,12 +141,32 @@ async function main() {
     await assertSafeTarget(connection)
     await connection.query('SET FOREIGN_KEY_CHECKS = 0')
     const summary = []
-    for (const table of TABLES) {
+    for (const table of BASELINE_TABLES) {
       const rows = await fetchTable({ baseUrl, serviceKey, table })
       const written = await upsertRows(connection, table, rows)
       summary.push({ table, sourceRows: rows.length, written })
       console.log(`[bootstrap] ${table}: ${written}/${rows.length}`)
     }
+
+    const activeDeliveries = await fetchTable({
+      baseUrl,
+      serviceKey,
+      table: 'deliveries',
+      filters: { status: 'not.in.(completed,cancelled,expired)' },
+    })
+    const activeDeliveriesWritten = await upsertRows(connection, 'deliveries', activeDeliveries)
+    summary.push({ table: 'deliveries(active)', sourceRows: activeDeliveries.length, written: activeDeliveriesWritten })
+    console.log(`[bootstrap] deliveries(active): ${activeDeliveriesWritten}/${activeDeliveries.length}`)
+
+    const activeReservations = await fetchTable({
+      baseUrl,
+      serviceKey,
+      table: 'store_wallet_reservations',
+      filters: { status: 'eq.reserved' },
+    })
+    const reservationsWritten = await upsertRows(connection, 'store_wallet_reservations', activeReservations)
+    summary.push({ table: 'store_wallet_reservations(reserved)', sourceRows: activeReservations.length, written: reservationsWritten })
+    console.log(`[bootstrap] store_wallet_reservations(reserved): ${reservationsWritten}/${activeReservations.length}`)
     await connection.query('SET FOREIGN_KEY_CHECKS = 1')
     console.log(JSON.stringify({ ok: true, summary }, null, 2))
   } finally {
