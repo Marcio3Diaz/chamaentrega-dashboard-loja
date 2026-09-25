@@ -161,6 +161,7 @@ GET  /v1/deliveries/:id
 GET  /v1/couriers/me/offers
 GET  /v1/couriers/me/active-deliveries
 GET  /v1/stores/:storeId/live-deliveries
+GET  /v1/stores/:storeId/couriers
 
 POST /v1/stores/:storeId/deliveries
 POST /v1/deliveries/:id/accept
@@ -249,3 +250,24 @@ the dashboard keeps its existing Supabase channels **and** opens the migration W
 - disabling the flag restores the current Supabase-only behavior with no runtime change.
 
 This is intentionally dual-run first; removing Supabase channels is a later cutover step.
+
+
+### Store courier snapshot
+
+The migration API can now return the store's private courier network in one server-authorized snapshot:
+
+```text
+GET /v1/stores/:storeId/couriers
+GET /v1/internal/stores/:storeId/couriers
+```
+
+The response contains:
+
+- connected couriers;
+- pending network requests;
+- online/available state;
+- rating and total deliveries;
+- latest GPS position;
+- the most recent active delivery for each connected courier.
+
+The dashboard's **Entregadores**, **Mapa ao vivo**, and **Despacho** pages can use this snapshot behind `CHAMA_MYSQL_READS`, with automatic Supabase fallback and optional parity logging.
