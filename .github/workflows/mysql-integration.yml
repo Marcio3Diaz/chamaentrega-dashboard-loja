@@ -1,0 +1,68 @@
+name: MySQL integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mysql/**'
+      - 'scripts/test-mysql-schema.mjs'
+      - 'lib/database/mysql.ts'
+      - 'lib/database/mysql-config.ts'
+      - 'lib/data/mysql-operational-repository.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/mysql-integration.yml'
+  pull_request:
+    paths:
+      - 'mysql/**'
+      - 'scripts/test-mysql-schema.mjs'
+      - 'lib/database/mysql.ts'
+      - 'lib/database/mysql-config.ts'
+      - 'lib/data/mysql-operational-repository.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/mysql-integration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root_test
+          MYSQL_DATABASE: chamaentrega
+          MYSQL_USER: chamaentrega
+          MYSQL_PASSWORD: chamaentrega_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uchamaentrega -pchamaentrega_test --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      MYSQL_DATABASE_URL: mysql://chamaentrega:chamaentrega_test@127.0.0.1:3306/chamaentrega
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22.13.0'
+
+      - name: Install dependencies
+        run: npm ci --no-fund
+
+      - name: MySQL schema smoke test
+        run: npm run db:test:mysql
