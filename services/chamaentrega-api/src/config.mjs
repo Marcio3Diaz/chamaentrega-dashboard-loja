@@ -45,5 +45,8 @@ export function loadConfig() {
     courierAppPackage: process.env.COURIER_APP_PACKAGE?.trim() || 'com.marciodiaz.logistica.entregador',
     outboxPollMs: integer('OUTBOX_POLL_MS', 1500),
     outboxBatchSize: integer('OUTBOX_BATCH_SIZE', 10),
+    deliveryMaintenanceEnabled: flag('DELIVERY_MAINTENANCE_ENABLED', false),
+    deliveryMaintenancePollMs: integer('DELIVERY_MAINTENANCE_POLL_MS', 5000),
+    deliveryMaintenanceBatchSize: integer('DELIVERY_MAINTENANCE_BATCH_SIZE', 100),
   })
 }
