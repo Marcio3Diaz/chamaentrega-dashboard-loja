@@ -1,7 +1,7 @@
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { LiveCourierMap, type LiveCourier, type LiveDelivery } from '@/components/live-courier-map'
-import { migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
+import { migrationStoreCouriersWithFallback, migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
 import type { Delivery } from '@/lib/types'
 
 const activeStatuses = [
@@ -23,39 +23,73 @@ export default async function LiveMapPage({
   const { store } = await requireStore()
   const supabase = await createClient()
 
-  const { data: networkRows } = await supabase
-    .from('courier_store_networks')
-    .select('courier_id')
-    .eq('store_id', store.id)
-    .eq('status', 'connected')
+  const courierSnapshot = await migrationStoreCouriersWithFallback(
+    store.id,
+    async () => {
+      const { data:networkRows, error:networkError } = await supabase
+        .from('courier_store_networks')
+        .select('courier_id')
+        .eq('store_id', store.id)
+        .eq('status', 'connected')
 
-  const courierIds = (networkRows ?? []).map(item => item.courier_id)
+      if (networkError) throw networkError
 
-  const { data: courierRows } = courierIds.length
-    ? await supabase
-        .from('couriers')
-        .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
-        .in('id', courierIds)
-        .order('is_online', { ascending: false })
-    : { data: [] as any[] }
-  const { data: profileRows } = courierIds.length
-    ? await supabase.from('profiles').select('id,full_name,avatar_url').in('id', courierIds)
-    : { data: [] as { id:string; full_name:string|null; avatar_url:string|null }[] }
+      const courierIds = (networkRows ?? []).map(item => item.courier_id)
+      const [{ data:courierRows, error:courierError }, { data:profileRows, error:profileError }] = await Promise.all([
+        courierIds.length
+          ? supabase
+              .from('couriers')
+              .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
+              .in('id', courierIds)
+              .order('is_online', { ascending:false })
+          : Promise.resolve({ data:[] as any[], error:null }),
+        courierIds.length
+          ? supabase
+              .from('profiles')
+              .select('id,full_name,phone,avatar_url')
+              .in('id', courierIds)
+          : Promise.resolve({ data:[] as any[], error:null }),
+      ])
 
-  const profileMap = new Map((profileRows ?? []).map(item => [item.id,item]))
+      if (courierError) throw courierError
+      if (profileError) throw profileError
 
-  const couriers: LiveCourier[] = (courierRows ?? []).map(item => ({
-    id: item.id,
-    fullName: profileMap.get(item.id)?.full_name ?? 'Entregador parceiro',
-    avatarUrl: profileMap.get(item.id)?.avatar_url ?? null,
-    vehicleType: item.vehicle_type,
-    isOnline: Boolean(item.is_online),
-    isAvailable: Boolean(item.is_available),
-    rating: Number(item.rating ?? 0),
-    totalDeliveries: Number(item.total_deliveries ?? 0),
-    currentLatitude: item.current_latitude == null ? null : Number(item.current_latitude),
-    currentLongitude: item.current_longitude == null ? null : Number(item.current_longitude),
-    lastLocationAt: item.last_location_at,
+      const profileMap = new Map((profileRows ?? []).map(item => [item.id,item]))
+      return {
+        connected:(courierRows ?? []).map(item => ({
+          id:item.id,
+          fullName:profileMap.get(item.id)?.full_name ?? 'Entregador parceiro',
+          phone:profileMap.get(item.id)?.phone ?? null,
+          avatarUrl:profileMap.get(item.id)?.avatar_url ?? null,
+          vehicleType:item.vehicle_type,
+          isOnline:Boolean(item.is_online),
+          isAvailable:Boolean(item.is_available),
+          rating:Number(item.rating ?? 0),
+          totalDeliveries:Number(item.total_deliveries ?? 0),
+          currentLatitude:item.current_latitude == null ? null : Number(item.current_latitude),
+          currentLongitude:item.current_longitude == null ? null : Number(item.current_longitude),
+          lastLocationAt:item.last_location_at,
+          connectedAt:null,
+          activeDelivery:null,
+        })),
+        pending:[],
+      }
+    },
+    { label:'live-map-couriers' },
+  )
+
+  const couriers:LiveCourier[] = courierSnapshot.connected.map(item => ({
+    id:item.id,
+    fullName:item.fullName,
+    avatarUrl:item.avatarUrl,
+    vehicleType:item.vehicleType,
+    isOnline:item.isOnline,
+    isAvailable:item.isAvailable,
+    rating:item.rating,
+    totalDeliveries:item.totalDeliveries,
+    currentLatitude:item.currentLatitude,
+    currentLongitude:item.currentLongitude,
+    lastLocationAt:item.lastLocationAt,
   }))
 
   const { deliveries:deliveryRowsRaw } = await migrationStoreDeliveriesWithFallback(
