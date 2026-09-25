@@ -12,6 +12,7 @@ import {
 } from '../src/delivery-command-service.mjs'
 import { reviewCourierNetworkRequest } from '../src/courier-network-service.mjs'
 import { listCourierAvailableOffers } from '../src/delivery-query-service.mjs'
+import { listStoreCouriers } from '../src/courier-query-service.mjs'
 import {
   authenticateApiSession,
   createApiSession,
@@ -120,6 +121,11 @@ async function main() {
       'CI migration smoke test',
     )
     assert.equal(review.status, 'connected')
+
+    const courierSnapshot = await listStoreCouriers(pool, storeId)
+    assert.equal(courierSnapshot.connectedCount, 1)
+    assert.equal(courierSnapshot.pendingCount, 0)
+    assert.equal(courierSnapshot.connected[0]?.courierId, courierId)
 
     const ownerApiSession = await createApiSession(pool, {
       subjectId: ownerId,
@@ -294,6 +300,7 @@ async function main() {
       cancelledDelivery: delivery2,
       targetedRouteGroup: route.groupId,
       realtimeEvents: Number(realtimeCount.count),
+      connectedCouriers: courierSnapshot.connectedCount,
     }, null, 2))
   } finally {
     await pool.end()
