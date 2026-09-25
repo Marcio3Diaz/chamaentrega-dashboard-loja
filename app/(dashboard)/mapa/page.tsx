@@ -1,6 +1,8 @@
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { LiveCourierMap, type LiveCourier, type LiveDelivery } from '@/components/live-courier-map'
+import { migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
+import type { Delivery } from '@/lib/types'
 
 const activeStatuses = [
   'accepted',
@@ -56,14 +58,27 @@ export default async function LiveMapPage({
     lastLocationAt: item.last_location_at,
   }))
 
-  const { data: deliveryRows } = await supabase
-    .from('deliveries')
-    .select('id,assigned_courier_id,status,pickup_address,pickup_latitude,pickup_longitude,delivery_address,delivery_latitude,delivery_longitude,customer_name,delivery_fee,estimated_minutes')
-    .eq('store_id', store.id)
-    .in('status', activeStatuses)
-    .order('updated_at', { ascending: false })
+  const { deliveries:deliveryRowsRaw } = await migrationStoreDeliveriesWithFallback(
+    store.id,
+    async () => {
+      const { data, error } = await supabase
+        .from('deliveries')
+        .select('*')
+        .eq('store_id', store.id)
+        .in('status', activeStatuses)
+        .order('updated_at', { ascending: false })
 
-  const deliveries: LiveDelivery[] = (deliveryRows ?? []).map(item => ({
+      if (error) throw error
+      return (data ?? []) as Delivery[]
+    },
+    { limit:250, label:'live-map' },
+  )
+
+  const deliveryRows = deliveryRowsRaw
+    .filter(item => activeStatuses.includes(item.status))
+    .sort((a,b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+
+  const deliveries: LiveDelivery[] = deliveryRows.map(item => ({
     id: item.id,
     assignedCourierId: item.assigned_courier_id,
     status: item.status,
