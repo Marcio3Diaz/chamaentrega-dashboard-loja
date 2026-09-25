@@ -494,3 +494,47 @@ export async function recordDeliveryLocation(pool, deliveryIdRaw, courierIdRaw, 
     connection.release()
   }
 }
+
+
+export async function expireAvailableDeliveries(pool, limit = 100) {
+  const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100))
+  const connection = await pool.getConnection()
+  const expired = []
+
+  try {
+    await connection.beginTransaction()
+    const [rows] = await connection.query(
+      `SELECT id, assigned_courier_id, courier_batch_id
+         FROM deliveries
+        WHERE status IN ('available','negotiating')
+          AND expires_at IS NOT NULL
+          AND expires_at <= UTC_TIMESTAMP(6)
+        ORDER BY expires_at
+        LIMIT ${safeLimit}
+        FOR UPDATE SKIP LOCKED`,
+    )
+
+    for (const delivery of Array.isArray(rows) ? rows : []) {
+      await connection.execute(
+        `UPDATE deliveries
+            SET status = 'expired', updated_at = UTC_TIMESTAMP(6)
+          WHERE id = ?`,
+        [delivery.id],
+      )
+      await releaseWalletReservation(connection, delivery.id, 'delivery_expired')
+      await addHistory(connection, delivery.id, 'expired', null, 'Expired by MySQL maintenance worker')
+      if (delivery.assigned_courier_id) {
+        await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
+      }
+      expired.push(delivery.id)
+    }
+
+    await connection.commit()
+    return { expiredCount: expired.length, deliveryIds: expired }
+  } catch (error) {
+    try { await connection.rollback() } catch {}
+    throw error
+  } finally {
+    connection.release()
+  }
+}
