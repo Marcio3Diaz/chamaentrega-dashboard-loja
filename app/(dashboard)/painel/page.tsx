@@ -7,7 +7,7 @@ import { LiveDeliveries } from '@/components/live-deliveries'
 import { DashboardClock } from '@/components/dashboard-clock'
 import { DashboardLiveMap } from '@/components/dashboard-live-map'
 import { Icon } from '@/components/icon'
-import { migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
+import { migrationStoreDeliveriesWithFallback, migrationStoreWalletWithFallback } from '@/lib/migration-api'
 
 function minutesBetween(start: string, end: string | null) {
   if (!end) return null
@@ -94,11 +94,35 @@ export default async function OverviewPage() {
     ? Math.round(completedTimes.reduce((sum,value) => sum + value,0) / completedTimes.length)
     : 0
 
-  const { data: walletRows } = await supabase.rpc('get_my_store_wallet', { p_store_id: store.id })
-  const wallet = walletRows?.[0]
-  const walletBalance = Number(wallet?.balance ?? 0)
-  const walletReserved = Number(wallet?.reserved_balance ?? 0)
-  const walletAvailable = Number(wallet?.available_balance ?? Math.max(walletBalance - walletReserved,0))
+  const { wallet } = await migrationStoreWalletWithFallback(
+    store.id,
+    async () => {
+      const { data:walletRows, error } = await supabase.rpc(
+        'get_my_store_wallet',
+        { p_store_id:store.id },
+      )
+      if (error) throw error
+      const row = walletRows?.[0]
+      const balance = Number(row?.balance ?? 0)
+      const reservedBalance = Number(row?.reserved_balance ?? 0)
+
+      return {
+        storeId:store.id,
+        walletId:row?.wallet_id ?? row?.id ?? null,
+        balance,
+        reservedBalance,
+        availableBalance:Number(
+          row?.available_balance ?? Math.max(balance - reservedBalance, 0),
+        ),
+        updatedAt:row?.updated_at ?? null,
+      }
+    },
+    { label:'dashboard-wallet' },
+  )
+
+  const walletBalance = wallet.balance
+  const walletReserved = wallet.reservedBalance
+  const walletAvailable = wallet.availableBalance
 
   const { data: couriersData } = await supabase
     .from('couriers')
