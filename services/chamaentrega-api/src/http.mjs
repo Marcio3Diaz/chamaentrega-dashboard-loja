@@ -19,6 +19,7 @@ import {
 } from './auth-service.mjs'
 import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import { listStoreCouriers } from './courier-query-service.mjs'
+import { getStoreWalletSnapshot } from './wallet-query-service.mjs'
 import { SupabaseExchangeError, exchangeSupabaseAccessToken } from './supabase-auth-bridge.mjs'
 import {
   DeliveryCommandError,
@@ -178,6 +179,14 @@ export function createRequestHandler({ config, pool }) {
         }))
       }
 
+      const publicStoreWalletMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/wallet$/i)
+      if (req.method === 'GET' && publicStoreWalletMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'store:read')
+        const storeId = await requireStoreSessionAccess(pool, session, publicStoreWalletMatch[1])
+        return json(res, 200, await getStoreWalletSnapshot(pool, storeId))
+      }
+
       const publicStoreCouriersMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/couriers$/i)
       if (req.method === 'GET' && publicStoreCouriersMatch) {
         const session = await requireBearerSession(req, pool)
@@ -213,6 +222,12 @@ export function createRequestHandler({ config, pool }) {
           limit:url.searchParams.get('limit'),
           since:url.searchParams.get('since'),
         }))
+      }
+
+      const internalStoreWalletMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/wallet$/i)
+      if (req.method === 'GET' && internalStoreWalletMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await getStoreWalletSnapshot(pool, internalStoreWalletMatch[1]))
       }
 
       const internalStoreCouriersMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/couriers$/i)
