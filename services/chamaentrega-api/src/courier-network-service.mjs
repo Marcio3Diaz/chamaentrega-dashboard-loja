@@ -1,3 +1,5 @@
+import { enqueueRealtimeEvent } from './realtime-events.mjs'
+
 export class CourierNetworkError extends Error {
   constructor(code, statusCode = 409) {
     super(code)
@@ -81,6 +83,28 @@ export async function reviewCourierNetworkRequest(
               updated_at = UTC_TIMESTAMP(6)
         WHERE id = ?`,
       [decision, reviewerId, note, request.id],
+    )
+
+    const realtimePayload = {
+      storeId,
+      courierId,
+      reviewerId,
+      status:decision,
+      note,
+    }
+    await enqueueRealtimeEvent(
+      connection,
+      'store',
+      storeId,
+      'courier_network.reviewed',
+      realtimePayload,
+    )
+    await enqueueRealtimeEvent(
+      connection,
+      'courier',
+      courierId,
+      'courier_network.reviewed',
+      realtimePayload,
     )
 
     await connection.commit()
