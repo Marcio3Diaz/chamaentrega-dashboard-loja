@@ -36,6 +36,23 @@ function uuid(value, code) {
   return normalized
 }
 
+async function addOutboxEvent(connection, deliveryId, eventType, payload) {
+  await connection.execute(
+    `INSERT INTO outbox_events
+       (id, event_key, aggregate_type, aggregate_id, event_type, payload,
+        status, available_at, created_at, updated_at)
+     VALUES (?, ?, 'delivery', ?, ?, ?, 'pending',
+        UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))`,
+    [
+      randomUUID(),
+      `${eventType}:${deliveryId}:${randomUUID()}`,
+      deliveryId,
+      eventType,
+      JSON.stringify(payload),
+    ],
+  )
+}
+
 async function addHistory(connection, deliveryId, status, actorId, note = null) {
   await connection.execute(
     `INSERT INTO delivery_status_history
@@ -276,6 +293,14 @@ export async function acceptDelivery(pool, deliveryIdRaw, courierIdRaw) {
       [randomUUID(), deliveryId, courierId, now, now],
     )
     await addHistory(connection, deliveryId, 'accepted', courierId)
+    await addOutboxEvent(connection, deliveryId, 'delivery.accepted', {
+      eventType: 'delivery.accepted',
+      deliveryId,
+      courierId,
+      batchId: batch.id,
+      status: 'accepted',
+      acceptedAt: now.toISOString(),
+    })
     await refreshCourierBatch(connection, batch.id, courierId)
 
     await connection.commit()
@@ -392,8 +417,25 @@ export async function advanceDeliveryStatus(pool, deliveryIdRaw, courierIdRaw, n
       [nextStatus, nextStatus, now, now, deliveryId],
     )
     await addHistory(connection, deliveryId, nextStatus, courierId)
+    await addOutboxEvent(connection, deliveryId, 'delivery.status_changed', {
+      eventType: 'delivery.status_changed',
+      deliveryId,
+      courierId,
+      previousStatus: delivery.status,
+      status: nextStatus,
+      updatedAt: now.toISOString(),
+    })
 
-    if (nextStatus === 'completed') await captureWalletReservation(connection, delivery)
+    if (nextStatus === 'completed') {
+      await captureWalletReservation(connection, delivery)
+      await addOutboxEvent(connection, deliveryId, 'delivery.completed', {
+        eventType: 'delivery.completed',
+        deliveryId,
+        courierId,
+        storeId: delivery.store_id,
+        completedAt: now.toISOString(),
+      })
+    }
     await refreshCourierBatch(connection, delivery.courier_batch_id, courierId)
 
     await connection.commit()
@@ -434,6 +476,13 @@ export async function cancelDelivery(pool, deliveryIdRaw, storeIdRaw, reasonRaw 
     )
     await releaseWalletReservation(connection, deliveryId, reason || 'delivery_cancelled')
     await addHistory(connection, deliveryId, 'cancelled', null, reason)
+    await addOutboxEvent(connection, deliveryId, 'delivery.cancelled', {
+      eventType: 'delivery.cancelled',
+      deliveryId,
+      storeId,
+      previousStatus: delivery.status,
+      reason,
+    })
     if (delivery.assigned_courier_id) {
       await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
     }
@@ -523,6 +572,10 @@ export async function expireAvailableDeliveries(pool, limit = 100) {
       )
       await releaseWalletReservation(connection, delivery.id, 'delivery_expired')
       await addHistory(connection, delivery.id, 'expired', null, 'Expired by MySQL maintenance worker')
+      await addOutboxEvent(connection, delivery.id, 'delivery.expired', {
+        eventType: 'delivery.expired',
+        deliveryId: delivery.id,
+      })
       if (delivery.assigned_courier_id) {
         await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
       }
