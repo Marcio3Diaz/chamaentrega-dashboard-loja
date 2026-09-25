@@ -262,6 +262,11 @@ export function isMigrationReadEnabled() {
   return ['1','true','yes','on'].includes(raw ?? '') && isMigrationApiConfigured()
 }
 
+export function isMigrationReadCompareEnabled() {
+  const raw = process.env.CHAMA_MYSQL_COMPARE_READS?.trim().toLowerCase()
+  return ['1','true','yes','on'].includes(raw ?? '') && isMigrationApiConfigured()
+}
+
 type MigrationDeliveryWire = {
   id:string
   storeId:string
@@ -374,22 +379,116 @@ export async function listMigrationStoreDeliveries(
   }
 }
 
+function deliveryParityDigest(rows:Delivery[]) {
+  return rows
+    .map(item => ({
+      id:item.id,
+      status:item.status,
+      courier:item.assigned_courier_id ?? null,
+      fee:Number(item.delivery_fee ?? 0).toFixed(2),
+      updatedAt:item.updated_at,
+    }))
+    .sort((a,b) => a.id.localeCompare(b.id))
+}
+
+function logReadParity(
+  storeId:string,
+  label:string | null,
+  mysqlRows:Delivery[],
+  supabaseRows:Delivery[],
+) {
+  const mysql = deliveryParityDigest(mysqlRows)
+  const supabase = deliveryParityDigest(supabaseRows)
+  const mysqlById = new Map(mysql.map(item => [item.id,item]))
+  const supabaseById = new Map(supabase.map(item => [item.id,item]))
+  const onlyMysql = mysql.filter(item => !supabaseById.has(item.id)).map(item => item.id)
+  const onlySupabase = supabase.filter(item => !mysqlById.has(item.id)).map(item => item.id)
+  const mismatched = mysql
+    .filter(item => {
+      const source = supabaseById.get(item.id)
+      return source && (
+        source.status !== item.status
+        || source.courier !== item.courier
+        || source.fee !== item.fee
+      )
+    })
+    .map(item => ({
+      id:item.id,
+      mysql:item,
+      supabase:supabaseById.get(item.id),
+    }))
+
+  if (!onlyMysql.length && !onlySupabase.length && !mismatched.length) {
+    console.info('[mysql-parity] deliveries match', {
+      storeId,
+      label,
+      count:mysql.length,
+    })
+    return
+  }
+
+  console.warn('[mysql-parity] delivery divergence', {
+    storeId,
+    label,
+    mysqlCount:mysql.length,
+    supabaseCount:supabase.length,
+    onlyMysql:onlyMysql.slice(0,20),
+    onlySupabase:onlySupabase.slice(0,20),
+    mismatched:mismatched.slice(0,20),
+  })
+}
+
 export async function migrationStoreDeliveriesWithFallback(
   storeId:string,
   supabaseLoader:() => Promise<Delivery[]>,
   options:{ limit?:number; since?:string; label?:string } = {},
 ):Promise<{ deliveries:Delivery[]; source:'mysql'|'supabase' }> {
-  if (!isMigrationReadEnabled()) {
+  const readEnabled = isMigrationReadEnabled()
+  const compareEnabled = isMigrationReadCompareEnabled()
+  const label = options.label ?? null
+
+  if (!readEnabled && !compareEnabled) {
     return { deliveries:await supabaseLoader(), source:'supabase' }
+  }
+
+  if (!readEnabled && compareEnabled) {
+    const supabaseRows = await supabaseLoader()
+
+    try {
+      const mysql = await listMigrationStoreDeliveries(storeId, options)
+      logReadParity(storeId, label, mysql.deliveries, supabaseRows)
+    } catch (error) {
+      console.error('[mysql-parity] comparison failed', {
+        storeId,
+        label,
+        error:error instanceof Error ? error.message : 'unknown_mysql_compare_error',
+      })
+    }
+
+    return { deliveries:supabaseRows, source:'supabase' }
   }
 
   try {
     const mysql = await listMigrationStoreDeliveries(storeId, options)
+
+    if (compareEnabled) {
+      try {
+        const supabaseRows = await supabaseLoader()
+        logReadParity(storeId, label, mysql.deliveries, supabaseRows)
+      } catch (error) {
+        console.error('[mysql-parity] Supabase comparison failed', {
+          storeId,
+          label,
+          error:error instanceof Error ? error.message : 'unknown_supabase_compare_error',
+        })
+      }
+    }
+
     return { deliveries:mysql.deliveries, source:'mysql' }
   } catch (error) {
     console.error('[mysql-read] falling back to Supabase', {
       storeId,
-      label:options.label ?? null,
+      label,
       error:error instanceof Error ? error.message : 'unknown_mysql_read_error',
     })
     return { deliveries:await supabaseLoader(), source:'supabase' }
