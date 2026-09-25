@@ -158,3 +158,42 @@ export async function listCourierAvailableOffers(pool, rawCourierId, limitRaw = 
     }),
   }
 }
+
+
+export async function listStoreDeliveries(pool, rawStoreId, options = {}) {
+  const storeId = uuid(rawStoreId, 'invalid_store_id')
+  const limit = Math.max(1, Math.min(500, Number(options.limit) || 100))
+  const sinceRaw = typeof options.since === 'string' ? options.since.trim() : ''
+  let since = null
+
+  if (sinceRaw) {
+    const parsed = new Date(sinceRaw)
+    if (Number.isNaN(parsed.getTime())) {
+      throw new DeliveryQueryError('invalid_since', 400)
+    }
+    since = parsed
+  }
+
+  const params = [storeId]
+  let where = 'WHERE store_id = ?'
+
+  if (since) {
+    where += ' AND created_at >= ?'
+    params.push(since)
+  }
+
+  const [rows] = await pool.query(
+    `SELECT *
+       FROM deliveries
+       ${where}
+      ORDER BY created_at DESC
+      LIMIT ${limit}`,
+    params,
+  )
+
+  return {
+    storeId,
+    count:Array.isArray(rows) ? rows.length : 0,
+    deliveries:(Array.isArray(rows) ? rows : []).map(normalizeDelivery),
+  }
+}
