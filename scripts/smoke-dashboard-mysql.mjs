@@ -98,7 +98,7 @@ try {
     throw new Error('Falha em uma ou mais consultas operacionais: '+JSON.stringify(checks))
   }
 
-  console.log('MYSQL_DASHBOARD_SMOKE_OK')
+  console.log('MYSQL_DASHBOARD_SMOKE_OK') // Railway staging smoke
   console.log(JSON.stringify({
     storeId,
     stores:stores.length,
