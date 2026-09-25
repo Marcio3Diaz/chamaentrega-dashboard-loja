@@ -18,13 +18,13 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 const TABLES = [
   {
     name: 'profiles',
-    select: 'id,full_name,avatar_url,role',
-    columns: ['id','full_name','avatar_url','role'],
+    select: 'id,full_name,phone,avatar_url,role,created_at,updated_at',
+    columns: ['id','full_name','phone','avatar_url','role','created_at','updated_at'],
   },
   {
     name: 'stores',
-    select: 'id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at,updated_at',
-    columns: ['id','owner_id','name','phone','logo_url','address','latitude','longitude','is_active','moderation_status','moderation_reason','city','state','created_at','updated_at'],
+    select: 'id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,zip_code,street,street_number,complement,neighborhood,organization_id,moderated_at,moderated_by,approved_at,created_at,updated_at',
+    columns: ['id','owner_id','name','phone','logo_url','address','latitude','longitude','is_active','moderation_status','moderation_reason','city','state','zip_code','street','street_number','complement','neighborhood','organization_id','moderated_at','moderated_by','approved_at','created_at','updated_at'],
   },
   {
     name: 'store_members',
@@ -33,13 +33,13 @@ const TABLES = [
   },
   {
     name: 'couriers',
-    select: 'id,vehicle_type,is_online,is_available',
-    columns: ['id','vehicle_type','is_online','is_available'],
+    select: 'id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at,moderation_status,moderation_reason,moderated_at,moderated_by,approved_at,created_at,updated_at',
+    columns: ['id','vehicle_type','is_online','is_available','rating','total_deliveries','current_latitude','current_longitude','last_location_at','moderation_status','moderation_reason','moderated_at','moderated_by','approved_at','created_at','updated_at'],
   },
   {
     name: 'deliveries',
-    select: 'id,store_id,assigned_courier_id,external_order_id,status,pickup_address,delivery_address,pickup_latitude,pickup_longitude,delivery_latitude,delivery_longitude,delivery_fee,pickup_distance_km,delivery_distance_km,estimated_minutes,payment_method,order_total,customer_name,customer_phone,customer_note,item_count,package_weight_kg,ready_at,accepted_at,completed_at,created_at,updated_at',
-    columns: ['id','store_id','assigned_courier_id','external_order_id','status','pickup_address','delivery_address','pickup_latitude','pickup_longitude','delivery_latitude','delivery_longitude','delivery_fee','pickup_distance_km','delivery_distance_km','estimated_minutes','payment_method','order_total','customer_name','customer_phone','customer_note','item_count','package_weight_kg','ready_at','accepted_at','completed_at','created_at','updated_at'],
+    select: 'id,store_id,assigned_courier_id,external_order_id,status,pickup_address,delivery_address,pickup_latitude,pickup_longitude,delivery_latitude,delivery_longitude,delivery_fee,pickup_distance_km,delivery_distance_km,estimated_minutes,payment_method,order_total,customer_name,customer_phone,customer_note,item_count,package_weight_kg,seconds_to_accept,published_at,expires_at,courier_batch_id,target_courier_id,dispatch_route_group_id,ready_at,accepted_at,completed_at,created_at,updated_at',
+    columns: ['id','store_id','assigned_courier_id','external_order_id','status','pickup_address','delivery_address','pickup_latitude','pickup_longitude','delivery_latitude','delivery_longitude','delivery_fee','pickup_distance_km','delivery_distance_km','estimated_minutes','payment_method','order_total','customer_name','customer_phone','customer_note','item_count','package_weight_kg','seconds_to_accept','published_at','expires_at','courier_batch_id','target_courier_id','dispatch_route_group_id','ready_at','accepted_at','completed_at','created_at','updated_at'],
   },
   {
     name: 'store_orders',
@@ -57,7 +57,7 @@ function toMysqlDate(value) {
 
 function normalizeValue(column, value) {
   if (value == null) return null
-  if (['created_at','updated_at','ready_at','accepted_at','completed_at','received_at'].includes(column)) {
+  if (['created_at','updated_at','ready_at','accepted_at','completed_at','received_at','published_at','expires_at','last_location_at','moderated_at','approved_at'].includes(column)) {
     return toMysqlDate(value)
   }
   if (column === 'items' || column === 'source_metadata') {
