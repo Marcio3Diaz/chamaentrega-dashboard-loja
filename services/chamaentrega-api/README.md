@@ -146,6 +146,7 @@ That server-side bridge asks the migration API to mint a short-lived bearer sess
 Migration API endpoints:
 
 ```text
+POST /v1/auth/exchange/supabase
 POST /v1/internal/auth/sessions
 POST /v1/internal/auth/sessions/revoke
 GET  /v1/session
@@ -206,3 +207,27 @@ Then subscribe:
 - the browser bridge remains disabled unless `NEXT_PUBLIC_CHAMA_MIGRATION_REALTIME=true`.
 
 Supabase remains the production identity/realtime provider until parity testing and cutover approval.
+
+
+### Courier-app migration exchange
+
+While Supabase remains the login provider, the courier app can exchange its current Supabase access token for a short-lived ChamaEntrega API bearer token:
+
+```http
+POST /v1/auth/exchange/supabase
+Authorization: Bearer <current Supabase access token>
+```
+
+The migration API validates that token through Supabase Auth, resolves the user's operational role from MySQL, and mints a scoped API session. This exchange is rate-limited and does not require the internal ChamaEntrega key.
+
+After exchange, a courier can use:
+
+```text
+GET  /v1/couriers/me/offers
+GET  /v1/couriers/me/active-deliveries
+POST /v1/deliveries/:id/accept
+POST /v1/deliveries/:id/reject
+POST /v1/deliveries/:id/status
+POST /v1/deliveries/:id/location
+WebSocket /realtime -> courier:<id> + courier_pool
+```
