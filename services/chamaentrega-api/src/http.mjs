@@ -18,6 +18,7 @@ import {
   requireStoreSessionAccess,
 } from './auth-service.mjs'
 import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreLiveDeliveries } from './delivery-query-service.mjs'
+import { SupabaseExchangeError, exchangeSupabaseAccessToken } from './supabase-auth-bridge.mjs'
 import {
   DeliveryCommandError,
   acceptDelivery,
@@ -37,6 +38,32 @@ function json(res, status, body, headers = {}) {
     ...headers,
   })
   res.end(data)
+}
+
+const authExchangeRate = new Map()
+
+function enforceAuthExchangeRate(req) {
+  const key = req.socket?.remoteAddress || 'unknown'
+  const now = Date.now()
+  const windowMs = 60_000
+  const current = authExchangeRate.get(key)
+  if (!current || now - current.startedAt >= windowMs) {
+    authExchangeRate.set(key, { startedAt:now, count:1 })
+    return
+  }
+  current.count += 1
+  if (current.count > 20) {
+    const error = new Error('auth_exchange_rate_limited')
+    error.statusCode = 429
+    throw error
+  }
+
+  if (authExchangeRate.size > 5000) {
+    for (const [entryKey, value] of authExchangeRate) {
+      if (now - value.startedAt >= windowMs) authExchangeRate.delete(entryKey)
+      if (authExchangeRate.size <= 4000) break
+    }
+  }
 }
 
 function secureEqual(a, b) {
@@ -176,6 +203,14 @@ export function createRequestHandler({ config, pool }) {
         requireInternalKey(req, config)
         const payload = await readJson(req, config.requestBodyLimitBytes)
         return json(res, 200, await revokeApiSession(pool, payload.sessionId, payload.subjectId ?? null))
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/auth/exchange/supabase') {
+        enforceAuthExchangeRate(req)
+        const token = bearerToken(req)
+        if (!token) return json(res, 401, { error:'authorization_required' })
+        const result = await exchangeSupabaseAccessToken(pool, config, token)
+        return json(res, 201, result)
       }
 
       if (req.method === 'GET' && url.pathname === '/v1/session') {
@@ -341,6 +376,9 @@ export function createRequestHandler({ config, pool }) {
 
       return json(res, 404, { error: 'not_found' })
     } catch (error) {
+      if (error instanceof SupabaseExchangeError) {
+        return json(res, error.statusCode || 401, { error:error.message })
+      }
       if (error instanceof ApiSessionError) {
         return json(res, error.statusCode || 401, { error:error.message })
       }
