@@ -230,7 +230,7 @@ export async function requireStoreSessionAccess(pool, session, rawStoreId) {
 export async function requireDeliverySessionAccess(pool, session, rawDeliveryId) {
   const deliveryId = uuid(rawDeliveryId, 'invalid_delivery_id')
   const [rows] = await pool.execute(
-    `SELECT id, store_id, assigned_courier_id, target_courier_id
+    `SELECT id, store_id, status, assigned_courier_id, target_courier_id
        FROM deliveries
       WHERE id = ?
       LIMIT 1`,
@@ -241,10 +241,14 @@ export async function requireDeliverySessionAccess(pool, session, rawDeliveryId)
 
   if (session?.subjectRole === 'admin') return delivery
   if (session?.subjectRole === 'courier') {
-    if (
-      delivery.assigned_courier_id !== session.subjectId &&
-      delivery.target_courier_id !== session.subjectId
-    ) {
+    const isAssigned = delivery.assigned_courier_id === session.subjectId
+    const isTargeted = delivery.target_courier_id === session.subjectId
+    const isOpenOffer =
+      !delivery.assigned_courier_id &&
+      !delivery.target_courier_id &&
+      ['available','negotiating'].includes(delivery.status)
+
+    if (!isAssigned && !isTargeted && !isOpenOffer) {
       throw new ApiSessionError('delivery_access_denied', 403)
     }
     return delivery
