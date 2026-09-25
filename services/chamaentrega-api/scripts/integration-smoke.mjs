@@ -11,6 +11,13 @@ import {
   dispatchRouteToCourier,
 } from '../src/delivery-command-service.mjs'
 import { reviewCourierNetworkRequest } from '../src/courier-network-service.mjs'
+import {
+  authenticateApiSession,
+  createApiSession,
+  requireDeliverySessionAccess,
+  requireStoreSessionAccess,
+  revokeApiSession,
+} from '../src/auth-service.mjs'
 
 const mysqlUrl = process.env.MYSQL_URL
 if (!mysqlUrl) throw new Error('MYSQL_URL is required')
@@ -113,8 +120,29 @@ async function main() {
     )
     assert.equal(review.status, 'connected')
 
+    const ownerApiSession = await createApiSession(pool, {
+      subjectId: ownerId,
+      subjectRole: 'store_owner',
+    }, 3600)
+    const ownerSession = await authenticateApiSession(pool, ownerApiSession.token)
+    assert.equal(ownerSession.subjectId, ownerId)
+    assert.equal(ownerSession.subjectRole, 'store_owner')
+    assert.ok(ownerSession.scopes.includes('realtime:connect'))
+    assert.equal(await requireStoreSessionAccess(pool, ownerSession, storeId), storeId)
+
+    const courierApiSession = await createApiSession(pool, {
+      subjectId: courierId,
+      subjectRole: 'courier',
+    }, 3600)
+    const courierSession = await authenticateApiSession(pool, courierApiSession.token)
+    assert.equal(courierSession.subjectId, courierId)
+    assert.equal(courierSession.subjectRole, 'courier')
+
     const created = await createAvailableDelivery(pool, payload(delivery1, 7.5), 'smoke-delivery-1')
     assert.equal(created.status, 'available')
+
+    const openOfferAccess = await requireDeliverySessionAccess(pool, courierSession, delivery1)
+    assert.equal(openOfferAccess.id, delivery1)
     assert.equal(created.walletAvailableBefore, 100)
     assert.equal(created.walletAvailableAfter, 92.5)
 
@@ -242,6 +270,13 @@ async function main() {
         WHERE audience_type IN ('store','courier')`,
     )
     assert.ok(Number(realtimeCount.count) >= 6)
+
+    const revokedOwner = await revokeApiSession(pool, ownerApiSession.session.id, ownerId)
+    assert.equal(revokedOwner.revoked, true)
+    await assert.rejects(
+      () => authenticateApiSession(pool, ownerApiSession.token),
+      /session_revoked/,
+    )
 
     console.log(JSON.stringify({
       ok: true,
