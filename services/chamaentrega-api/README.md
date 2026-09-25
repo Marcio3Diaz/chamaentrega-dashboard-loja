@@ -79,6 +79,7 @@ All routes below currently use the internal migration key. They are **not yet ex
 - `POST /v1/internal/deliveries/:id/status` — only permits the sequence `accepted -> heading_to_pickup -> at_pickup -> heading_to_dropoff -> at_dropoff -> completed`.
 - `POST /v1/internal/deliveries/:id/location` — records live courier coordinates only for an active delivery assigned to that courier.
 - `POST /v1/internal/deliveries/:id/cancel` — store-side cancellation with wallet reservation release.
+- `POST /v1/internal/dispatch-route` — targets 1 to 3 dispatchable deliveries to a connected online courier, reserves any missing wallet amounts and emits one notification event per delivery.
 
 On `completed`, the delivery fee is captured exactly once from the reserved store balance inside the same MySQL transaction. On `cancelled` or automatic `expired`, the reservation is released.
 
