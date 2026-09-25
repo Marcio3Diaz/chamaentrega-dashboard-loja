@@ -4,6 +4,12 @@ function required(name) {
   return value
 }
 
+function flag(name, fallback = false) {
+  const raw = process.env[name]?.trim().toLowerCase()
+  if (!raw) return fallback
+  return ['1', 'true', 'yes', 'on'].includes(raw)
+}
+
 function integer(name, fallback) {
   const raw = process.env[name]?.trim()
   if (!raw) return fallback
@@ -22,11 +28,22 @@ export function loadConfig() {
     throw new Error('CHAMA_INTERNAL_API_KEY must have at least 32 characters')
   }
 
+  const fcmWorkerEnabled = flag('FCM_WORKER_ENABLED', false)
+  const firebaseServiceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64?.trim() || ''
+  if (fcmWorkerEnabled && !firebaseServiceAccountBase64) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 is required when FCM_WORKER_ENABLED=true')
+  }
+
   return Object.freeze({
     port: integer('PORT', 3301),
     mysqlUrl,
     internalApiKey,
     mysqlConnectionLimit: integer('MYSQL_CONNECTION_LIMIT', 10),
     requestBodyLimitBytes: integer('REQUEST_BODY_LIMIT_BYTES', 64 * 1024),
+    fcmWorkerEnabled,
+    firebaseServiceAccountBase64,
+    courierAppPackage: process.env.COURIER_APP_PACKAGE?.trim() || 'com.marciodiaz.logistica.entregador',
+    outboxPollMs: integer('OUTBOX_POLL_MS', 1500),
+    outboxBatchSize: integer('OUTBOX_BATCH_SIZE', 10),
   })
 }
