@@ -177,3 +177,79 @@ export async function canAccessRealtimeChannel(pool, session, channel) {
   )
   return Boolean(rows?.[0])
 }
+
+
+export function sessionHasScope(session, scope) {
+  const scopes = Array.isArray(session?.scopes) ? session.scopes : []
+  if (scopes.includes('admin:*')) return true
+  if (scopes.includes(scope)) return true
+  const [namespace] = String(scope).split(':')
+  return scopes.includes(`${namespace}:*`)
+}
+
+export function requireSessionScope(session, scope) {
+  if (!sessionHasScope(session, scope)) {
+    throw new ApiSessionError('session_scope_required', 403)
+  }
+}
+
+export function requireCourierSession(session) {
+  if (session?.subjectRole !== 'courier') {
+    throw new ApiSessionError('courier_session_required', 403)
+  }
+  return session.subjectId
+}
+
+export async function requireStoreSessionAccess(pool, session, rawStoreId) {
+  const storeId = uuid(rawStoreId, 'invalid_store_id')
+  if (session?.subjectRole === 'admin') return storeId
+  if (!['store_owner','store_member'].includes(session?.subjectRole)) {
+    throw new ApiSessionError('store_session_required', 403)
+  }
+
+  const [rows] = await pool.execute(
+    `SELECT 1 AS ok
+       FROM stores s
+      WHERE s.id = ?
+        AND (
+          s.owner_id = ?
+          OR EXISTS (
+            SELECT 1 FROM store_members sm
+             WHERE sm.store_id = s.id
+               AND sm.user_id = ?
+               AND sm.status = 'active'
+          )
+        )
+      LIMIT 1`,
+    [storeId, session.subjectId, session.subjectId],
+  )
+  if (!rows?.[0]) throw new ApiSessionError('store_access_denied', 403)
+  return storeId
+}
+
+export async function requireDeliverySessionAccess(pool, session, rawDeliveryId) {
+  const deliveryId = uuid(rawDeliveryId, 'invalid_delivery_id')
+  const [rows] = await pool.execute(
+    `SELECT id, store_id, assigned_courier_id, target_courier_id
+       FROM deliveries
+      WHERE id = ?
+      LIMIT 1`,
+    [deliveryId],
+  )
+  const delivery = Array.isArray(rows) ? rows[0] : null
+  if (!delivery) throw new ApiSessionError('delivery_not_found', 404)
+
+  if (session?.subjectRole === 'admin') return delivery
+  if (session?.subjectRole === 'courier') {
+    if (
+      delivery.assigned_courier_id !== session.subjectId &&
+      delivery.target_courier_id !== session.subjectId
+    ) {
+      throw new ApiSessionError('delivery_access_denied', 403)
+    }
+    return delivery
+  }
+
+  await requireStoreSessionAccess(pool, session, delivery.store_id)
+  return delivery
+}
