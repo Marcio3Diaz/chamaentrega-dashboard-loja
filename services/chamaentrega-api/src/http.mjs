@@ -7,6 +7,7 @@ import {
 } from './delivery-service.mjs'
 import { pingDatabase } from './db.mjs'
 import { CourierNetworkError, reviewCourierNetworkRequest } from './courier-network-service.mjs'
+import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import {
   DeliveryCommandError,
   acceptDelivery,
@@ -81,6 +82,24 @@ export function createRequestHandler({ config, pool }) {
         })
       }
 
+      const deliveryReadMatch = url.pathname.match(/^\/v1\/internal\/deliveries\/([0-9a-f-]{36})$/i)
+      if (req.method === 'GET' && deliveryReadMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await getDelivery(pool, deliveryReadMatch[1]))
+      }
+
+      const courierActiveMatch = url.pathname.match(/^\/v1\/internal\/couriers\/([0-9a-f-]{36})\/active-deliveries$/i)
+      if (req.method === 'GET' && courierActiveMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await listCourierActiveDeliveries(pool, courierActiveMatch[1]))
+      }
+
+      const storeLiveMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
+      if (req.method === 'GET' && storeLiveMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await listStoreLiveDeliveries(pool, storeLiveMatch[1], url.searchParams.get('limit')))
+      }
+
       if (req.method === 'POST' && url.pathname === '/v1/internal/deliveries') {
         requireInternalKey(req, config)
         const idempotencyKey = req.headers['idempotency-key']
@@ -151,6 +170,9 @@ export function createRequestHandler({ config, pool }) {
 
       return json(res, 404, { error: 'not_found' })
     } catch (error) {
+      if (error instanceof DeliveryQueryError) {
+        return json(res, error.statusCode || 400, { error:error.message })
+      }
       if (error instanceof CourierNetworkError) {
         return json(res, error.statusCode || 409, { error:error.message })
       }
