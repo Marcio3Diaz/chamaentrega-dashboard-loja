@@ -68,7 +68,7 @@ async function upsertRows(
 
   for (const row of rows) {
     const values = columns.map(column => normalizeMysqlValue(row[column]))
-    await pool.execute(
+    await pool.query(
       `INSERT INTO \`${table}\` (${quoted}) VALUES ${placeholders}${updateSql}`,
       values,
     )
@@ -96,8 +96,8 @@ async function syncCourierDependencies(courierIds:string[]) {
   if (profilesError) throw profilesError
   if (couriersError) throw couriersError
 
-  await upsertRows('profiles',PROFILE_COLUMNS,(profiles ?? []) as Record<string,unknown>[])
-  await upsertRows('couriers',COURIER_COLUMNS,(couriers ?? []) as Record<string,unknown>[])
+  await upsertRows('profiles',PROFILE_COLUMNS,(profiles ?? []) as unknown as Record<string,unknown>[])
+  await upsertRows('couriers',COURIER_COLUMNS,(couriers ?? []) as unknown as Record<string,unknown>[])
 }
 
 async function syncDeliveries(storeId:string, sinceIso?:string, limit=2000) {
@@ -115,7 +115,7 @@ async function syncDeliveries(storeId:string, sinceIso?:string, limit=2000) {
   const { data,error } = await query
   if (error) throw error
 
-  const rows = (data ?? []) as Record<string,unknown>[]
+  const rows = (data ?? []) as unknown as Record<string,unknown>[]
   const courierIds = rows
     .map(row => String(row.assigned_courier_id ?? ''))
     .filter(Boolean)
@@ -135,7 +135,7 @@ async function syncOrders(storeId:string, limit=2000) {
 
   if (error) throw error
 
-  const rows = (data ?? []) as Record<string,unknown>[]
+  const rows = (data ?? []) as unknown as Record<string,unknown>[]
   const deliveryIds = rows
     .map(row => String(row.delivery_id ?? ''))
     .filter(Boolean)
@@ -148,7 +148,7 @@ async function syncOrders(storeId:string, limit=2000) {
 
     if (deliveriesError) throw deliveriesError
 
-    const deliveryRows = (deliveries ?? []) as Record<string,unknown>[]
+    const deliveryRows = (deliveries ?? []) as unknown as Record<string,unknown>[]
     const courierIds = deliveryRows
       .map(row => String(row.assigned_courier_id ?? ''))
       .filter(Boolean)
@@ -168,7 +168,7 @@ async function syncAllCouriers() {
 
   if (error) throw error
 
-  const rows = (couriers ?? []) as Record<string,unknown>[]
+  const rows = (couriers ?? []) as unknown as Record<string,unknown>[]
   const ids = rows.map(row => String(row.id ?? '')).filter(Boolean)
 
   if (ids.length) {
@@ -178,7 +178,7 @@ async function syncAllCouriers() {
       .in('id',ids)
 
     if (profilesError) throw profilesError
-    await upsertRows('profiles',PROFILE_COLUMNS,(profiles ?? []) as Record<string,unknown>[])
+    await upsertRows('profiles',PROFILE_COLUMNS,(profiles ?? []) as unknown as Record<string,unknown>[])
   }
 
   await upsertRows('couriers',COURIER_COLUMNS,rows)
