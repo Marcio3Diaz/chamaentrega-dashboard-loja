@@ -6,6 +6,14 @@ import {
   StoreUnavailableError,
 } from './delivery-service.mjs'
 import { pingDatabase } from './db.mjs'
+import {
+  DeliveryCommandError,
+  acceptDelivery,
+  rejectDelivery,
+  advanceDeliveryStatus,
+  cancelDelivery,
+  recordDeliveryLocation,
+} from './delivery-command-service.mjs'
 
 function json(res, status, body, headers = {}) {
   const data = Buffer.from(JSON.stringify(body))
@@ -83,8 +91,44 @@ export function createRequestHandler({ config, pool }) {
         return json(res, result.replayed ? 200 : 201, result)
       }
 
+      const commandMatch = url.pathname.match(/^\/v1\/internal\/deliveries\/([0-9a-f-]{36})\/(accept|reject|status|cancel|location)$/i)
+      if (req.method === 'POST' && commandMatch) {
+        requireInternalKey(req, config)
+        const [, deliveryId, command] = commandMatch
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+
+        if (command === 'accept') {
+          return json(res, 200, await acceptDelivery(pool, deliveryId, payload.courierId))
+        }
+        if (command === 'reject') {
+          return json(res, 200, await rejectDelivery(pool, deliveryId, payload.courierId, payload.reason))
+        }
+        if (command === 'status') {
+          return json(res, 200, await advanceDeliveryStatus(pool, deliveryId, payload.courierId, payload.status))
+        }
+        if (command === 'cancel') {
+          return json(res, 200, await cancelDelivery(pool, deliveryId, payload.storeId, payload.reason))
+        }
+        if (command === 'location') {
+          return json(res, 200, await recordDeliveryLocation(
+            pool,
+            deliveryId,
+            payload.courierId,
+            payload.latitude,
+            payload.longitude,
+            payload.accuracyMeters,
+          ))
+        }
+      }
+
       return json(res, 404, { error: 'not_found' })
     } catch (error) {
+      if (error instanceof DeliveryCommandError) {
+        return json(res, error.statusCode || 409, {
+          error: error.message,
+          ...(error.details || {}),
+        })
+      }
       if (error instanceof InsufficientWalletBalanceError) {
         return json(res, 409, {
           error: error.message,
