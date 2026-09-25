@@ -109,8 +109,18 @@ export function createRequestHandler({ config, pool }) {
       if (req.method === 'GET' && publicDeliveryReadMatch) {
         const session = await requireBearerSession(req, pool)
         requireSessionScope(session, 'delivery:read')
-        await requireDeliverySessionAccess(pool, session, publicDeliveryReadMatch[1])
-        return json(res, 200, await getDelivery(pool, publicDeliveryReadMatch[1]))
+        const access = await requireDeliverySessionAccess(pool, session, publicDeliveryReadMatch[1])
+        const result = await getDelivery(pool, publicDeliveryReadMatch[1])
+
+        if (
+          session.subjectRole === 'courier' &&
+          access.assigned_courier_id !== session.subjectId
+        ) {
+          result.delivery.customerPhone = null
+          result.delivery.customerNote = null
+        }
+
+        return json(res, 200, result)
       }
 
       const publicCourierActiveMatch = url.pathname.match(/^\/v1\/couriers\/me\/active-deliveries$/i)
