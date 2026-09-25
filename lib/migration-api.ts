@@ -171,3 +171,48 @@ export async function shadowCancelledDeliveryToMySql(
     return { attempted:true, ok:false, error:message }
   }
 }
+
+
+export async function shadowCourierNetworkReviewToMySql(
+  storeId:string,
+  courierId:string,
+  reviewerId:string,
+  decision:'connected'|'rejected',
+  note?:string | null,
+):Promise<MigrationShadowWriteResult> {
+  if (!isMigrationShadowWriteEnabled()) {
+    return { attempted:false, ok:true }
+  }
+
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) {
+    return { attempted:false, ok:false, error:'migration_api_not_configured' }
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v1/internal/courier-network/review`, {
+      method:'POST',
+      cache:'no-store',
+      signal:AbortSignal.timeout(8000),
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+      body:JSON.stringify({ storeId, courierId, reviewerId, decision, note:note ?? null }),
+    })
+    const body = await response.json().catch(() => ({})) as Record<string,unknown>
+    if (!response.ok) throw new Error(String(body.error ?? 'migration_api_error'))
+    return { attempted:true, ok:true, response:body }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown_network_shadow_error'
+    console.error('[mysql-shadow] courier network review failed', {
+      storeId,
+      courierId,
+      reviewerId,
+      decision,
+      error:message,
+    })
+    return { attempted:true, ok:false, error:message }
+  }
+}
