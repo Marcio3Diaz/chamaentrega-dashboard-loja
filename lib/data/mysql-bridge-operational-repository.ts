@@ -36,6 +36,17 @@ const COURIER_COLUMNS = [
   'moderation_reason','moderated_at','moderated_by','approved_at','created_at','updated_at',
 ] as const
 
+const STORE_COLUMNS = [
+  'id','owner_id','name','phone','logo_url','address','latitude','longitude',
+  'is_active','moderation_status','moderation_reason','city','state','zip_code',
+  'street','street_number','complement','neighborhood','organization_id',
+  'moderated_at','moderated_by','approved_at','created_at','updated_at',
+] as const
+
+const STORE_MEMBER_COLUMNS = [
+  'store_id','user_id','status','role','created_at','updated_at',
+] as const
+
 function normalizeMysqlValue(value: unknown) {
   if (value == null) return null
   if (typeof value === 'object') return JSON.stringify(value)
@@ -73,6 +84,84 @@ async function upsertRows(
       values,
     )
   }
+}
+
+async function syncStoresForUser(userId:string) {
+  const supabase = await createClient()
+
+  const [{ data:userProfiles,error:profileError },{ data:owned,error:ownedError },{ data:memberships,error:memberError }] =
+    await Promise.all([
+      supabase
+        .from('profiles')
+        .select(PROFILE_COLUMNS.join(','))
+        .eq('id',userId),
+      supabase
+        .from('stores')
+        .select(STORE_COLUMNS.join(','))
+        .eq('owner_id',userId),
+      supabase
+        .from('store_members')
+        .select(STORE_MEMBER_COLUMNS.join(','))
+        .eq('user_id',userId)
+        .eq('status','active'),
+    ])
+
+  if (profileError) throw profileError
+  if (ownedError) throw ownedError
+  if (memberError) throw memberError
+
+  const memberStoreIds = (memberships ?? [])
+    .map((row:any) => String(row.store_id ?? ''))
+    .filter(Boolean)
+
+  const { data:memberStores,error:memberStoresError } = memberStoreIds.length
+    ? await supabase
+        .from('stores')
+        .select(STORE_COLUMNS.join(','))
+        .in('id',memberStoreIds)
+    : { data:[], error:null }
+
+  if (memberStoresError) throw memberStoresError
+
+  const storeRows = [
+    ...((owned ?? []) as unknown as Record<string,unknown>[]),
+    ...((memberStores ?? []) as unknown as Record<string,unknown>[]),
+  ]
+
+  const ownerIds = Array.from(new Set(
+    storeRows
+      .map(row => String(row.owner_id ?? ''))
+      .filter(Boolean),
+  ))
+
+  const missingOwnerIds = ownerIds.filter(id => id !== userId)
+  let ownerProfiles:Record<string,unknown>[] = []
+
+  if (missingOwnerIds.length) {
+    const { data,error } = await supabase
+      .from('profiles')
+      .select(PROFILE_COLUMNS.join(','))
+      .in('id',missingOwnerIds)
+
+    if (error) throw error
+    ownerProfiles = (data ?? []) as unknown as Record<string,unknown>[]
+  }
+
+  await upsertRows(
+    'profiles',
+    PROFILE_COLUMNS,
+    [
+      ...((userProfiles ?? []) as unknown as Record<string,unknown>[]),
+      ...ownerProfiles,
+    ],
+  )
+  await upsertRows('stores',STORE_COLUMNS,storeRows)
+  await upsertRows(
+    'store_members',
+    STORE_MEMBER_COLUMNS,
+    (memberships ?? []) as unknown as Record<string,unknown>[],
+    ['store_id','user_id'],
+  )
 }
 
 async function syncCourierDependencies(courierIds:string[]) {
@@ -185,6 +274,11 @@ async function syncAllCouriers() {
 }
 
 export class MysqlBridgeOperationalRepository extends MysqlOperationalRepository {
+  async listStoresForUser(userId:string) {
+    await syncStoresForUser(userId)
+    return super.listStoresForUser(userId)
+  }
+
   async listDeliveriesByStore(storeId:string,limit=100):Promise<Delivery[]> {
     await syncDeliveries(storeId,undefined,Math.max(limit,500))
     return super.listDeliveriesByStore(storeId,limit)
