@@ -4,6 +4,7 @@ import { createDatabase, pingDatabase } from './db.mjs'
 import { createRequestHandler } from './http.mjs'
 import { startOutboxWorker } from './outbox-worker.mjs'
 import { startMaintenanceWorker } from './maintenance-worker.mjs'
+import { startRealtimeServer } from './realtime-server.mjs'
 
 const config = loadConfig()
 const pool = createDatabase(config)
@@ -20,6 +21,7 @@ const outboxWorker = startOutboxWorker({ pool, config })
 const maintenanceWorker = startMaintenanceWorker({ pool, config })
 
 const server = http.createServer(createRequestHandler({ config, pool }))
+const realtimeServer = startRealtimeServer({ server, pool, config })
 server.requestTimeout = 15_000
 server.headersTimeout = 10_000
 server.keepAliveTimeout = 5_000
@@ -32,6 +34,7 @@ async function shutdown(signal) {
   console.log(`[chamaentrega-api] ${signal}; shutting down`)
   outboxWorker.stop()
   maintenanceWorker.stop()
+  realtimeServer.stop()
   server.close(async () => {
     await pool.end()
     process.exit(0)
