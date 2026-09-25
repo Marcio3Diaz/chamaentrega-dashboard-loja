@@ -433,7 +433,7 @@ export async function cancelDelivery(pool, deliveryIdRaw, storeIdRaw, reasonRaw 
       [deliveryId],
     )
     await releaseWalletReservation(connection, deliveryId, reason || 'delivery_cancelled')
-    await addHistory(connection, deliveryId, 'cancelled', storeId, reason)
+    await addHistory(connection, deliveryId, 'cancelled', null, reason)
     if (delivery.assigned_courier_id) {
       await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
     }
