@@ -394,6 +394,20 @@ export async function rejectDelivery(pool, deliveryIdRaw, courierIdRaw, reasonRa
     }
     await enqueueRealtimeEvent(connection, 'store', delivery.store_id, 'delivery.rejected', rejectedRealtime)
     await enqueueRealtimeEvent(connection, 'courier', courierId, 'delivery.rejected', rejectedRealtime)
+    if (openedToNetwork) {
+      await enqueueRealtimeEvent(
+        connection,
+        'courier_pool',
+        null,
+        'delivery.available',
+        {
+          deliveryId,
+          storeId: delivery.store_id,
+          targetCourierId: null,
+          reopenedAfterRejection: true,
+        },
+      )
+    }
 
     await connection.commit()
     return { deliveryId, courierId, status: 'available', rejected: true, openedToNetwork }
