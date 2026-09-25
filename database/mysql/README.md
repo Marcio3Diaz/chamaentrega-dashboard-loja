@@ -58,8 +58,26 @@ The worker is **disabled by default**. Enable it only in the isolated MySQL envi
 2. `002_runtime_foundation.sql`
 3. `003_mysql_compatibility_fixes.sql`
 4. `004_text_capacity.sql`
-5. start `services/chamaentrega-api`
-6. verify `/health`
-7. bootstrap the operational baseline into the isolated MySQL database
-8. run isolated MySQL delivery + FCM tests
-9. only after parity is proven, enable shadow/dual-run
+5. `005_api_sessions_realtime.sql`
+6. start `services/chamaentrega-api`
+7. verify `/health`
+8. bootstrap the operational baseline into the isolated MySQL database
+9. run isolated MySQL delivery + FCM + realtime tests
+10. only after parity is proven, enable shadow/dual-run
+
+
+### Phase 3 - auth bridge and realtime
+
+The migration branch now contains a provider-independent API session layer and an authenticated WebSocket relay.
+
+- `api_sessions` stores only a SHA-256 hash of bearer tokens;
+- sessions have expiry, revocation and scopes;
+- store/courier/admin channel access is checked against MySQL;
+- WebSocket clients authenticate after connecting to `/realtime`;
+- clients subscribe to `store:<uuid>`, `courier:<uuid>` or `admin`;
+- delivery/network transactions write `realtime_events` in the same database transaction;
+- the relay polls the event log and broadcasts only to authorized subscribers;
+- the existing Supabase login remains the source of identity during migration;
+- `POST /api/migration/session` bridges a verified dashboard session into a short-lived migration API session.
+
+`REALTIME_ENABLED` remains false by default, so production behavior is unchanged.
