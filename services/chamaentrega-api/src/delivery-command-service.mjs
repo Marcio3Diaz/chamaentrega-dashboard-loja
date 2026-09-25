@@ -538,3 +538,220 @@ export async function expireAvailableDeliveries(pool, limit = 100) {
     connection.release()
   }
 }
+
+
+export async function dispatchRouteToCourier(pool, storeIdRaw, courierIdRaw, deliveryIdsRaw) {
+  const storeId = uuid(storeIdRaw, 'invalid_store_id')
+  const courierId = uuid(courierIdRaw, 'invalid_courier_id')
+  const deliveryIds = Array.isArray(deliveryIdsRaw)
+    ? [...new Set(deliveryIdsRaw.map(value => uuid(value, 'invalid_delivery_id')))]
+    : []
+
+  if (deliveryIds.length < 1 || deliveryIds.length > 3) {
+    throw new DeliveryCommandError('dispatch_route_requires_1_to_3_deliveries', 400)
+  }
+
+  const connection = await pool.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const [courierRows] = await connection.execute(
+      `SELECT id, is_online, is_available, moderation_status
+         FROM couriers
+        WHERE id = ?
+        LIMIT 1
+        FOR UPDATE`,
+      [courierId],
+    )
+    const courier = Array.isArray(courierRows) ? courierRows[0] : null
+    if (!courier || courier.moderation_status !== 'active') {
+      throw new DeliveryCommandError('courier_not_active', 403)
+    }
+    if (!courier.is_online) throw new DeliveryCommandError('courier_offline')
+
+    const [networkRows] = await connection.execute(
+      `SELECT id
+         FROM courier_store_networks
+        WHERE store_id = ? AND courier_id = ? AND status = 'connected'
+        LIMIT 1`,
+      [storeId, courierId],
+    )
+    if (!Array.isArray(networkRows) || !networkRows[0]) {
+      throw new DeliveryCommandError('courier_not_connected_to_store', 403)
+    }
+
+    const activePlaceholders = ACTIVE_STATUSES.map(() => '?').join(',')
+    const [activeRows] = await connection.execute(
+      `SELECT COUNT(*) AS active_count
+         FROM deliveries
+        WHERE assigned_courier_id = ?
+          AND status IN (${activePlaceholders})`,
+      [courierId, ...ACTIVE_STATUSES],
+    )
+    const activeCount = Number(activeRows?.[0]?.active_count || 0)
+    if (activeCount + deliveryIds.length > 3) {
+      throw new DeliveryCommandError('courier_capacity_reached', 409, {
+        activeDeliveries: activeCount,
+        requestedDeliveries: deliveryIds.length,
+        limit: 3,
+      })
+    }
+
+    const placeholders = deliveryIds.map(() => '?').join(',')
+    const [deliveryRows] = await connection.execute(
+      `SELECT id, store_id, status, assigned_courier_id, delivery_fee
+         FROM deliveries
+        WHERE id IN (${placeholders})
+        ORDER BY id
+        FOR UPDATE`,
+      deliveryIds,
+    )
+    const deliveries = Array.isArray(deliveryRows) ? deliveryRows : []
+    if (deliveries.length !== deliveryIds.length) {
+      throw new DeliveryCommandError('delivery_not_found', 404)
+    }
+    for (const delivery of deliveries) {
+      if (delivery.store_id !== storeId) throw new DeliveryCommandError('delivery_store_mismatch', 403)
+      if (delivery.assigned_courier_id) throw new DeliveryCommandError('delivery_already_assigned')
+      if (!['draft', 'available', 'negotiating'].includes(delivery.status)) {
+        throw new DeliveryCommandError('delivery_not_dispatchable', 409, {
+          deliveryId: delivery.id,
+          currentStatus: delivery.status,
+        })
+      }
+    }
+
+    const [walletRows] = await connection.execute(
+      'SELECT id, balance, reserved_balance FROM store_wallets WHERE store_id = ? LIMIT 1 FOR UPDATE',
+      [storeId],
+    )
+    const wallet = Array.isArray(walletRows) ? walletRows[0] : null
+    if (!wallet) throw new DeliveryCommandError('store_wallet_not_found')
+
+    const [reservationRows] = await connection.execute(
+      `SELECT id, delivery_id, amount, status
+         FROM store_wallet_reservations
+        WHERE delivery_id IN (${placeholders})
+        ORDER BY delivery_id
+        FOR UPDATE`,
+      deliveryIds,
+    )
+    const reservations = new Map(
+      (Array.isArray(reservationRows) ? reservationRows : []).map(row => [row.delivery_id, row]),
+    )
+
+    let extraReserve = 0
+    for (const delivery of deliveries) {
+      const fee = Number(delivery.delivery_fee || 0)
+      const reservation = reservations.get(delivery.id)
+      if (reservation?.status === 'captured') throw new DeliveryCommandError('delivery_fee_already_captured')
+      if (!reservation || reservation.status === 'released') extraReserve += fee
+    }
+
+    const available = Number(wallet.balance) - Number(wallet.reserved_balance)
+    if (available + 0.000001 < extraReserve) {
+      throw new DeliveryCommandError('insufficient_wallet_balance', 409, {
+        available: Number(available.toFixed(2)),
+        required: Number(extraReserve.toFixed(2)),
+      })
+    }
+
+    if (extraReserve > 0) {
+      await connection.execute(
+        `UPDATE store_wallets
+            SET reserved_balance = reserved_balance + ?, updated_at = UTC_TIMESTAMP(6)
+          WHERE id = ?`,
+        [extraReserve, wallet.id],
+      )
+    }
+
+    for (const delivery of deliveries) {
+      const fee = Number(delivery.delivery_fee || 0)
+      if (fee <= 0) continue
+      const reservation = reservations.get(delivery.id)
+      if (!reservation) {
+        await connection.execute(
+          `INSERT INTO store_wallet_reservations
+             (id, wallet_id, store_id, delivery_id, amount, status, created_at, updated_at, metadata)
+           VALUES (?, ?, ?, ?, ?, 'reserved', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)`,
+          [
+            randomUUID(),
+            wallet.id,
+            storeId,
+            delivery.id,
+            fee,
+            JSON.stringify({ reserved_from_status: 'targeted_dispatch' }),
+          ],
+        )
+      } else if (reservation.status === 'released') {
+        await connection.execute(
+          `UPDATE store_wallet_reservations
+              SET wallet_id = ?, amount = ?, status = 'reserved',
+                  released_at = NULL, captured_at = NULL,
+                  updated_at = UTC_TIMESTAMP(6),
+                  metadata = JSON_SET(COALESCE(metadata, JSON_OBJECT()), '$.re_reserved_from_status', 'targeted_dispatch')
+            WHERE id = ?`,
+          [wallet.id, fee, reservation.id],
+        )
+      }
+    }
+
+    const groupId = randomUUID()
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000)
+    await connection.execute(
+      `UPDATE deliveries
+          SET status = 'available',
+              target_courier_id = ?,
+              dispatch_route_group_id = ?,
+              published_at = ?,
+              ready_at = COALESCE(ready_at, ?),
+              expires_at = ?,
+              seconds_to_accept = 300,
+              updated_at = ?
+        WHERE id IN (${placeholders})`,
+      [courierId, groupId, now, now, expiresAt, now, ...deliveryIds],
+    )
+
+    for (const delivery of deliveries) {
+      await addHistory(connection, delivery.id, 'available', null, 'Targeted route dispatched by store')
+      await connection.execute(
+        `INSERT INTO outbox_events
+           (id, event_key, aggregate_type, aggregate_id, event_type, payload,
+            status, available_at, created_at, updated_at)
+         VALUES (?, ?, 'delivery', ?, 'delivery.available', ?, 'pending', ?, ?, ?)`,
+        [
+          randomUUID(),
+          `delivery.available:${delivery.id}:targeted:${groupId}`,
+          delivery.id,
+          JSON.stringify({
+            deliveryId: delivery.id,
+            storeId,
+            targetCourierId: courierId,
+            deliveryFee: Number(delivery.delivery_fee || 0),
+            dispatchRouteGroupId: groupId,
+            expiresAt: expiresAt.toISOString(),
+          }),
+          now,
+          now,
+          now,
+        ],
+      )
+    }
+
+    await connection.commit()
+    return {
+      groupId,
+      storeId,
+      courierId,
+      deliveryIds,
+      deliveryCount: deliveryIds.length,
+      expiresAt: expiresAt.toISOString(),
+    }
+  } catch (error) {
+    try { await connection.rollback() } catch {}
+    throw error
+  } finally {
+    connection.release()
+  }
+}
