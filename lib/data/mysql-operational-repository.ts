@@ -2,6 +2,7 @@ import type { Delivery, Store } from '@/lib/types'
 import type {
   OperationalRepository,
   StoreOrderRecord,
+  CourierOperationalRecord,
 } from '@/lib/data/operational-repository'
 
 function unavailable(): never {
@@ -20,7 +21,15 @@ export class MysqlOperationalRepository implements OperationalRepository {
     return unavailable()
   }
 
+  async listDeliveriesSince(_storeId: string, _sinceIso: string, _limit = 500): Promise<Delivery[]> {
+    return unavailable()
+  }
+
   async listStoreOrders(_storeId: string, _limit = 250): Promise<StoreOrderRecord[]> {
+    return unavailable()
+  }
+
+  async listCouriers(): Promise<CourierOperationalRecord[]> {
     return unavailable()
   }
 }
