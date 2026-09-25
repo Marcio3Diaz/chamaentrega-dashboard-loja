@@ -1,5 +1,4 @@
 import { requireStore } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
 import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 import { IntegratedOrdersBoard, type IntegratedOrder, type LinkedDelivery } from '@/components/integrated-orders-board'
 
@@ -20,7 +19,6 @@ export default async function OrdersPage({
   const initialSelectedId = typeof params.pedido === 'string' ? params.pedido : null
   const initialMessage = typeof params.message === 'string' ? params.message : ''
   const { store } = await requireStore()
-  const supabase = await createClient()
   const repository = getOperationalRepository()
 
   const [orderRows, allDeliveryRows] = await Promise.all([
@@ -97,21 +95,19 @@ export default async function OrdersPage({
     ),
   )
 
-  const [{ data: courierRows }, { data: profileRows }] = courierIds.length
+  const [allCouriers, profileRows] = courierIds.length
     ? await Promise.all([
-        supabase
-          .from('couriers')
-          .select('id,vehicle_type')
-          .in('id', courierIds),
-        supabase
-          .from('profiles')
-          .select('id,full_name,avatar_url')
-          .in('id', courierIds),
+        repository.listCouriers(),
+        repository.listCourierProfilesByIds(courierIds),
       ])
-    : [{ data: [] as any[] }, { data: [] as any[] }]
+    : [[], []]
 
-  const courierMap = new Map((courierRows ?? []).map((row:any) => [row.id,row]))
-  const profileMap = new Map((profileRows ?? []).map((row:any) => [row.id,row]))
+  const courierMap = new Map(
+    allCouriers
+      .filter(row => courierIds.includes(row.id))
+      .map(row => [row.id,row]),
+  )
+  const profileMap = new Map(profileRows.map(row => [row.id,row]))
 
   const linkedDeliveries: LinkedDelivery[] = deliveryRows.map((row:any) => {
     const courier = row.assigned_courier_id ? courierMap.get(row.assigned_courier_id) : null
