@@ -378,7 +378,7 @@ CREATE TABLE `courier_support_tickets` (
 -- courier_push_dispatches
 -- -----------------------------------------------------------------------------
 CREATE TABLE `courier_push_dispatches` (
-  `id` BIGINT NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `event_key` VARCHAR(255) NOT NULL,
   `token_id` VARCHAR(255) NOT NULL,
   `courier_id` CHAR(36) NOT NULL,
