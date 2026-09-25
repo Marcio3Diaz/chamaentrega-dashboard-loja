@@ -17,6 +17,7 @@ services:
       - chamaentrega_mysql_data:/var/lib/mysql
       - ./mysql/001_core.sql:/docker-entrypoint-initdb.d/001_core.sql:ro
       - ./mysql/002_align_store_members.sql:/docker-entrypoint-initdb.d/002_align_store_members.sql:ro
+      - ./mysql/003_align_supabase_core_fields.sql:/docker-entrypoint-initdb.d/003_align_supabase_core_fields.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uchamaentrega -pchamaentrega_dev --silent"]
       interval: 5s
