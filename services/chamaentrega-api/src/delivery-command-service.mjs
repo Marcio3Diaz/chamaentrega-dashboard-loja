@@ -16,6 +16,10 @@ const NEXT_STATUS = new Map([
   ['at_dropoff', 'completed'],
 ])
 
+export function expectedNextDeliveryStatus(status) {
+  return NEXT_STATUS.get(status) || null
+}
+
 export class DeliveryCommandError extends Error {
   constructor(code, statusCode = 409, details = {}) {
     super(code)
@@ -370,7 +374,7 @@ export async function advanceDeliveryStatus(pool, deliveryIdRaw, courierIdRaw, n
     if (!delivery) throw new DeliveryCommandError('delivery_not_found', 404)
     if (delivery.assigned_courier_id !== courierId) throw new DeliveryCommandError('delivery_not_assigned_to_courier', 403)
 
-    const expected = NEXT_STATUS.get(delivery.status)
+    const expected = expectedNextDeliveryStatus(delivery.status)
     if (!expected || expected !== nextStatus) {
       throw new DeliveryCommandError('invalid_delivery_status_transition', 409, {
         currentStatus: delivery.status,
