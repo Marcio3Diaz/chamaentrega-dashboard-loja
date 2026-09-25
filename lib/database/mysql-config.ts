@@ -8,7 +8,7 @@ export type MysqlConnectionSettings = {
 }
 
 export function getMysqlConnectionSettings(): MysqlConnectionSettings | null {
-  const raw = process.env.MYSQL_DATABASE_URL?.trim()
+  const raw = process.env.MYSQL_DATABASE_URL?.trim() || process.env.MYSQL_URL?.trim()
   if (!raw) return null
 
   try {
