@@ -1,7 +1,7 @@
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { SmartDispatchBoard, type DispatchCourier, type DispatchDelivery } from '@/components/smart-dispatch-board'
-import { migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
+import { migrationStoreCouriersWithFallback, migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
 import type { Delivery } from '@/lib/types'
 
 const queueStatuses = ['draft','available','negotiating'] as const
@@ -42,30 +42,60 @@ export default async function SmartDispatchPage({
     .sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     .slice(0,50)
 
-  const { data: networkRows } = await supabase
-    .from('courier_store_networks')
-    .select('courier_id')
-    .eq('store_id', store.id)
-    .eq('status', 'connected')
+  const courierSnapshot = await migrationStoreCouriersWithFallback(
+    store.id,
+    async () => {
+      const { data:networkRows, error:networkError } = await supabase
+        .from('courier_store_networks')
+        .select('courier_id')
+        .eq('store_id', store.id)
+        .eq('status', 'connected')
 
-  const courierIds = (networkRows ?? []).map(item => item.courier_id)
+      if (networkError) throw networkError
 
-  const { data: courierRows } = courierIds.length
-    ? await supabase
-        .from('couriers')
-        .select('id,vehicle_type,is_online,is_available,rating,current_latitude,current_longitude,last_location_at')
-        .in('id', courierIds)
-        .order('is_online', { ascending: false })
-    : { data: [] as any[] }
+      const courierIds = (networkRows ?? []).map(item => item.courier_id)
+      const [{ data:courierRows, error:courierError }, { data:profileRows, error:profileError }] = await Promise.all([
+        courierIds.length
+          ? supabase
+              .from('couriers')
+              .select('id,vehicle_type,is_online,is_available,rating,total_deliveries,current_latitude,current_longitude,last_location_at')
+              .in('id', courierIds)
+              .order('is_online', { ascending:false })
+          : Promise.resolve({ data:[] as any[], error:null }),
+        courierIds.length
+          ? supabase
+              .from('profiles')
+              .select('id,full_name,phone,avatar_url')
+              .in('id', courierIds)
+          : Promise.resolve({ data:[] as any[], error:null }),
+      ])
 
-  const { data: profileRows } = courierIds.length
-    ? await supabase
-        .from('profiles')
-        .select('id,full_name,avatar_url')
-        .in('id', courierIds)
-    : { data: [] as any[] }
+      if (courierError) throw courierError
+      if (profileError) throw profileError
 
-  const profiles = new Map((profileRows ?? []).map(item => [item.id,item]))
+      const profiles = new Map((profileRows ?? []).map(item => [item.id,item]))
+      return {
+        connected:(courierRows ?? []).map(item => ({
+          id:item.id,
+          fullName:profiles.get(item.id)?.full_name || 'Entregador parceiro',
+          phone:profiles.get(item.id)?.phone ?? null,
+          avatarUrl:profiles.get(item.id)?.avatar_url ?? null,
+          vehicleType:item.vehicle_type,
+          isOnline:Boolean(item.is_online),
+          isAvailable:Boolean(item.is_available),
+          rating:Number(item.rating ?? 0),
+          totalDeliveries:Number(item.total_deliveries ?? 0),
+          currentLatitude:item.current_latitude == null ? null : Number(item.current_latitude),
+          currentLongitude:item.current_longitude == null ? null : Number(item.current_longitude),
+          lastLocationAt:item.last_location_at,
+          connectedAt:null,
+          activeDelivery:null,
+        })),
+        pending:[],
+      }
+    },
+    { label:'dispatch-couriers' },
+  )
 
   const deliveries: DispatchDelivery[] = (deliveryRows ?? []).map(item => ({
     id: item.id,
@@ -84,17 +114,17 @@ export default async function SmartDispatchPage({
     createdAt: item.created_at,
   }))
 
-  const couriers: DispatchCourier[] = (courierRows ?? []).map(item => ({
-    id: item.id,
-    fullName: profiles.get(item.id)?.full_name || 'Entregador parceiro',
-    avatarUrl: profiles.get(item.id)?.avatar_url || null,
-    vehicleType: item.vehicle_type,
-    isOnline: Boolean(item.is_online),
-    isAvailable: Boolean(item.is_available),
-    rating: Number(item.rating ?? 0),
-    currentLatitude: item.current_latitude == null ? null : Number(item.current_latitude),
-    currentLongitude: item.current_longitude == null ? null : Number(item.current_longitude),
-    lastLocationAt: item.last_location_at,
+  const couriers:DispatchCourier[] = courierSnapshot.connected.map(item => ({
+    id:item.id,
+    fullName:item.fullName,
+    avatarUrl:item.avatarUrl,
+    vehicleType:item.vehicleType,
+    isOnline:item.isOnline,
+    isAvailable:item.isAvailable,
+    rating:item.rating,
+    currentLatitude:item.currentLatitude,
+    currentLongitude:item.currentLongitude,
+    lastLocationAt:item.lastLocationAt,
   }))
 
   return (
