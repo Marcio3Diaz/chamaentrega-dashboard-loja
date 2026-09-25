@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws'
 import { authenticateApiSession, canAccessRealtimeChannel } from './auth-service.mjs'
 
 function send(ws, message) {
-  if (ws.readyState !== ws.OPEN) return
+  if (ws.readyState !== 1) return
   ws.send(JSON.stringify(message))
 }
 
