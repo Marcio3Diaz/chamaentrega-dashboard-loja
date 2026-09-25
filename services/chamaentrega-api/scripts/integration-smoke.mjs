@@ -236,6 +236,13 @@ async function main() {
     )
     assert.ok(Number(history.count) >= 6)
 
+    const realtimeCount = await scalar(
+      `SELECT COUNT(*) AS count
+         FROM realtime_events
+        WHERE audience_type IN ('store','courier')`,
+    )
+    assert.ok(Number(realtimeCount.count) >= 6)
+
     console.log(JSON.stringify({
       ok: true,
       walletBalance: Number(wallet.balance),
@@ -243,6 +250,7 @@ async function main() {
       completedDelivery: delivery1,
       cancelledDelivery: delivery2,
       targetedRouteGroup: route.groupId,
+      realtimeEvents: Number(realtimeCount.count),
     }, null, 2))
   } finally {
     await pool.end()
