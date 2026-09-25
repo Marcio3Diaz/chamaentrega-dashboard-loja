@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 import type { Store } from '@/lib/types'
 
 export type StoreOption = Pick<
@@ -33,51 +34,24 @@ export async function requireStore(): Promise<{
     redirect('/login?error=acesso')
   }
 
-  const { data: ownedStores, error: ownedError } = await supabase
-    .from('stores')
-    .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
-    .eq('owner_id', userId)
+  const repository = getOperationalRepository()
 
-  if (ownedError) redirect('/login?error=loja')
-
-  /*
-   * Quem é proprietário já tem acesso garantido às próprias lojas.
-   * Evitamos consultar store_members nesse caso porque uma falha de RLS
-   * na tabela de vínculos não deve derrubar o acesso do dono da loja.
-   */
-  let memberships: { store_id: string }[] = []
-
-  if (!(ownedStores?.length)) {
-    const { data, error } = await supabase
-      .from('store_members')
-      .select('store_id')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-
-    if (error) redirect('/login?error=loja')
-
-    memberships = data ?? []
+  let stores: Store[]
+  try {
+    stores = await repository.listStoresForUser(userId)
+  } catch {
+    redirect('/login?error=loja')
   }
 
-  const ownedIds = new Set((ownedStores ?? []).map(store => store.id))
-  const memberIds = memberships
-    .map(member => member.store_id)
-    .filter(storeId => !ownedIds.has(storeId))
+  stores.sort((a,b) => {
+    if (Boolean(a.is_active) !== Boolean(b.is_active)) return a.is_active ? -1 : 1
 
-  const { data: memberStores, error: memberStoreError } = memberIds.length
-    ? await supabase
-        .from('stores')
-        .select('id,owner_id,name,phone,logo_url,address,latitude,longitude,is_active,moderation_status,moderation_reason,city,state,created_at')
-        .in('id', memberIds)
-    : { data: [], error: null }
+    const aTime = a.created_at ? new Date(a.created_at).getTime() : Number.MAX_SAFE_INTEGER
+    const bTime = b.created_at ? new Date(b.created_at).getTime() : Number.MAX_SAFE_INTEGER
+    if (aTime !== bTime) return aTime - bTime
 
-  if (memberStoreError) redirect('/login?error=loja')
-
-  const stores = [...(ownedStores ?? []), ...(memberStores ?? [])]
-    .sort((a,b) => {
-      if (Boolean(a.is_active) !== Boolean(b.is_active)) return a.is_active ? -1 : 1
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    })
+    return a.name.localeCompare(b.name,'pt-BR')
+  })
 
   if (!stores.length) {
     if (profile.role === 'store_owner') redirect('/onboarding')
