@@ -3,11 +3,27 @@ import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { LiveDeliveries } from '@/components/live-deliveries'
 import type { Delivery } from '@/lib/types'
+import { migrationStoreDeliveriesWithFallback } from '@/lib/migration-api'
 
 export default async function DeliveriesPage() {
   const { store } = await requireStore()
   const supabase = await createClient()
-  const { data } = await supabase.from('deliveries').select('*').eq('store_id', store.id).order('created_at',{ascending:false}).limit(100)
+  const { deliveries } = await migrationStoreDeliveriesWithFallback(
+    store.id,
+    async () => {
+      const { data, error } = await supabase
+        .from('deliveries')
+        .select('*')
+        .eq('store_id', store.id)
+        .order('created_at',{ ascending:false })
+        .limit(100)
+
+      if (error) throw error
+      return (data ?? []) as Delivery[]
+    },
+    { limit:100, label:'deliveries-page' },
+  )
+
   return <div className="deliveries-page">
     <div className="hero deliveries-hero">
       <div>
@@ -18,7 +34,7 @@ export default async function DeliveriesPage() {
       <Link href="/entregas/nova" className="button button-gold">+ NOVA ENTREGA</Link>
     </div>
     <section className="card deliveries-list-card">
-      <LiveDeliveries storeId={store.id} initialDeliveries={(data ?? []) as Delivery[]} />
+      <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} />
     </section>
   </div>
 }

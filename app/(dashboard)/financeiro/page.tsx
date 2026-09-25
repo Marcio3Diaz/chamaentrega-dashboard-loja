@@ -2,6 +2,7 @@ import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { currency } from '@/lib/format'
 import { WalletTopup } from './wallet-topup'
+import { migrationStoreWalletWithFallback } from '@/lib/migration-api'
 
 const typeLabels: Record<string,string> = {
   deposit: 'Recarga via Pix',
@@ -25,8 +26,32 @@ export default async function FinancePage() {
   const { store } = await requireStore()
   const supabase = await createClient()
 
-  const [{ data: walletRows }, { data: transactions }, { data: topups }, { data: reservations }] = await Promise.all([
-    supabase.rpc('get_my_store_wallet', { p_store_id: store.id }),
+  const [walletResult, { data: transactions }, { data: topups }, { data: reservations }] = await Promise.all([
+    migrationStoreWalletWithFallback(
+      store.id,
+      async () => {
+        const { data:walletRows, error } = await supabase.rpc(
+          'get_my_store_wallet',
+          { p_store_id:store.id },
+        )
+        if (error) throw error
+        const row = walletRows?.[0]
+        const balance = Number(row?.balance ?? 0)
+        const reservedBalance = Number(row?.reserved_balance ?? 0)
+
+        return {
+          storeId:store.id,
+          walletId:row?.wallet_id ?? row?.id ?? null,
+          balance,
+          reservedBalance,
+          availableBalance:Number(
+            row?.available_balance ?? Math.max(balance - reservedBalance, 0),
+          ),
+          updatedAt:row?.updated_at ?? null,
+        }
+      },
+      { label:'finance-wallet' },
+    ),
     supabase.rpc('get_my_store_wallet_transactions', { p_store_id: store.id, p_limit: 30, p_offset: 0 }),
     supabase
       .from('store_wallet_topups')
@@ -42,17 +67,9 @@ export default async function FinancePage() {
       .order('created_at', { ascending: false }),
   ])
 
-  const wallet = walletRows?.[0] ?? {
-    balance: 0,
-    reserved_balance: 0,
-    available_balance: 0,
-    pending_credits: 0,
-    pending_debits: 0,
-  }
-
-  const balance = Number(wallet.balance ?? 0)
-  const reserved = Number(wallet.reserved_balance ?? 0)
-  const available = Number(wallet.available_balance ?? Math.max(balance - reserved, 0))
+  const balance = walletResult.wallet.balance
+  const reserved = walletResult.wallet.reservedBalance
+  const available = walletResult.wallet.availableBalance
   const activeReservations = reservations ?? []
   const recentTransactions = transactions ?? []
   const pendingTopups = (topups ?? []).filter(item => item.status === 'pending')

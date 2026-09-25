@@ -1,19 +1,73 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { currency, shortId } from '@/lib/format'
 import type { Delivery } from '@/lib/types'
 import { StatusBadge } from './status-badge'
 import { Icon } from './icon'
+import { connectMigrationRealtime, isMigrationRealtimeEnabled } from '@/lib/migration-realtime-client'
 
 function onlyTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value))
 }
 
 export function LiveDeliveries({ storeId, initialDeliveries, limit }: { storeId: string; initialDeliveries: Delivery[]; limit?: number }) {
+  const router = useRouter()
   const [deliveries, setDeliveries] = useState(initialDeliveries)
   const shown = useMemo(() => limit ? deliveries.slice(0, limit) : deliveries, [deliveries, limit])
+
+  useEffect(() => {
+    setDeliveries(initialDeliveries)
+  }, [initialDeliveries])
+
+  useEffect(() => {
+    if (!isMigrationRealtimeEnabled()) return
+
+    let refreshTimer:number | null = null
+    const scheduleRefresh = () => {
+      if (refreshTimer != null) window.clearTimeout(refreshTimer)
+      refreshTimer = window.setTimeout(() => router.refresh(), 120)
+    }
+
+    const migrationConnection = connectMigrationRealtime({
+      channel:`store:${storeId}`,
+      onEvent:event => {
+        if (!event.eventType.startsWith('delivery.')) return
+
+        const deliveryId = String(event.payload.deliveryId ?? '')
+        const status = typeof event.payload.status === 'string'
+          ? event.payload.status
+          : null
+        const courierId = typeof event.payload.courierId === 'string'
+          ? event.payload.courierId
+          : typeof event.payload.assignedCourierId === 'string'
+            ? event.payload.assignedCourierId
+            : null
+
+        if (deliveryId && (status || courierId)) {
+          setDeliveries(current => current.map(item =>
+            item.id !== deliveryId
+              ? item
+              : {
+                  ...item,
+                  ...(status ? { status } : {}),
+                  ...(courierId ? { assigned_courier_id:courierId } : {}),
+                  updated_at:new Date().toISOString(),
+                },
+          ))
+        }
+
+        scheduleRefresh()
+      },
+    })
+
+    return () => {
+      if (refreshTimer != null) window.clearTimeout(refreshTimer)
+      migrationConnection.close()
+    }
+  }, [router, storeId])
 
   useEffect(() => {
     const supabase = createClient()

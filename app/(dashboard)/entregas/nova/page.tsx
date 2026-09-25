@@ -5,6 +5,7 @@ import {
 } from './create-form'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { migrationStoreWalletWithFallback } from '@/lib/migration-api'
 
 type NewDeliveryPageProps = {
   searchParams?: Promise<{ order?: string }>
@@ -17,11 +18,35 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
   const orderId = params.order?.trim() || null
 
   const [
-    { data: walletRows },
+    walletResult,
     orderResult,
     { data: pricingRow },
   ] = await Promise.all([
-    supabase.rpc('get_my_store_wallet', { p_store_id: store.id }),
+    migrationStoreWalletWithFallback(
+      store.id,
+      async () => {
+        const { data:walletRows, error } = await supabase.rpc(
+          'get_my_store_wallet',
+          { p_store_id:store.id },
+        )
+        if (error) throw error
+        const row = walletRows?.[0]
+        const balance = Number(row?.balance ?? 0)
+        const reservedBalance = Number(row?.reserved_balance ?? 0)
+
+        return {
+          storeId:store.id,
+          walletId:row?.wallet_id ?? row?.id ?? null,
+          balance,
+          reservedBalance,
+          availableBalance:Number(
+            row?.available_balance ?? Math.max(balance - reservedBalance, 0),
+          ),
+          updatedAt:row?.updated_at ?? null,
+        }
+      },
+      { label:'create-delivery-wallet' },
+    ),
     orderId
       ? supabase
           .from('store_orders')
@@ -37,9 +62,8 @@ export default async function NewDeliveryPage({ searchParams }: NewDeliveryPageP
       .maybeSingle(),
   ])
 
-  const wallet = walletRows?.[0]
-  const availableBalance = Number(wallet?.available_balance ?? 0)
-  const reservedBalance = Number(wallet?.reserved_balance ?? 0)
+  const availableBalance = walletResult.wallet.availableBalance
+  const reservedBalance = walletResult.wallet.reservedBalance
 
   const sourceOrder = orderResult.data as any
   const items = Array.isArray(sourceOrder?.items) ? sourceOrder.items : []

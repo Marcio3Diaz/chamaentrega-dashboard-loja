@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
+import { connectMigrationRealtime, isMigrationRealtimeEnabled } from '@/lib/migration-realtime-client'
 
 export type LiveCourier = {
   id: string
@@ -590,6 +591,78 @@ export function LiveCourierMap({
     document.addEventListener('fullscreenchange',onFullscreenChange)
     return () => document.removeEventListener('fullscreenchange',onFullscreenChange)
   }, [])
+
+  useEffect(() => {
+    if (!isMigrationRealtimeEnabled()) return
+
+    const migrationMapConnection = connectMigrationRealtime({
+      channel:`store:${storeId}`,
+      onState:state => {
+        if (state === 'live') setLiveState('AO VIVO')
+        if (state === 'reconnecting' || state === 'error') setLiveState('RECONECTANDO')
+      },
+      onEvent:event => {
+        if (event.eventType === 'delivery.location') {
+          const courierId = String(event.payload.courierId ?? '')
+          const deliveryId = String(event.payload.deliveryId ?? '')
+          const latitude = Number(event.payload.latitude)
+          const longitude = Number(event.payload.longitude)
+          const recordedAt = String(event.payload.recordedAt ?? new Date().toISOString())
+
+          if (courierId && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+            setCouriers(current => current.map(courier =>
+              courier.id !== courierId
+                ? courier
+                : {
+                    ...courier,
+                    currentLatitude:latitude,
+                    currentLongitude:longitude,
+                    lastLocationAt:recordedAt,
+                  },
+            ))
+          }
+
+          if (
+            deliveryId &&
+            deliveryId === selectedDelivery?.id &&
+            courierId &&
+            Number.isFinite(latitude) &&
+            Number.isFinite(longitude)
+          ) {
+            setRoutePoints(current => {
+              if (current.some(point =>
+                point.deliveryId === deliveryId &&
+                point.courierId === courierId &&
+                point.recordedAt === recordedAt
+              )) return current
+
+              return [
+                ...current,
+                {
+                  id:`mysql-${event.id}`,
+                  deliveryId,
+                  courierId,
+                  latitude,
+                  longitude,
+                  recordedAt,
+                },
+              ]
+            })
+          }
+          return
+        }
+
+        if (
+          event.eventType.startsWith('delivery.') ||
+          event.eventType.startsWith('courier_network.')
+        ) {
+          void refreshNetwork()
+        }
+      },
+    })
+
+    return () => migrationMapConnection.close()
+  }, [refreshNetwork, selectedDelivery?.id, storeId])
 
   useEffect(() => {
     const courierChannel = supabase

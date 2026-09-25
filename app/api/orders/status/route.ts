@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { shadowCancelledDeliveryToMySql } from '@/lib/migration-api'
 
 const allowedStatuses = new Set([
   'new',
@@ -78,6 +79,19 @@ export async function POST(request: Request) {
         }
       }
 
+      const shadowCancel = await shadowCancelledDeliveryToMySql(
+        deliveryId,
+        storeId,
+        'cancelled_from_store_dashboard',
+      )
+      if (shadowCancel.attempted) {
+        console.info('[orders/status] standalone delivery cancel shadow', {
+          deliveryId,
+          ok:shadowCancel.ok,
+          error:shadowCancel.error ?? null,
+        })
+      }
+
       return redirectBack(request, orderId, 'ok', 'Entrega cancelada com sucesso.')
     }
 
@@ -113,6 +127,21 @@ export async function POST(request: Request) {
 
         if (deliveryCancelError) {
           return redirectBack(request, orderId, 'error', 'Não foi possível cancelar a entrega vinculada.')
+        }
+      }
+
+      if (linkedDelivery) {
+        const shadowCancel = await shadowCancelledDeliveryToMySql(
+          order.delivery_id,
+          storeId,
+          'linked_order_cancelled_from_store_dashboard',
+        )
+        if (shadowCancel.attempted) {
+          console.info('[orders/status] linked delivery cancel shadow', {
+            deliveryId:order.delivery_id,
+            ok:shadowCancel.ok,
+            error:shadowCancel.error ?? null,
+          })
         }
       }
     }

@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { shadowPublishedDeliveryToMySql } from '@/lib/migration-api'
 
 export type CreateState = { error?: string }
 
@@ -275,6 +276,43 @@ export async function createDeliveryAction(
       return {
         error:'A entrega foi revertida porque não foi possível vinculá-la ao pedido integrado.',
       }
+    }
+  }
+
+  if (published) {
+    const shadowResult = await shadowPublishedDeliveryToMySql(
+      {
+        deliveryId:delivery.id,
+        storeId:store.id,
+        externalOrderId:integratedOrder?.external_order_id ?? null,
+        pickupAddress:store.address,
+        pickupLatitude:store.latitude,
+        pickupLongitude:store.longitude,
+        deliveryAddress,
+        deliveryLatitude:coordinatesValid ? deliveryLatitude : null,
+        deliveryLongitude:coordinatesValid ? deliveryLongitude : null,
+        deliveryFee,
+        pickupDistanceKm,
+        deliveryDistanceKm,
+        estimatedMinutes,
+        paymentMethod,
+        orderTotal,
+        customerName,
+        customerPhone,
+        customerNote,
+        itemCount,
+        packageWeightKg,
+        secondsToAccept:300,
+      },
+      `supabase-delivery:${delivery.id}`,
+    )
+
+    if (shadowResult.attempted) {
+      console.info('[createDeliveryAction] MySQL shadow result', {
+        deliveryId:delivery.id,
+        ok:shadowResult.ok,
+        error:shadowResult.error ?? null,
+      })
     }
   }
 

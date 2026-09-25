@@ -7,6 +7,7 @@ import { LiveDeliveries } from '@/components/live-deliveries'
 import { DashboardClock } from '@/components/dashboard-clock'
 import { DashboardLiveMap } from '@/components/dashboard-live-map'
 import { Icon } from '@/components/icon'
+import { migrationStoreDeliveriesWithFallback, migrationStoreWalletWithFallback } from '@/lib/migration-api'
 
 function minutesBetween(start: string, end: string | null) {
   if (!end) return null
@@ -32,23 +33,49 @@ export default async function OverviewPage() {
   const startWeek = new Date(startToday)
   startWeek.setDate(startWeek.getDate() - 6)
 
-  const [{ data: todayData }, { data: weekData }] = await Promise.all([
-    supabase
-      .from('deliveries')
-      .select('*')
-      .eq('store_id', store.id)
-      .gte('created_at', startToday.toISOString())
-      .order('created_at', { ascending:false }),
-    supabase
-      .from('deliveries')
-      .select('*')
-      .eq('store_id', store.id)
-      .gte('created_at', startWeek.toISOString())
-      .order('created_at', { ascending:false }),
+  const [todayResult, weekResult] = await Promise.all([
+    migrationStoreDeliveriesWithFallback(
+      store.id,
+      async () => {
+        const { data, error } = await supabase
+          .from('deliveries')
+          .select('*')
+          .eq('store_id', store.id)
+          .gte('created_at', startToday.toISOString())
+          .order('created_at', { ascending:false })
+
+        if (error) throw error
+        return (data ?? []) as Delivery[]
+      },
+      {
+        since:startToday.toISOString(),
+        limit:250,
+        label:'dashboard-today',
+      },
+    ),
+    migrationStoreDeliveriesWithFallback(
+      store.id,
+      async () => {
+        const { data, error } = await supabase
+          .from('deliveries')
+          .select('*')
+          .eq('store_id', store.id)
+          .gte('created_at', startWeek.toISOString())
+          .order('created_at', { ascending:false })
+
+        if (error) throw error
+        return (data ?? []) as Delivery[]
+      },
+      {
+        since:startWeek.toISOString(),
+        limit:1000,
+        label:'dashboard-week',
+      },
+    ),
   ])
 
-  const deliveries = (todayData ?? []) as Delivery[]
-  const weekDeliveries = (weekData ?? []) as Delivery[]
+  const deliveries = todayResult.deliveries
+  const weekDeliveries = weekResult.deliveries
 
   const active = deliveries.filter(item => activeStatuses.includes(item.status)).length
   const waiting = deliveries.filter(item => ['available','negotiating'].includes(item.status)).length
@@ -67,11 +94,35 @@ export default async function OverviewPage() {
     ? Math.round(completedTimes.reduce((sum,value) => sum + value,0) / completedTimes.length)
     : 0
 
-  const { data: walletRows } = await supabase.rpc('get_my_store_wallet', { p_store_id: store.id })
-  const wallet = walletRows?.[0]
-  const walletBalance = Number(wallet?.balance ?? 0)
-  const walletReserved = Number(wallet?.reserved_balance ?? 0)
-  const walletAvailable = Number(wallet?.available_balance ?? Math.max(walletBalance - walletReserved,0))
+  const { wallet } = await migrationStoreWalletWithFallback(
+    store.id,
+    async () => {
+      const { data:walletRows, error } = await supabase.rpc(
+        'get_my_store_wallet',
+        { p_store_id:store.id },
+      )
+      if (error) throw error
+      const row = walletRows?.[0]
+      const balance = Number(row?.balance ?? 0)
+      const reservedBalance = Number(row?.reserved_balance ?? 0)
+
+      return {
+        storeId:store.id,
+        walletId:row?.wallet_id ?? row?.id ?? null,
+        balance,
+        reservedBalance,
+        availableBalance:Number(
+          row?.available_balance ?? Math.max(balance - reservedBalance, 0),
+        ),
+        updatedAt:row?.updated_at ?? null,
+      }
+    },
+    { label:'dashboard-wallet' },
+  )
+
+  const walletBalance = wallet.balance
+  const walletReserved = wallet.reservedBalance
+  const walletAvailable = wallet.availableBalance
 
   const { data: couriersData } = await supabase
     .from('couriers')
@@ -96,9 +147,9 @@ export default async function OverviewPage() {
     cancelled,
   }
 
-  const activeMapDeliveries = (todayData ?? [])
-    .filter((item:any) => activeStatuses.includes(item.status) || ['available','negotiating'].includes(item.status))
-    .map((item:any) => ({
+  const activeMapDeliveries = deliveries
+    .filter(item => activeStatuses.includes(item.status) || ['available','negotiating'].includes(item.status))
+    .map(item => ({
       id:item.id,
       status:item.status,
       latitude:item.delivery_latitude == null ? null : Number(item.delivery_latitude),

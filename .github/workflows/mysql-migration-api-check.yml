@@ -1,0 +1,84 @@
+name: MySQL migration API checks
+
+on:
+  pull_request:
+    paths:
+      - 'services/chamaentrega-api/**'
+      - 'database/mysql/**'
+      - '.github/workflows/mysql-migration-api-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/chamaentrega-api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install API dependencies
+        run: npm install --ignore-scripts
+
+      - name: Static syntax checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+
+  api-integration:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: chamaentrega
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Apply MySQL schema
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/schema.sql
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/002_runtime_foundation.sql
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/003_mysql_compatibility_fixes.sql
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/004_text_capacity.sql
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot chamaentrega < database/mysql/005_api_sessions_realtime.sql
+
+      - name: Install API dependencies
+        working-directory: services/chamaentrega-api
+        run: npm install --ignore-scripts
+
+      - name: Run MySQL integration smoke
+        working-directory: services/chamaentrega-api
+        env:
+          MYSQL_URL: mysql://root:root@127.0.0.1:3306/chamaentrega?ssl=false
+        run: npm run test:integration

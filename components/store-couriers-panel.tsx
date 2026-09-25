@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
+import { connectMigrationRealtime, isMigrationRealtimeEnabled } from '@/lib/migration-realtime-client'
 
 export type StoreCourierActiveDelivery = {
   id: string
@@ -241,6 +242,50 @@ export function StoreCouriersPanel({
     const timer = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    if (!isMigrationRealtimeEnabled()) return
+
+    const migrationConnection = connectMigrationRealtime({
+      channel:`store:${storeId}`,
+      onState:state => {
+        if (state === 'live') setLiveState('AO VIVO')
+        if (state === 'reconnecting' || state === 'error') setLiveState('RECONECTANDO')
+      },
+      onEvent:event => {
+        if (event.eventType === 'delivery.location') {
+          const courierId = String(event.payload.courierId ?? '')
+          const latitude = Number(event.payload.latitude)
+          const longitude = Number(event.payload.longitude)
+          const recordedAt = String(event.payload.recordedAt ?? new Date().toISOString())
+
+          if (courierId && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+            setCouriers(current => current.map(courier =>
+              courier.id !== courierId
+                ? courier
+                : {
+                    ...courier,
+                    currentLatitude:latitude,
+                    currentLongitude:longitude,
+                    lastLocationAt:recordedAt,
+                  },
+            ))
+          }
+          return
+        }
+
+        if (
+          event.eventType.startsWith('delivery.') ||
+          event.eventType.startsWith('courier_network.')
+        ) {
+          void refresh()
+          if (event.eventType.startsWith('courier_network.')) router.refresh()
+        }
+      },
+    })
+
+    return () => migrationConnection.close()
+  }, [refresh, router, storeId])
 
   useEffect(() => {
     const courierChannel = supabase
