@@ -154,7 +154,9 @@ export function startRealtimeServer({ server, pool, config }) {
   const broadcastEvent = event => {
     const primary = event.audience_type === 'admin'
       ? 'admin'
-      : `${event.audience_type}:${event.audience_id}`
+      : event.audience_type === 'courier_pool'
+        ? 'courier_pool'
+        : `${event.audience_type}:${event.audience_id}`
 
     for (const client of clients) {
       if (!client.authenticated) continue
