@@ -1,4 +1,5 @@
 const PAYMENT_METHODS = new Set(['already_paid', 'cash', 'pix', 'card_on_delivery'])
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function text(value, max, required = false) {
   const normalized = typeof value === 'string' ? value.trim() : ''
@@ -32,9 +33,19 @@ export function validateDeliveryInput(input) {
   const paymentMethod = text(input.paymentMethod, 40) ?? 'already_paid'
   if (!PAYMENT_METHODS.has(paymentMethod)) throw new Error('invalid_payment_method')
 
+  const deliveryId = text(input.deliveryId, 36)
+  if (deliveryId && !UUID_RE.test(deliveryId)) throw new Error('invalid_delivery_id')
+
+  const storeId = text(input.storeId, 36, true)
+  if (!UUID_RE.test(storeId)) throw new Error('invalid_store_id')
+
+  const targetCourierId = text(input.targetCourierId, 36)
+  if (targetCourierId && !UUID_RE.test(targetCourierId)) throw new Error('invalid_target_courier_id')
+
   return {
-    storeId: text(input.storeId, 36, true),
-    targetCourierId: text(input.targetCourierId, 36),
+    deliveryId,
+    storeId,
+    targetCourierId,
     externalOrderId: text(input.externalOrderId, 255),
     pickupAddress: text(input.pickupAddress, 600, true),
     pickupLatitude: finite(input.pickupLatitude, { min: -90, max: 90 }),
