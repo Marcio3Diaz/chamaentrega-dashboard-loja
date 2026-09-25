@@ -59,6 +59,8 @@ export function loadConfig() {
     deliveryMaintenancePollMs: integer('DELIVERY_MAINTENANCE_POLL_MS', 5000),
     deliveryMaintenanceBatchSize: integer('DELIVERY_MAINTENANCE_BATCH_SIZE', 100),
     apiSessionTtlSeconds: integer('API_SESSION_TTL_SECONDS', 28800),
+    supabaseAuthUrl: process.env.SUPABASE_AUTH_URL?.trim() || '',
+    supabaseAuthApiKey: process.env.SUPABASE_AUTH_API_KEY?.trim() || '',
     realtimeEnabled,
     realtimeAllowedOrigins,
     realtimePollMs: integer('REALTIME_POLL_MS', 500),
