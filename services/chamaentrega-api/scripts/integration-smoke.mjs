@@ -11,6 +11,7 @@ import {
   dispatchRouteToCourier,
 } from '../src/delivery-command-service.mjs'
 import { reviewCourierNetworkRequest } from '../src/courier-network-service.mjs'
+import { listCourierAvailableOffers } from '../src/delivery-query-service.mjs'
 import {
   authenticateApiSession,
   createApiSession,
@@ -143,6 +144,13 @@ async function main() {
 
     const openOfferAccess = await requireDeliverySessionAccess(pool, courierSession, delivery1)
     assert.equal(openOfferAccess.id, delivery1)
+
+    const availableOffers = await listCourierAvailableOffers(pool, courierId)
+    assert.ok(availableOffers.offers.some(item => item.id === delivery1))
+    assert.equal(
+      availableOffers.offers.find(item => item.id === delivery1)?.customerPhone,
+      null,
+    )
     assert.equal(created.walletAvailableBefore, 100)
     assert.equal(created.walletAvailableAfter, 92.5)
 
