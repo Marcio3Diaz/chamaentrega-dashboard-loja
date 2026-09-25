@@ -9,7 +9,11 @@
     "typecheck": "tsc --noEmit",
     "db:migrate:mysql": "node scripts/migrate-supabase-to-mysql.mjs",
     "db:verify:mysql": "node scripts/verify-mysql-migration.mjs",
-    "db:check:scripts": "node --check scripts/migrate-supabase-to-mysql.mjs && node --check scripts/verify-mysql-migration.mjs"
+    "db:check:scripts": "node --check scripts/migrate-supabase-to-mysql.mjs && node --check scripts/verify-mysql-migration.mjs",
+    "db:mysql:up": "docker compose -f docker-compose.mysql.yml up -d",
+    "db:mysql:down": "docker compose -f docker-compose.mysql.yml down",
+    "db:mysql:reset": "docker compose -f docker-compose.mysql.yml down -v",
+    "db:test:mysql": "node scripts/test-mysql-schema.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
