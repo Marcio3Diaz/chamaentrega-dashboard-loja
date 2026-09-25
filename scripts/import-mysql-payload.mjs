@@ -1,11 +1,12 @@
 import mysql from 'mysql2/promise'
 
 const mysqlUrl = process.env.MYSQL_DATABASE_URL?.trim() || process.env.MYSQL_URL?.trim()
+const payloadJson = process.env.MYSQL_IMPORT_PAYLOAD_JSON?.trim()
 const payloadB64 = process.env.MYSQL_IMPORT_PAYLOAD_B64?.trim()
 if (!mysqlUrl) throw new Error('MYSQL_DATABASE_URL ou MYSQL_URL não configurada.')
-if (!payloadB64) throw new Error('MYSQL_IMPORT_PAYLOAD_B64 não configurada.')
+if (!payloadJson && !payloadB64) throw new Error('MYSQL_IMPORT_PAYLOAD_JSON ou MYSQL_IMPORT_PAYLOAD_B64 não configurada.')
 
-const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf8'))
+const payload = JSON.parse(payloadJson || Buffer.from(payloadB64, 'base64').toString('utf8'))
 const url = new URL(mysqlUrl)
 const connection = await mysql.createConnection({
   host:url.hostname,
