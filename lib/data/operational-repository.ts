@@ -24,8 +24,17 @@ export type StoreOrderRecord = {
   updated_at: string
 }
 
+export type CourierOperationalRecord = {
+  id: string
+  vehicle_type: string | null
+  is_online: boolean
+  is_available: boolean
+}
+
 export interface OperationalRepository {
   listStoresForUser(userId: string): Promise<Store[]>
   listDeliveriesByStore(storeId: string, limit?: number): Promise<Delivery[]>
+  listDeliveriesSince(storeId: string, sinceIso: string, limit?: number): Promise<Delivery[]>
   listStoreOrders(storeId: string, limit?: number): Promise<StoreOrderRecord[]>
+  listCouriers(): Promise<CourierOperationalRecord[]>
 }
