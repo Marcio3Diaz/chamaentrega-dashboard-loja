@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDatabaseProvider, mysqlRuntimeInfo } from '@/lib/database/provider'
+import { mysqlHealthcheck } from '@/lib/database/mysql'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,14 +32,28 @@ function supabaseRuntimeInfo() {
 }
 
 export async function GET() {
+  const provider = getDatabaseProvider()
+  let mysqlReachable: boolean | null = null
+
+  if (provider === 'mysql') {
+    try {
+      mysqlReachable = await mysqlHealthcheck()
+    } catch {
+      mysqlReachable = false
+    }
+  }
+
   return NextResponse.json(
     {
       status: 'ok',
       service: 'chamaentrega-web',
       timestamp: new Date().toISOString(),
       database: {
-        provider: getDatabaseProvider(),
-        mysql: mysqlRuntimeInfo(),
+        provider,
+        mysql: {
+          ...mysqlRuntimeInfo(),
+          reachable: mysqlReachable,
+        },
       },
       supabase: supabaseRuntimeInfo(),
     },
