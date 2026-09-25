@@ -36,5 +36,5 @@ CREATE TABLE IF NOT EXISTS `realtime_events` (
   KEY `realtime_events_poll_idx` (`id`, `expires_at`),
   KEY `realtime_events_audience_idx` (`audience_type`, `audience_id`, `id`),
   CONSTRAINT `chk_realtime_audience_type`
-    CHECK (`audience_type` IN ('store','courier','admin'))
+    CHECK (`audience_type` IN ('store','courier','courier_pool','admin'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
