@@ -110,7 +110,7 @@ export default async function SmartDispatchPage({
     estimatedMinutes: item.estimated_minutes == null ? null : Number(item.estimated_minutes),
     itemCount: Number(item.item_count ?? 1),
     readyAt: item.ready_at,
-    publishedAt: item.published_at,
+    publishedAt:(item as Delivery & { published_at?:string | null }).published_at ?? item.ready_at,
     createdAt: item.created_at,
   }))
 
@@ -118,7 +118,7 @@ export default async function SmartDispatchPage({
     id:item.id,
     fullName:item.fullName,
     avatarUrl:item.avatarUrl,
-    vehicleType:item.vehicleType,
+    vehicleType:item.vehicleType || 'motorcycle',
     isOnline:item.isOnline,
     isAvailable:item.isAvailable,
     rating:item.rating,
