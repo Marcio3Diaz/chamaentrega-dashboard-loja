@@ -48,7 +48,8 @@ $migrations = @(
   "database\mysql\schema.sql",
   "database\mysql\002_runtime_foundation.sql",
   "database\mysql\003_mysql_compatibility_fixes.sql",
-  "database\mysql\004_text_capacity.sql"
+  "database\mysql\004_text_capacity.sql",
+  "database\mysql\005_api_sessions_realtime.sql"
 )
 
 foreach ($relative in $migrations) {
