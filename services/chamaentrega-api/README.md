@@ -231,3 +231,21 @@ POST /v1/deliveries/:id/status
 POST /v1/deliveries/:id/location
 WebSocket /realtime -> courier:<id> + courier_pool
 ```
+
+
+### Dashboard dual-realtime
+
+The existing store courier panel and live map now contain an opt-in migration WebSocket client. With:
+
+```text
+NEXT_PUBLIC_CHAMA_MIGRATION_REALTIME=true
+```
+
+the dashboard keeps its existing Supabase channels **and** opens the migration WebSocket in parallel.
+
+- delivery/network events trigger the existing Supabase refresh path;
+- MySQL location events update courier markers immediately;
+- live-map route points are deduplicated if the same point also arrives through Supabase;
+- disabling the flag restores the current Supabase-only behavior with no runtime change.
+
+This is intentionally dual-run first; removing Supabase channels is a later cutover step.
