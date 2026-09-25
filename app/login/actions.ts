@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 
 export type LoginState = { error?: string }
 
@@ -45,23 +46,17 @@ export async function loginAction(
     return { error: 'Esta conta não possui acesso ao Portal da Loja.' }
   }
 
-  const [{ data: ownedStores }, { data: memberships }] = await Promise.all([
-    supabase
-      .from('stores')
-      .select('id')
-      .eq('owner_id', userId)
-      .limit(1),
-    supabase
-      .from('store_members')
-      .select('store_id')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .limit(1),
-  ])
+  const repository = getOperationalRepository()
 
-  const hasStoreAccess = Boolean(ownedStores?.length || memberships?.length)
+  let stores
+  try {
+    stores = await repository.listStoresForUser(userId)
+  } catch {
+    await supabase.auth.signOut()
+    return { error: 'Não foi possível validar o acesso à sua loja.' }
+  }
 
-  if (hasStoreAccess) redirect('/painel')
+  if (stores.length) redirect('/painel')
 
   if (profile.role === 'store_owner') redirect('/onboarding')
 
