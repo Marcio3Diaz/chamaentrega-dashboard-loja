@@ -18,6 +18,7 @@ import {
   requireStoreSessionAccess,
 } from './auth-service.mjs'
 import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
+import { listStoreCouriers } from './courier-query-service.mjs'
 import { SupabaseExchangeError, exchangeSupabaseAccessToken } from './supabase-auth-bridge.mjs'
 import {
   DeliveryCommandError,
@@ -177,6 +178,14 @@ export function createRequestHandler({ config, pool }) {
         }))
       }
 
+      const publicStoreCouriersMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/couriers$/i)
+      if (req.method === 'GET' && publicStoreCouriersMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'store:read')
+        const storeId = await requireStoreSessionAccess(pool, session, publicStoreCouriersMatch[1])
+        return json(res, 200, await listStoreCouriers(pool, storeId))
+      }
+
       const publicStoreLiveMatch = url.pathname.match(/^\/v1\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
       if (req.method === 'GET' && publicStoreLiveMatch) {
         const session = await requireBearerSession(req, pool)
@@ -204,6 +213,12 @@ export function createRequestHandler({ config, pool }) {
           limit:url.searchParams.get('limit'),
           since:url.searchParams.get('since'),
         }))
+      }
+
+      const internalStoreCouriersMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/couriers$/i)
+      if (req.method === 'GET' && internalStoreCouriersMatch) {
+        requireInternalKey(req, config)
+        return json(res, 200, await listStoreCouriers(pool, internalStoreCouriersMatch[1]))
       }
 
       const storeLiveMatch = url.pathname.match(/^\/v1\/internal\/stores\/([0-9a-f-]{36})\/live-deliveries$/i)
