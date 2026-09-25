@@ -1,5 +1,27 @@
 $ErrorActionPreference = "Stop"
 
+$docker = Get-Command docker -ErrorAction SilentlyContinue
+if (-not $docker) {
+  Write-Host ""
+  Write-Host "Docker CLI was not found on this Windows installation." -ForegroundColor Red
+  Write-Host "Install Docker Desktop, restart PowerShell, open Docker Desktop and wait until it says Docker is running." -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "Quick install with winget:" -ForegroundColor Cyan
+  Write-Host "  winget install -e --id Docker.DockerDesktop"
+  Write-Host ""
+  Write-Host "After installation, restart Windows if Docker/WSL asks for it, then run this script again." -ForegroundColor Cyan
+  exit 2
+}
+
+try {
+  docker info *> $null
+} catch {
+  Write-Host ""
+  Write-Host "Docker is installed, but the Docker engine is not running." -ForegroundColor Red
+  Write-Host "Open Docker Desktop and wait until the engine is running, then run this script again." -ForegroundColor Yellow
+  exit 3
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $composeFile = Join-Path $PSScriptRoot "docker-compose.yml"
 $container = "chamaentrega-mysql-shadow"
