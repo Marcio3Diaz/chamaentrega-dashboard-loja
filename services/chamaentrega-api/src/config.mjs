@@ -29,9 +29,19 @@ export function loadConfig() {
   }
 
   const fcmWorkerEnabled = flag('FCM_WORKER_ENABLED', false)
+  const realtimeEnabled = flag('REALTIME_ENABLED', false)
   const firebaseServiceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64?.trim() || ''
   if (fcmWorkerEnabled && !firebaseServiceAccountBase64) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 is required when FCM_WORKER_ENABLED=true')
+  }
+
+  const realtimeAllowedOrigins = (process.env.REALTIME_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+
+  if (realtimeEnabled && realtimeAllowedOrigins.length === 0) {
+    throw new Error('REALTIME_ALLOWED_ORIGINS is required when REALTIME_ENABLED=true')
   }
 
   return Object.freeze({
@@ -49,7 +59,8 @@ export function loadConfig() {
     deliveryMaintenancePollMs: integer('DELIVERY_MAINTENANCE_POLL_MS', 5000),
     deliveryMaintenanceBatchSize: integer('DELIVERY_MAINTENANCE_BATCH_SIZE', 100),
     apiSessionTtlSeconds: integer('API_SESSION_TTL_SECONDS', 28800),
-    realtimeEnabled: flag('REALTIME_ENABLED', false),
+    realtimeEnabled,
+    realtimeAllowedOrigins,
     realtimePollMs: integer('REALTIME_POLL_MS', 500),
     realtimeBatchSize: integer('REALTIME_BATCH_SIZE', 250),
     realtimeMaxPayloadBytes: integer('REALTIME_MAX_PAYLOAD_BYTES', 32 * 1024),
