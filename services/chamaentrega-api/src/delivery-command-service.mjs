@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { enqueueRealtimeEvent } from './realtime-events.mjs'
 
 const ACTIVE_STATUSES = [
   'accepted',
@@ -200,7 +201,7 @@ export async function acceptDelivery(pool, deliveryIdRaw, courierIdRaw) {
     await connection.beginTransaction()
 
     const [deliveryRows] = await connection.execute(
-      `SELECT id, status, assigned_courier_id, target_courier_id, expires_at
+      `SELECT id, store_id, status, assigned_courier_id, target_courier_id, expires_at
          FROM deliveries WHERE id = ? LIMIT 1 FOR UPDATE`,
       [deliveryId],
     )
@@ -301,6 +302,16 @@ export async function acceptDelivery(pool, deliveryIdRaw, courierIdRaw) {
       status: 'accepted',
       acceptedAt: now.toISOString(),
     })
+    const acceptedRealtime = {
+      deliveryId,
+      courierId,
+      storeId: delivery.store_id,
+      batchId: batch.id,
+      status: 'accepted',
+      acceptedAt: now.toISOString(),
+    }
+    await enqueueRealtimeEvent(connection, 'store', delivery.store_id, 'delivery.accepted', acceptedRealtime)
+    await enqueueRealtimeEvent(connection, 'courier', courierId, 'delivery.accepted', acceptedRealtime)
     await refreshCourierBatch(connection, batch.id, courierId)
 
     await connection.commit()
@@ -330,7 +341,7 @@ export async function rejectDelivery(pool, deliveryIdRaw, courierIdRaw, reasonRa
   try {
     await connection.beginTransaction()
     const [rows] = await connection.execute(
-      `SELECT id, status, assigned_courier_id, target_courier_id
+      `SELECT id, store_id, status, assigned_courier_id, target_courier_id
          FROM deliveries WHERE id = ? LIMIT 1 FOR UPDATE`,
       [deliveryId],
     )
@@ -371,6 +382,18 @@ export async function rejectDelivery(pool, deliveryIdRaw, courierIdRaw, reasonRa
         ],
       )
     }
+
+    const rejectedRealtime = {
+      deliveryId,
+      courierId,
+      storeId: delivery.store_id,
+      status: 'available',
+      rejected: true,
+      openedToNetwork,
+      reason,
+    }
+    await enqueueRealtimeEvent(connection, 'store', delivery.store_id, 'delivery.rejected', rejectedRealtime)
+    await enqueueRealtimeEvent(connection, 'courier', courierId, 'delivery.rejected', rejectedRealtime)
 
     await connection.commit()
     return { deliveryId, courierId, status: 'available', rejected: true, openedToNetwork }
@@ -425,6 +448,16 @@ export async function advanceDeliveryStatus(pool, deliveryIdRaw, courierIdRaw, n
       status: nextStatus,
       updatedAt: now.toISOString(),
     })
+    const statusRealtime = {
+      deliveryId,
+      courierId,
+      storeId: delivery.store_id,
+      previousStatus: delivery.status,
+      status: nextStatus,
+      updatedAt: now.toISOString(),
+    }
+    await enqueueRealtimeEvent(connection, 'store', delivery.store_id, 'delivery.status_changed', statusRealtime)
+    await enqueueRealtimeEvent(connection, 'courier', courierId, 'delivery.status_changed', statusRealtime)
 
     if (nextStatus === 'completed') {
       await captureWalletReservation(connection, delivery)
@@ -483,7 +516,17 @@ export async function cancelDelivery(pool, deliveryIdRaw, storeIdRaw, reasonRaw 
       previousStatus: delivery.status,
       reason,
     })
+    const cancelledRealtime = {
+      deliveryId,
+      storeId,
+      assignedCourierId: delivery.assigned_courier_id,
+      previousStatus: delivery.status,
+      status: 'cancelled',
+      reason,
+    }
+    await enqueueRealtimeEvent(connection, 'store', storeId, 'delivery.cancelled', cancelledRealtime)
     if (delivery.assigned_courier_id) {
+      await enqueueRealtimeEvent(connection, 'courier', delivery.assigned_courier_id, 'delivery.cancelled', cancelledRealtime)
       await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
     }
 
@@ -513,7 +556,7 @@ export async function recordDeliveryLocation(pool, deliveryIdRaw, courierIdRaw, 
   try {
     await connection.beginTransaction()
     const [rows] = await connection.execute(
-      'SELECT status, assigned_courier_id FROM deliveries WHERE id = ? LIMIT 1 FOR UPDATE',
+      'SELECT store_id, status, assigned_courier_id FROM deliveries WHERE id = ? LIMIT 1 FOR UPDATE',
       [deliveryId],
     )
     const delivery = Array.isArray(rows) ? rows[0] : null
@@ -534,6 +577,21 @@ export async function recordDeliveryLocation(pool, deliveryIdRaw, courierIdRaw, 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [randomUUID(), deliveryId, courierId, latitude, longitude, accuracy, now],
     )
+    await enqueueRealtimeEvent(
+      connection,
+      'store',
+      delivery.store_id,
+      'delivery.location',
+      {
+        deliveryId,
+        courierId,
+        latitude,
+        longitude,
+        accuracyMeters: accuracy,
+        recordedAt: now.toISOString(),
+      },
+      300,
+    )
     await connection.commit()
     return { deliveryId, courierId, latitude, longitude, accuracyMeters: accuracy, recordedAt: now.toISOString() }
   } catch (error) {
@@ -553,7 +611,7 @@ export async function expireAvailableDeliveries(pool, limit = 100) {
   try {
     await connection.beginTransaction()
     const [rows] = await connection.query(
-      `SELECT id, assigned_courier_id, courier_batch_id
+      `SELECT id, store_id, assigned_courier_id, courier_batch_id
          FROM deliveries
         WHERE status IN ('available','negotiating')
           AND expires_at IS NOT NULL
@@ -576,7 +634,14 @@ export async function expireAvailableDeliveries(pool, limit = 100) {
         eventType: 'delivery.expired',
         deliveryId: delivery.id,
       })
+      const expiredRealtime = {
+        deliveryId: delivery.id,
+        storeId: delivery.store_id,
+        status: 'expired',
+      }
+      await enqueueRealtimeEvent(connection, 'store', delivery.store_id, 'delivery.expired', expiredRealtime)
       if (delivery.assigned_courier_id) {
+        await enqueueRealtimeEvent(connection, 'courier', delivery.assigned_courier_id, 'delivery.expired', expiredRealtime)
         await refreshCourierBatch(connection, delivery.courier_batch_id, delivery.assigned_courier_id)
       }
       expired.push(delivery.id)
@@ -768,6 +833,14 @@ export async function dispatchRouteToCourier(pool, storeIdRaw, courierIdRaw, del
 
     for (const delivery of deliveries) {
       await addHistory(connection, delivery.id, 'available', null, 'Targeted route dispatched by store')
+      const targetedPayload = {
+        deliveryId: delivery.id,
+        storeId,
+        targetCourierId: courierId,
+        deliveryFee: Number(delivery.delivery_fee || 0),
+        dispatchRouteGroupId: groupId,
+        expiresAt: expiresAt.toISOString(),
+      }
       await connection.execute(
         `INSERT INTO outbox_events
            (id, event_key, aggregate_type, aggregate_id, event_type, payload,
@@ -777,19 +850,14 @@ export async function dispatchRouteToCourier(pool, storeIdRaw, courierIdRaw, del
           randomUUID(),
           `delivery.available:${delivery.id}:targeted:${groupId}`,
           delivery.id,
-          JSON.stringify({
-            deliveryId: delivery.id,
-            storeId,
-            targetCourierId: courierId,
-            deliveryFee: Number(delivery.delivery_fee || 0),
-            dispatchRouteGroupId: groupId,
-            expiresAt: expiresAt.toISOString(),
-          }),
+          JSON.stringify(targetedPayload),
           now,
           now,
           now,
         ],
       )
+      await enqueueRealtimeEvent(connection, 'store', storeId, 'delivery.targeted_dispatch', targetedPayload)
+      await enqueueRealtimeEvent(connection, 'courier', courierId, 'delivery.targeted_dispatch', targetedPayload)
     }
 
     await connection.commit()
