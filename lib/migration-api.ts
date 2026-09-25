@@ -1,3 +1,5 @@
+import type { Delivery } from '@/lib/types'
+
 export type MigrationApiHealth = {
   configured: boolean
   ok: boolean
@@ -252,4 +254,140 @@ export function migrationRealtimeUrl() {
   const { baseUrl } = apiConfig()
   if (!baseUrl) return null
   return baseUrl.replace(/^http:/,'ws:').replace(/^https:/,'wss:') + '/realtime'
+}
+
+
+export function isMigrationReadEnabled() {
+  const raw = process.env.CHAMA_MYSQL_READS?.trim().toLowerCase()
+  return ['1','true','yes','on'].includes(raw ?? '') && isMigrationApiConfigured()
+}
+
+type MigrationDeliveryWire = {
+  id:string
+  storeId:string
+  assignedCourierId:string | null
+  externalOrderId:string | null
+  status:string
+  pickupAddress:string
+  pickupLatitude?:number | null
+  pickupLongitude?:number | null
+  deliveryAddress:string
+  deliveryLatitude?:number | null
+  deliveryLongitude?:number | null
+  deliveryFee:number
+  pickupDistanceKm:number | null
+  deliveryDistanceKm:number | null
+  estimatedMinutes:number | null
+  paymentMethod:string
+  orderTotal:number | null
+  customerName:string | null
+  customerPhone:string | null
+  customerNote:string | null
+  itemCount:number
+  packageWeightKg:number | null
+  readyAt:string | null
+  acceptedAt:string | null
+  completedAt:string | null
+  createdAt:string
+  updatedAt:string
+}
+
+export type MigrationStoreDeliveriesResult = {
+  storeId:string
+  count:number
+  deliveries:Delivery[]
+}
+
+function migrationDeliveryToApp(row:MigrationDeliveryWire):Delivery {
+  return {
+    id:row.id,
+    store_id:row.storeId,
+    assigned_courier_id:row.assignedCourierId,
+    external_order_id:row.externalOrderId,
+    status:row.status,
+    pickup_address:row.pickupAddress,
+    delivery_address:row.deliveryAddress,
+    delivery_fee:Number(row.deliveryFee ?? 0),
+    pickup_distance_km:row.pickupDistanceKm == null ? null : Number(row.pickupDistanceKm),
+    delivery_distance_km:row.deliveryDistanceKm == null ? null : Number(row.deliveryDistanceKm),
+    estimated_minutes:row.estimatedMinutes == null ? null : Number(row.estimatedMinutes),
+    payment_method:row.paymentMethod,
+    order_total:row.orderTotal == null ? null : Number(row.orderTotal),
+    customer_name:row.customerName,
+    customer_phone:row.customerPhone,
+    customer_note:row.customerNote,
+    item_count:Number(row.itemCount ?? 1),
+    package_weight_kg:row.packageWeightKg == null ? null : Number(row.packageWeightKg),
+    created_at:row.createdAt,
+    updated_at:row.updatedAt,
+    ready_at:row.readyAt,
+    accepted_at:row.acceptedAt,
+    completed_at:row.completedAt,
+  }
+}
+
+export async function listMigrationStoreDeliveries(
+  storeId:string,
+  options:{ limit?:number; since?:string } = {},
+):Promise<MigrationStoreDeliveriesResult> {
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) throw new Error('migration_api_not_configured')
+
+  const query = new URLSearchParams()
+  if (options.limit != null) query.set('limit', String(options.limit))
+  if (options.since) query.set('since', options.since)
+
+  const response = await fetch(
+    `${baseUrl}/v1/internal/stores/${encodeURIComponent(storeId)}/deliveries${query.size ? `?${query.toString()}` : ''}`,
+    {
+      cache:'no-store',
+      signal:AbortSignal.timeout(5000),
+      headers:{
+        Accept:'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+    },
+  )
+
+  const body = await response.json().catch(() => ({})) as {
+    storeId?:string
+    count?:number
+    deliveries?:MigrationDeliveryWire[]
+    error?:string
+  }
+
+  if (!response.ok) {
+    const error = new Error(String(body.error ?? 'migration_api_error'))
+    ;(error as Error & { status?:number }).status = response.status
+    throw error
+  }
+
+  const rows = Array.isArray(body.deliveries) ? body.deliveries : []
+  return {
+    storeId:body.storeId ?? storeId,
+    count:Number(body.count ?? rows.length),
+    deliveries:rows.map(migrationDeliveryToApp),
+  }
+}
+
+export async function migrationStoreDeliveriesWithFallback(
+  storeId:string,
+  supabaseLoader:() => Promise<Delivery[]>,
+  options:{ limit?:number; since?:string; label?:string } = {},
+):Promise<{ deliveries:Delivery[]; source:'mysql'|'supabase' }> {
+  if (!isMigrationReadEnabled()) {
+    return { deliveries:await supabaseLoader(), source:'supabase' }
+  }
+
+  try {
+    const mysql = await listMigrationStoreDeliveries(storeId, options)
+    return { deliveries:mysql.deliveries, source:'mysql' }
+  } catch (error) {
+    console.error('[mysql-read] falling back to Supabase', {
+      storeId,
+      label:options.label ?? null,
+      error:error instanceof Error ? error.message : 'unknown_mysql_read_error',
+    })
+    return { deliveries:await supabaseLoader(), source:'supabase' }
+  }
 }
