@@ -17,7 +17,7 @@ export async function POST() {
   }
 
   const { store, userId, role } = await requireStore()
-  const subjectRole = role === 'store_owner' ? 'store_owner' : 'store_member'
+  const subjectRole = role === 'admin' ? 'admin' : role === 'store_owner' ? 'store_owner' : 'store_member'
 
   try {
     const session = await createMigrationApiSession({
