@@ -542,3 +542,244 @@ export async function shadowDispatchRouteToMySql(
     return { attempted:true, ok:false, error:message }
   }
 }
+
+
+export type MigrationCourierActiveDelivery = {
+  id:string
+  status:string
+  customerName:string | null
+  deliveryAddress:string
+  deliveryFee:number
+  estimatedMinutes:number | null
+  updatedAt:string
+}
+
+export type MigrationStoreCourier = {
+  id:string
+  fullName:string
+  phone:string | null
+  avatarUrl:string | null
+  vehicleType:string | null
+  isOnline:boolean
+  isAvailable:boolean
+  rating:number
+  totalDeliveries:number
+  currentLatitude:number | null
+  currentLongitude:number | null
+  lastLocationAt:string | null
+  connectedAt:string | null
+  activeDelivery:MigrationCourierActiveDelivery | null
+}
+
+export type MigrationStoreCourierRequest = {
+  courierId:string
+  fullName:string
+  phone:string | null
+  avatarUrl:string | null
+  vehicleType:string | null
+  rating:number
+  totalDeliveries:number
+  isOnline:boolean
+  requestedAt:string
+}
+
+type MigrationCourierWire = {
+  courierId:string
+  fullName:string
+  phone:string | null
+  avatarUrl:string | null
+  vehicleType:string | null
+  isOnline:boolean
+  isAvailable:boolean
+  rating:number
+  totalDeliveries:number
+  currentLatitude:number | null
+  currentLongitude:number | null
+  lastLocationAt:string | null
+  connectedAt?:string | null
+  requestedAt?:string
+  activeDelivery?:MigrationCourierActiveDelivery | null
+}
+
+export async function listMigrationStoreCouriers(storeId:string):Promise<{
+  storeId:string
+  connected:MigrationStoreCourier[]
+  pending:MigrationStoreCourierRequest[]
+}> {
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) throw new Error('migration_api_not_configured')
+
+  const response = await fetch(
+    `${baseUrl}/v1/internal/stores/${encodeURIComponent(storeId)}/couriers`,
+    {
+      cache:'no-store',
+      signal:AbortSignal.timeout(5000),
+      headers:{
+        Accept:'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+    },
+  )
+
+  const body = await response.json().catch(() => ({})) as {
+    storeId?:string
+    connected?:MigrationCourierWire[]
+    pending?:MigrationCourierWire[]
+    error?:string
+  }
+
+  if (!response.ok) {
+    const error = new Error(String(body.error ?? 'migration_api_error'))
+    ;(error as Error & { status?:number }).status = response.status
+    throw error
+  }
+
+  const connected = (Array.isArray(body.connected) ? body.connected : []).map(item => ({
+    id:item.courierId,
+    fullName:item.fullName,
+    phone:item.phone ?? null,
+    avatarUrl:item.avatarUrl ?? null,
+    vehicleType:item.vehicleType ?? null,
+    isOnline:Boolean(item.isOnline),
+    isAvailable:Boolean(item.isAvailable),
+    rating:Number(item.rating ?? 0),
+    totalDeliveries:Number(item.totalDeliveries ?? 0),
+    currentLatitude:item.currentLatitude == null ? null : Number(item.currentLatitude),
+    currentLongitude:item.currentLongitude == null ? null : Number(item.currentLongitude),
+    lastLocationAt:item.lastLocationAt ?? null,
+    connectedAt:item.connectedAt ?? null,
+    activeDelivery:item.activeDelivery ?? null,
+  }))
+
+  const pending = (Array.isArray(body.pending) ? body.pending : []).map(item => ({
+    courierId:item.courierId,
+    fullName:item.fullName,
+    phone:item.phone ?? null,
+    avatarUrl:item.avatarUrl ?? null,
+    vehicleType:item.vehicleType ?? null,
+    rating:Number(item.rating ?? 0),
+    totalDeliveries:Number(item.totalDeliveries ?? 0),
+    isOnline:Boolean(item.isOnline),
+    requestedAt:item.requestedAt ?? new Date().toISOString(),
+  }))
+
+  return {
+    storeId:body.storeId ?? storeId,
+    connected,
+    pending,
+  }
+}
+
+function courierParityDigest(rows:MigrationStoreCourier[]) {
+  return rows
+    .map(item => ({
+      id:item.id,
+      online:item.isOnline,
+      available:item.isAvailable,
+      rating:item.rating.toFixed(2),
+      total:item.totalDeliveries,
+      activeDelivery:item.activeDelivery?.id ?? null,
+    }))
+    .sort((a,b) => a.id.localeCompare(b.id))
+}
+
+function logCourierParity(
+  storeId:string,
+  label:string | null,
+  mysqlRows:MigrationStoreCourier[],
+  supabaseRows:MigrationStoreCourier[],
+) {
+  const mysql = courierParityDigest(mysqlRows)
+  const supabase = courierParityDigest(supabaseRows)
+  const source = new Map(supabase.map(item => [item.id,item]))
+  const target = new Map(mysql.map(item => [item.id,item]))
+  const onlyMysql = mysql.filter(item => !source.has(item.id)).map(item => item.id)
+  const onlySupabase = supabase.filter(item => !target.has(item.id)).map(item => item.id)
+  const mismatched = mysql.filter(item => {
+    const compare = source.get(item.id)
+    return compare && JSON.stringify(compare) !== JSON.stringify(item)
+  })
+
+  if (!onlyMysql.length && !onlySupabase.length && !mismatched.length) {
+    console.info('[mysql-parity] couriers match', { storeId, label, count:mysql.length })
+    return
+  }
+
+  console.warn('[mysql-parity] courier divergence', {
+    storeId,
+    label,
+    mysqlCount:mysql.length,
+    supabaseCount:supabase.length,
+    onlyMysql:onlyMysql.slice(0,20),
+    onlySupabase:onlySupabase.slice(0,20),
+    mismatched:mismatched.slice(0,20),
+  })
+}
+
+export async function migrationStoreCouriersWithFallback(
+  storeId:string,
+  supabaseLoader:() => Promise<{
+    connected:MigrationStoreCourier[]
+    pending:MigrationStoreCourierRequest[]
+  }>,
+  options:{ label?:string } = {},
+):Promise<{
+  connected:MigrationStoreCourier[]
+  pending:MigrationStoreCourierRequest[]
+  source:'mysql'|'supabase'
+}> {
+  const readEnabled = isMigrationReadEnabled()
+  const compareEnabled = isMigrationReadCompareEnabled()
+  const label = options.label ?? null
+
+  if (!readEnabled && !compareEnabled) {
+    const supabase = await supabaseLoader()
+    return { ...supabase, source:'supabase' }
+  }
+
+  if (!readEnabled && compareEnabled) {
+    const supabase = await supabaseLoader()
+    try {
+      const mysql = await listMigrationStoreCouriers(storeId)
+      logCourierParity(storeId, label, mysql.connected, supabase.connected)
+    } catch (error) {
+      console.error('[mysql-parity] courier comparison failed', {
+        storeId,
+        label,
+        error:error instanceof Error ? error.message : 'unknown_mysql_compare_error',
+      })
+    }
+    return { ...supabase, source:'supabase' }
+  }
+
+  try {
+    const mysql = await listMigrationStoreCouriers(storeId)
+
+    if (compareEnabled) {
+      try {
+        const supabase = await supabaseLoader()
+        logCourierParity(storeId, label, mysql.connected, supabase.connected)
+      } catch (error) {
+        console.error('[mysql-parity] Supabase courier comparison failed', {
+          storeId,
+          label,
+          error:error instanceof Error ? error.message : 'unknown_supabase_compare_error',
+        })
+      }
+    }
+
+    return {
+      connected:mysql.connected,
+      pending:mysql.pending,
+      source:'mysql',
+    }
+  } catch (error) {
+    console.error('[mysql-read] courier fallback to Supabase', {
+      storeId,
+      label,
+      error:error instanceof Error ? error.message : 'unknown_mysql_courier_read_error',
+    })
+    const supabase = await supabaseLoader()
+    return { ...supabase, source:'supabase' }
+  }
+}
