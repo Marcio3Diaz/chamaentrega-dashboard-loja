@@ -1,5 +1,6 @@
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 import { IntegratedOrdersBoard, type IntegratedOrder, type LinkedDelivery } from '@/components/integrated-orders-board'
 
 function statusFromDelivery(status:string):IntegratedOrder['status'] {
@@ -20,24 +21,15 @@ export default async function OrdersPage({
   const initialMessage = typeof params.message === 'string' ? params.message : ''
   const { store } = await requireStore()
   const supabase = await createClient()
+  const repository = getOperationalRepository()
 
-  const [{ data: orderRows }, { data: deliveryRows }] = await Promise.all([
-    supabase
-      .from('store_orders')
-      .select('id,store_id,source,external_order_id,status,fulfillment_type,customer_name,customer_phone,delivery_address,delivery_latitude,delivery_longitude,items,order_total,payment_method,payment_status,customer_note,delivery_id,source_metadata,received_at,created_at,updated_at')
-      .eq('store_id', store.id)
-      .order('received_at', { ascending:false })
-      .limit(250),
-    supabase
-      .from('deliveries')
-      .select('id,store_id,status,assigned_courier_id,delivery_fee,estimated_minutes,updated_at,external_order_id,customer_name,customer_phone,delivery_address,delivery_latitude,delivery_longitude,order_total,payment_method,customer_note,created_at,item_count')
-      .eq('store_id', store.id)
-      .neq('status','draft')
-      .order('created_at', { ascending:false })
-      .limit(250),
+  const [orderRows, allDeliveryRows] = await Promise.all([
+    repository.listStoreOrders(store.id, 250),
+    repository.listDeliveriesByStore(store.id, 250),
   ])
+  const deliveryRows = allDeliveryRows.filter(row => row.status !== 'draft')
 
-  const integratedOrders:IntegratedOrder[] = (orderRows ?? []).map((row:any) => ({
+  const integratedOrders:IntegratedOrder[] = orderRows.map((row:any) => ({
     id: row.id,
     storeId: row.store_id,
     source: row.source,
@@ -65,7 +57,7 @@ export default async function OrdersPage({
     integratedOrders.map(order => order.deliveryId).filter(Boolean) as string[],
   )
 
-  const standaloneDeliveryOrders:IntegratedOrder[] = (deliveryRows ?? [])
+  const standaloneDeliveryOrders:IntegratedOrder[] = deliveryRows
     .filter((row:any) => !linkedDeliveryIds.has(row.id))
     .map((row:any) => ({
       id: `delivery:${row.id}`,
@@ -99,7 +91,7 @@ export default async function OrdersPage({
 
   const courierIds = Array.from(
     new Set(
-      (deliveryRows ?? [])
+      deliveryRows
         .map((row:any) => row.assigned_courier_id)
         .filter(Boolean) as string[],
     ),
@@ -121,7 +113,7 @@ export default async function OrdersPage({
   const courierMap = new Map((courierRows ?? []).map((row:any) => [row.id,row]))
   const profileMap = new Map((profileRows ?? []).map((row:any) => [row.id,row]))
 
-  const linkedDeliveries: LinkedDelivery[] = (deliveryRows ?? []).map((row:any) => {
+  const linkedDeliveries: LinkedDelivery[] = deliveryRows.map((row:any) => {
     const courier = row.assigned_courier_id ? courierMap.get(row.assigned_courier_id) : null
     const profile = row.assigned_courier_id ? profileMap.get(row.assigned_courier_id) : null
 
