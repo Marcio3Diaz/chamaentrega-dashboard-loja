@@ -13,6 +13,7 @@ import {
   advanceDeliveryStatus,
   cancelDelivery,
   recordDeliveryLocation,
+  dispatchRouteToCourier,
 } from './delivery-command-service.mjs'
 
 function json(res, status, body, headers = {}) {
@@ -119,6 +120,18 @@ export function createRequestHandler({ config, pool }) {
             payload.accuracyMeters,
           ))
         }
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/internal/dispatch-route') {
+        requireInternalKey(req, config)
+        const payload = await readJson(req, config.requestBodyLimitBytes)
+        const result = await dispatchRouteToCourier(
+          pool,
+          payload.storeId,
+          payload.courierId,
+          payload.deliveryIds,
+        )
+        return json(res, 200, result)
       }
 
       return json(res, 404, { error: 'not_found' })
