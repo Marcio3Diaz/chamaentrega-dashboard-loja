@@ -783,3 +783,139 @@ export async function migrationStoreCouriersWithFallback(
     return { ...supabase, source:'supabase' }
   }
 }
+
+
+export type MigrationStoreWalletSnapshot = {
+  storeId:string
+  walletId:string | null
+  balance:number
+  reservedBalance:number
+  availableBalance:number
+  updatedAt:string | null
+}
+
+export async function getMigrationStoreWallet(storeId:string):Promise<MigrationStoreWalletSnapshot> {
+  const { baseUrl, key } = apiConfig()
+  if (!baseUrl || !key) throw new Error('migration_api_not_configured')
+
+  const response = await fetch(
+    `${baseUrl}/v1/internal/stores/${encodeURIComponent(storeId)}/wallet`,
+    {
+      cache:'no-store',
+      signal:AbortSignal.timeout(5000),
+      headers:{
+        Accept:'application/json',
+        'X-Chama-Internal-Key':key,
+      },
+    },
+  )
+
+  const body = await response.json().catch(() => ({})) as {
+    storeId?:string
+    walletId?:string | null
+    balance?:number
+    reservedBalance?:number
+    availableBalance?:number
+    updatedAt?:string | null
+    error?:string
+  }
+
+  if (!response.ok) {
+    const error = new Error(String(body.error ?? 'migration_api_error'))
+    ;(error as Error & { status?:number }).status = response.status
+    throw error
+  }
+
+  const balance = Number(body.balance ?? 0)
+  const reservedBalance = Number(body.reservedBalance ?? 0)
+  const availableBalance = Number(body.availableBalance ?? Math.max(balance - reservedBalance, 0))
+
+  return {
+    storeId:body.storeId ?? storeId,
+    walletId:body.walletId ?? null,
+    balance,
+    reservedBalance,
+    availableBalance,
+    updatedAt:body.updatedAt ?? null,
+  }
+}
+
+export async function migrationStoreWalletWithFallback(
+  storeId:string,
+  supabaseLoader:() => Promise<MigrationStoreWalletSnapshot>,
+  options:{ label?:string } = {},
+):Promise<{ wallet:MigrationStoreWalletSnapshot; source:'mysql'|'supabase' }> {
+  const readEnabled = isMigrationReadEnabled()
+  const compareEnabled = isMigrationReadCompareEnabled()
+  const label = options.label ?? null
+
+  if (!readEnabled && !compareEnabled) {
+    return { wallet:await supabaseLoader(), source:'supabase' }
+  }
+
+  if (!readEnabled && compareEnabled) {
+    const supabase = await supabaseLoader()
+    try {
+      const mysql = await getMigrationStoreWallet(storeId)
+      if (
+        mysql.balance !== supabase.balance
+        || mysql.reservedBalance !== supabase.reservedBalance
+        || mysql.availableBalance !== supabase.availableBalance
+      ) {
+        console.warn('[mysql-parity] wallet divergence', {
+          storeId,
+          label,
+          mysql,
+          supabase,
+        })
+      } else {
+        console.info('[mysql-parity] wallet match', {
+          storeId,
+          label,
+          balance:mysql.balance,
+          reservedBalance:mysql.reservedBalance,
+        })
+      }
+    } catch (error) {
+      console.error('[mysql-parity] wallet comparison failed', {
+        storeId,
+        label,
+        error:error instanceof Error ? error.message : 'unknown_wallet_compare_error',
+      })
+    }
+
+    return { wallet:supabase, source:'supabase' }
+  }
+
+  try {
+    const mysql = await getMigrationStoreWallet(storeId)
+
+    if (compareEnabled) {
+      try {
+        const supabase = await supabaseLoader()
+        if (
+          mysql.balance !== supabase.balance
+          || mysql.reservedBalance !== supabase.reservedBalance
+          || mysql.availableBalance !== supabase.availableBalance
+        ) {
+          console.warn('[mysql-parity] wallet divergence', { storeId, label, mysql, supabase })
+        }
+      } catch (error) {
+        console.error('[mysql-parity] Supabase wallet comparison failed', {
+          storeId,
+          label,
+          error:error instanceof Error ? error.message : 'unknown_supabase_wallet_compare_error',
+        })
+      }
+    }
+
+    return { wallet:mysql, source:'mysql' }
+  } catch (error) {
+    console.error('[mysql-read] wallet fallback to Supabase', {
+      storeId,
+      label,
+      error:error instanceof Error ? error.message : 'unknown_mysql_wallet_read_error',
+    })
+    return { wallet:await supabaseLoader(), source:'supabase' }
+  }
+}
