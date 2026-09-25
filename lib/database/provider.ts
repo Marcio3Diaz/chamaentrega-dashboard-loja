@@ -8,7 +8,7 @@ export function getDatabaseProvider(): DatabaseProvider {
 
 export function mysqlRuntimeInfo() {
   const provider = getDatabaseProvider()
-  const configuredUrl = process.env.MYSQL_DATABASE_URL?.trim()
+  const configuredUrl = process.env.MYSQL_DATABASE_URL?.trim() || process.env.MYSQL_URL?.trim()
 
   if (provider !== 'mysql') {
     return {
