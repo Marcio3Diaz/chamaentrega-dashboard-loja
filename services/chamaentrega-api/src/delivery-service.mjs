@@ -23,7 +23,7 @@ function requestHash(input) {
 export async function createAvailableDelivery(pool, input, idempotencyKey) {
   const connection = await pool.getConnection()
   const now = new Date()
-  const deliveryId = randomUUID()
+  const deliveryId = input.deliveryId || randomUUID()
   const reservationId = randomUUID()
   const eventId = randomUUID()
   const idempotencyId = randomUUID()
