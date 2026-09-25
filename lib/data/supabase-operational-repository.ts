@@ -4,6 +4,7 @@ import type {
   OperationalRepository,
   StoreOrderRecord,
   CourierOperationalRecord,
+  CourierProfileRecord,
 } from '@/lib/data/operational-repository'
 
 export class SupabaseOperationalRepository implements OperationalRepository {
@@ -99,5 +100,18 @@ export class SupabaseOperationalRepository implements OperationalRepository {
 
     if (error) throw error
     return (data ?? []) as CourierOperationalRecord[]
+  }
+
+  async listCourierProfilesByIds(ids: string[]): Promise<CourierProfileRecord[]> {
+    if (!ids.length) return []
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id,full_name,avatar_url')
+      .in('id', ids)
+
+    if (error) throw error
+    return (data ?? []) as CourierProfileRecord[]
   }
 }
