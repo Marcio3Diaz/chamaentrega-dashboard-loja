@@ -629,17 +629,25 @@ export function LiveCourierMap({
             Number.isFinite(latitude) &&
             Number.isFinite(longitude)
           ) {
-            setRoutePoints(current => [
-              ...current,
-              {
-                id:`mysql-${event.id}`,
-                deliveryId,
-                courierId,
-                latitude,
-                longitude,
-                recordedAt,
-              },
-            ])
+            setRoutePoints(current => {
+              if (current.some(point =>
+                point.deliveryId === deliveryId &&
+                point.courierId === courierId &&
+                point.recordedAt === recordedAt
+              )) return current
+
+              return [
+                ...current,
+                {
+                  id:`mysql-${event.id}`,
+                  deliveryId,
+                  courierId,
+                  latitude,
+                  longitude,
+                  recordedAt,
+                },
+              ]
+            })
           }
           return
         }
