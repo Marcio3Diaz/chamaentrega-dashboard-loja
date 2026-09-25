@@ -3,6 +3,7 @@ import type { Delivery, Store } from '@/lib/types'
 import type {
   OperationalRepository,
   StoreOrderRecord,
+  CourierOperationalRecord,
 } from '@/lib/data/operational-repository'
 
 export class SupabaseOperationalRepository implements OperationalRepository {
@@ -55,6 +56,20 @@ export class SupabaseOperationalRepository implements OperationalRepository {
     return (data ?? []) as Delivery[]
   }
 
+  async listDeliveriesSince(storeId: string, sinceIso: string, limit = 500): Promise<Delivery[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('deliveries')
+      .select('*')
+      .eq('store_id', storeId)
+      .gte('created_at', sinceIso)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return (data ?? []) as Delivery[]
+  }
+
   async listStoreOrders(storeId: string, limit = 250): Promise<StoreOrderRecord[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -74,5 +89,15 @@ export class SupabaseOperationalRepository implements OperationalRepository {
       order_total: Number(row.order_total ?? 0),
       source_metadata: row.source_metadata ?? {},
     })) as StoreOrderRecord[]
+  }
+
+  async listCouriers(): Promise<CourierOperationalRecord[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('couriers')
+      .select('id,vehicle_type,is_online,is_available')
+
+    if (error) throw error
+    return (data ?? []) as CourierOperationalRecord[]
   }
 }
