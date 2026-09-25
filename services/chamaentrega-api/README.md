@@ -127,3 +127,82 @@ GET  /v1/internal/stores/:id/live-deliveries
 ```
 
 All endpoints remain migration-only and require the internal API key. Production apps are not switched to these routes yet.
+
+
+## Migration-native auth and realtime
+
+The migration API now has an authentication/realtime layer that can eventually replace Supabase Auth + Realtime without changing production yet.
+
+### Session bridge
+
+The dashboard still authenticates with Supabase during migration. A verified dashboard session can call:
+
+```text
+POST /api/migration/session
+```
+
+That server-side bridge asks the migration API to mint a short-lived bearer session. Only the SHA-256 token hash is stored in MySQL.
+
+Migration API endpoints:
+
+```text
+POST /v1/internal/auth/sessions
+POST /v1/internal/auth/sessions/revoke
+GET  /v1/session
+```
+
+### Bearer-authorized API
+
+Prepared for future direct use by dashboard/courier clients:
+
+```text
+GET  /v1/deliveries/:id
+GET  /v1/couriers/me/offers
+GET  /v1/couriers/me/active-deliveries
+GET  /v1/stores/:storeId/live-deliveries
+
+POST /v1/stores/:storeId/deliveries
+POST /v1/deliveries/:id/accept
+POST /v1/deliveries/:id/reject
+POST /v1/deliveries/:id/status
+POST /v1/deliveries/:id/location
+POST /v1/stores/:storeId/deliveries/:id/cancel
+POST /v1/stores/:storeId/dispatch-route
+POST /v1/stores/:storeId/courier-network/review
+```
+
+Courier offer reads redact customer phone and notes until that courier owns the delivery.
+
+### WebSocket protocol
+
+Endpoint:
+
+```text
+ws(s)://<api-host>/realtime
+```
+
+Browser origins must be explicitly configured with `REALTIME_ALLOWED_ORIGINS`.
+
+After connect:
+
+```json
+{"type":"auth","token":"<short-lived bearer token>"}
+```
+
+Then subscribe:
+
+```json
+{"type":"subscribe","channel":"store:<store-uuid>"}
+{"type":"subscribe","channel":"courier:<courier-uuid>"}
+{"type":"subscribe","channel":"courier_pool"}
+```
+
+- store sessions may subscribe only to stores they own/belong to;
+- courier sessions may subscribe to their own courier channel and the open courier pool;
+- admin sessions may subscribe to admin/store/courier channels;
+- lifecycle events are inserted transactionally in `realtime_events`;
+- open non-targeted delivery offers are broadcast to `courier_pool`;
+- targeted offers are sent only to that courier channel;
+- the browser bridge remains disabled unless `NEXT_PUBLIC_CHAMA_MIGRATION_REALTIME=true`.
+
+Supabase remains the production identity/realtime provider until parity testing and cutover approval.
