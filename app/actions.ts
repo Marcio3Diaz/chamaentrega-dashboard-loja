@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ACTIVE_STORE_COOKIE } from '@/lib/auth'
+import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 
 export async function signOutAction() {
   const supabase = await createClient()
@@ -31,23 +32,19 @@ export async function setActiveStoreAction(storeId: string) {
     return { ok:false, message:'Sua sessão expirou.' }
   }
 
-  const [{ data: owned }, { data: membership }] = await Promise.all([
-    supabase
-      .from('stores')
-      .select('id')
-      .eq('id', normalizedStoreId)
-      .eq('owner_id', userId)
-      .maybeSingle(),
-    supabase
-      .from('store_members')
-      .select('store_id')
-      .eq('store_id', normalizedStoreId)
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .maybeSingle(),
-  ])
+  const repository = getOperationalRepository()
 
-  if (!owned && !membership) {
+  let stores
+  try {
+    stores = await repository.listStoresForUser(userId)
+  } catch {
+    return {
+      ok:false,
+      message:'Não foi possível validar o acesso operacional à loja.',
+    }
+  }
+
+  if (!stores.some(store => store.id === normalizedStoreId)) {
     return {
       ok:false,
       message:'Você não possui acesso operacional a essa loja.',
