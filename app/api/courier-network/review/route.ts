@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { shadowCourierNetworkReviewToMySql } from '@/lib/migration-api'
 
 function redirectBack(request: Request, params: Record<string,string>) {
   const url = new URL('/entregadores', request.url)
@@ -68,6 +69,23 @@ export async function POST(request: Request) {
       return redirectBack(request, {
         review: 'error',
         message: raw || 'Não foi possível analisar a solicitação agora.',
+      })
+    }
+
+    const shadow = await shadowCourierNetworkReviewToMySql(
+      storeId,
+      courierId,
+      access.userId,
+      decision as 'connected' | 'rejected',
+      null,
+    )
+
+    if (shadow.attempted && !shadow.ok) {
+      console.error('[mysql-shadow] courier network review diverged', {
+        storeId,
+        courierId,
+        decision,
+        error:shadow.error ?? 'unknown_shadow_error',
       })
     }
 
