@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "node --watch src/server.mjs",
     "start": "node src/server.mjs",
-    "check": "node --check src/server.mjs && node --check src/config.mjs && node --check src/db.mjs && node --check src/http.mjs && node --check src/delivery-service.mjs && node --check src/validate-delivery.mjs && node --check src/fcm.mjs && node --check src/outbox-worker.mjs",
+    "check": "node --check src/server.mjs && node --check src/config.mjs && node --check src/db.mjs && node --check src/http.mjs && node --check src/delivery-service.mjs && node --check src/validate-delivery.mjs && node --check src/fcm.mjs && node --check src/outbox-worker.mjs && node --check scripts/bootstrap-shadow-data.mjs",
     "test": "node --test",
     "bootstrap:shadow": "node scripts/bootstrap-shadow-data.mjs"
   },
