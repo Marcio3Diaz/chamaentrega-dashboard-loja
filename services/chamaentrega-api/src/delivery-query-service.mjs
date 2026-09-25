@@ -119,3 +119,42 @@ export async function listStoreLiveDeliveries(pool, rawStoreId, limitRaw = 100) 
     deliveries: (Array.isArray(rows) ? rows : []).map(normalizeDelivery),
   }
 }
+
+
+export async function listCourierAvailableOffers(pool, rawCourierId, limitRaw = 50) {
+  const courierId = uuid(rawCourierId, 'invalid_courier_id')
+  const limit = Math.max(1, Math.min(100, Number(limitRaw) || 50))
+
+  const [rows] = await pool.query(
+    `SELECT d.*
+       FROM deliveries d
+      WHERE d.assigned_courier_id IS NULL
+        AND d.status IN ('available','negotiating')
+        AND (d.expires_at IS NULL OR d.expires_at > UTC_TIMESTAMP(6))
+        AND (d.target_courier_id IS NULL OR d.target_courier_id = ?)
+        AND NOT EXISTS (
+          SELECT 1
+            FROM delivery_offer_responses r
+           WHERE r.delivery_id = d.id
+             AND r.courier_id = ?
+             AND r.response = 'rejected'
+        )
+      ORDER BY
+        CASE WHEN d.target_courier_id = ? THEN 0 ELSE 1 END,
+        d.published_at DESC,
+        d.created_at DESC
+      LIMIT ${limit}`,
+    [courierId, courierId, courierId],
+  )
+
+  return {
+    courierId,
+    count:Array.isArray(rows) ? rows.length : 0,
+    offers:(Array.isArray(rows) ? rows : []).map(row => {
+      const delivery = normalizeDelivery(row)
+      delivery.customerPhone = null
+      delivery.customerNote = null
+      return delivery
+    }),
+  }
+}
