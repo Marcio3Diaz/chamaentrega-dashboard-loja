@@ -17,7 +17,7 @@ import {
   requireSessionScope,
   requireStoreSessionAccess,
 } from './auth-service.mjs'
-import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listStoreLiveDeliveries } from './delivery-query-service.mjs'
+import { DeliveryQueryError, getDelivery, listCourierActiveDeliveries, listCourierAvailableOffers, listStoreLiveDeliveries } from './delivery-query-service.mjs'
 import {
   DeliveryCommandError,
   acceptDelivery,
@@ -121,6 +121,14 @@ export function createRequestHandler({ config, pool }) {
         }
 
         return json(res, 200, result)
+      }
+
+      const publicCourierOffersMatch = url.pathname.match(/^\/v1\/couriers\/me\/offers$/i)
+      if (req.method === 'GET' && publicCourierOffersMatch) {
+        const session = await requireBearerSession(req, pool)
+        requireSessionScope(session, 'delivery:read')
+        const courierId = requireCourierSession(session)
+        return json(res, 200, await listCourierAvailableOffers(pool, courierId, url.searchParams.get('limit')))
       }
 
       const publicCourierActiveMatch = url.pathname.match(/^\/v1\/couriers\/me\/active-deliveries$/i)
