@@ -39,7 +39,15 @@ export async function requireStore(): Promise<{
   let stores: Store[]
   try {
     stores = await repository.listStoresForUser(userId)
-  } catch {
+  } catch (error) {
+    console.error('[requireStore] operational store lookup failed', {
+      provider: process.env.DATABASE_PROVIDER ?? 'supabase',
+      mysqlSyncFromSupabase: process.env.MYSQL_SYNC_FROM_SUPABASE ?? 'false',
+      userId,
+      error: error instanceof Error
+        ? { name:error.name, message:error.message, stack:error.stack }
+        : error,
+    })
     redirect('/login?error=loja')
   }
 
