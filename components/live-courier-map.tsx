@@ -72,41 +72,49 @@ const statusLabels: Record<string,string> = {
   at_dropoff: 'No cliente',
 }
 
-let leafletPromise: Promise<any> | null = null
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+const MAPLIBRE_VERSION = '6.11.2'
 
-function loadLeaflet() {
+let mapLibrePromise: Promise<any> | null = null
+
+function loadMapLibre() {
   if (typeof window === 'undefined') return Promise.reject(new Error('Mapa indisponível.'))
   const w = window as any
-  if (w.L) return Promise.resolve(w.L)
-  if (leafletPromise) return leafletPromise
+  if (w.__ceMapLibre) return Promise.resolve(w.__ceMapLibre)
+  if (mapLibrePromise) return mapLibrePromise
 
-  leafletPromise = new Promise((resolve, reject) => {
-    if (!document.querySelector('link[data-ce-leaflet]')) {
+  mapLibrePromise = new Promise((resolve,reject) => {
+    if (!document.querySelector('link[data-ce-maplibre]')) {
       const link = document.createElement('link')
       link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      link.setAttribute('data-ce-leaflet', 'true')
+      link.href = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`
+      link.setAttribute('data-ce-maplibre','true')
       document.head.appendChild(link)
     }
 
-    const existing = document.querySelector('script[data-ce-leaflet]') as HTMLScriptElement | null
-    if (existing) {
-      existing.addEventListener('load', () => resolve((window as any).L), { once: true })
-      existing.addEventListener('error', () => reject(new Error('Não foi possível carregar o mapa.')), { once: true })
-      return
+    const onReady = () => {
+      const library = (window as any).__ceMapLibre
+      if (library) resolve(library)
+      else reject(new Error('Não foi possível carregar o mapa.'))
     }
 
+    window.addEventListener('ce-maplibre-ready',onReady,{ once:true })
+
+    if (document.querySelector('script[data-ce-maplibre]')) return
+
     const script = document.createElement('script')
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-    script.async = true
-    script.defer = true
-    script.setAttribute('data-ce-leaflet', 'true')
-    script.onload = () => resolve((window as any).L)
+    script.type = 'module'
+    script.setAttribute('data-ce-maplibre','true')
+    script.textContent = `
+      import * as maplibregl from 'https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.mjs';
+      window.__ceMapLibre = maplibregl;
+      window.dispatchEvent(new Event('ce-maplibre-ready'));
+    `
     script.onerror = () => reject(new Error('Não foi possível carregar o mapa.'))
     document.head.appendChild(script)
   })
 
-  return leafletPromise
+  return mapLibrePromise
 }
 
 function gpsAge(value: string | null, now: number) {
@@ -166,6 +174,21 @@ function avatarMarkerHtml(courier: LiveCourier, selected: boolean, inRoute: bool
   return `<div class="${classes}"><span class="ce-fallback-avatar-ring">${avatar}<i></i></span></div>`
 }
 
+function htmlMarkerElement(className:string,html:string) {
+  const element = document.createElement('div')
+  element.className = className
+  element.innerHTML = html
+  return element
+}
+
+function destinationMarkerElement() {
+  const element = document.createElement('div')
+  element.className = 'ce-live-destination-marker'
+  element.innerHTML = '<span><i></i></span>'
+  return element
+}
+
+
 export function LiveCourierMap({
   storeId,
   storeName,
@@ -182,7 +205,7 @@ export function LiveCourierMap({
   const mapCardRef = useRef<HTMLDivElement | null>(null)
   const mapElementRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
-  const leafletRef = useRef<any>(null)
+  const mapLibreRef = useRef<any>(null)
   const courierMarkersRef = useRef<Map<string,any>>(new Map())
   const storeMarkerRef = useRef<any>(null)
   const routeLineRef = useRef<any>(null)
@@ -326,14 +349,16 @@ export function LiveCourierMap({
   }, [selectedDelivery?.id, supabase])
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !leafletRef.current) return
+    if (!mapReady || !mapRef.current || !mapLibreRef.current) return
 
-    const L = leafletRef.current
+    const map = mapRef.current
+    const maplibregl = mapLibreRef.current
 
-    routeLineRef.current?.remove()
     destinationMarkerRef.current?.remove()
-    routeLineRef.current = null
     destinationMarkerRef.current = null
+
+    if (map.getLayer('ce-live-route-line')) map.removeLayer('ce-live-route-line')
+    if (map.getSource('ce-live-route')) map.removeSource('ce-live-route')
 
     if (!selectedDelivery) return
 
@@ -341,39 +366,54 @@ export function LiveCourierMap({
       selectedDelivery.deliveryLatitude != null &&
       selectedDelivery.deliveryLongitude != null
     ) {
-      destinationMarkerRef.current = L.circleMarker(
-        [selectedDelivery.deliveryLatitude, selectedDelivery.deliveryLongitude],
-        {
-          radius: 7,
-          color: '#4eb7ff',
-          weight: 3,
-          fillColor: '#10151a',
-          fillOpacity: 1,
-        },
-      )
-        .bindTooltip('Destino', { direction: 'top' })
-        .addTo(mapRef.current)
+      destinationMarkerRef.current = new maplibregl.Marker({
+        element:destinationMarkerElement(),
+        anchor:'bottom',
+      })
+        .setLngLat([
+          selectedDelivery.deliveryLongitude,
+          selectedDelivery.deliveryLatitude,
+        ])
+        .setPopup(new maplibregl.Popup({ offset:24 }).setText('Destino'))
+        .addTo(map)
     }
 
     if (routePoints.length >= 2) {
-      routeLineRef.current = L.polyline(
-        routePoints.map(point => [point.latitude, point.longitude]),
-        {
-          color: '#ffb800',
-          weight: 5,
-          opacity: .92,
-          lineCap: 'round',
-          lineJoin: 'round',
-          className: 'ce-live-route-line',
+      const data = {
+        type:'Feature',
+        properties:{},
+        geometry:{
+          type:'LineString',
+          coordinates:routePoints.map(point => [point.longitude,point.latitude]),
         },
-      ).addTo(mapRef.current)
+      }
+
+      map.addSource('ce-live-route',{
+        type:'geojson',
+        data,
+      })
+
+      map.addLayer({
+        id:'ce-live-route-line',
+        type:'line',
+        source:'ce-live-route',
+        paint:{
+          'line-color':'#ffb800',
+          'line-width':5,
+          'line-opacity':.92,
+        },
+        layout:{
+          'line-cap':'round',
+          'line-join':'round',
+        },
+      })
     }
 
     return () => {
-      routeLineRef.current?.remove()
-        destinationMarkerRef.current?.remove()
-      routeLineRef.current = null
-        destinationMarkerRef.current = null
+      destinationMarkerRef.current?.remove()
+      destinationMarkerRef.current = null
+      if (map.getLayer('ce-live-route-line')) map.removeLayer('ce-live-route-line')
+      if (map.getSource('ce-live-route')) map.removeSource('ce-live-route')
     }
   }, [
     mapReady,
@@ -445,23 +485,25 @@ export function LiveCourierMap({
   }, [storeId, supabase])
 
   const fitVisible = useCallback(() => {
-    if (!mapRef.current || !leafletRef.current) return
+    if (!mapRef.current || !mapLibreRef.current) return
 
-    const L = leafletRef.current
+    const maplibregl = mapLibreRef.current
     const points = couriers
       .filter(item => item.currentLatitude != null && item.currentLongitude != null)
-      .map(item => [item.currentLatitude!, item.currentLongitude!] as [number,number])
+      .map(item => [item.currentLongitude!,item.currentLatitude!] as [number,number])
 
     if (storeLatitude != null && storeLongitude != null) {
-      points.push([storeLatitude,storeLongitude])
+      points.push([storeLongitude,storeLatitude])
     }
 
     if (!points.length) {
-      mapRef.current.setView([-22.9068,-43.1729],11)
+      mapRef.current.easeTo({ center:[-43.1729,-22.9068],zoom:11,duration:500 })
     } else if (points.length === 1) {
-      mapRef.current.setView(points[0],15)
+      mapRef.current.easeTo({ center:points[0],zoom:15,duration:500 })
     } else {
-      mapRef.current.fitBounds(L.latLngBounds(points), { padding:[50,50], maxZoom:15 })
+      const bounds = new maplibregl.LngLatBounds()
+      points.forEach(point => bounds.extend(point))
+      mapRef.current.fitBounds(bounds,{ padding:50,maxZoom:15,duration:650 })
     }
   }, [couriers, storeLatitude, storeLongitude])
 
@@ -487,11 +529,11 @@ export function LiveCourierMap({
       courier.currentLongitude != null &&
       mapRef.current
     ) {
-      mapRef.current.flyTo(
-        [courier.currentLatitude,courier.currentLongitude],
-        16,
-        { duration:.7 },
-      )
+      mapRef.current.flyTo({
+        center:[courier.currentLongitude,courier.currentLatitude],
+        zoom:16,
+        duration:700,
+      })
     }
   }, [])
 
@@ -503,49 +545,58 @@ export function LiveCourierMap({
   useEffect(() => {
     let cancelled = false
 
-    loadLeaflet()
-      .then(L => {
+    void loadMapLibre()
+      .then(maplibregl => {
         if (cancelled || !mapElementRef.current || mapRef.current) return
 
-        leafletRef.current = L
+        mapLibreRef.current = maplibregl
 
-        const center: [number,number] =
+        const center:[number,number] =
           storeLatitude != null && storeLongitude != null
-            ? [storeLatitude, storeLongitude]
-            : [-22.9068, -43.1729]
+            ? [storeLongitude,storeLatitude]
+            : [-43.1729,-22.9068]
 
-        const map = L.map(mapElementRef.current, {
-          zoomControl: false,
-          attributionControl: true,
-          scrollWheelZoom: true,
-        }).setView(center, 12)
+        const map = new maplibregl.Map({
+          container:mapElementRef.current,
+          style:MAP_STYLE,
+          center,
+          zoom:12,
+          attributionControl:true,
+        })
 
-        L.control.zoom({ position: 'bottomright' }).addTo(map)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors',
-        }).addTo(map)
+        map.addControl(new maplibregl.NavigationControl({
+          showCompass:true,
+          showZoom:true,
+        }),'bottom-right')
 
-        if (storeLatitude != null && storeLongitude != null) {
-          const storeIcon = L.divIcon({
-            className: 'ce-store-marker-wrap',
-            html: storeMarkerHtml(storeName,storeLogoUrl),
-            iconSize: [58,58],
-            iconAnchor: [29,29],
-          })
+        map.on('load',() => {
+          if (storeLatitude != null && storeLongitude != null) {
+            const storeElement = htmlMarkerElement(
+              'ce-maplibre-store-marker',
+              storeMarkerHtml(storeName,storeLogoUrl),
+            )
 
-          storeMarkerRef.current = L.marker(
-            [storeLatitude,storeLongitude],
-            { icon: storeIcon, zIndexOffset: 850 },
-          )
-            .bindTooltip(storeName, { direction: 'top', offset: [0,-24] })
-            .addTo(map)
-        }
+            storeMarkerRef.current = new maplibregl.Marker({
+              element:storeElement,
+              anchor:'center',
+            })
+              .setLngLat([storeLongitude,storeLatitude])
+              .setPopup(new maplibregl.Popup({ offset:28 }).setText(storeName))
+              .addTo(map)
+          }
+
+          setMapReady(true)
+          setMapError('')
+          window.setTimeout(() => map.resize(),80)
+        })
+
+        map.on('error',(event:any) => {
+          if (!map.loaded() && event?.error) {
+            setMapError('Não foi possível carregar o mapa agora.')
+          }
+        })
 
         mapRef.current = map
-        setMapReady(true)
-        setMapError('')
-        window.setTimeout(() => map.invalidateSize(),80)
       })
       .catch(() => {
         if (!cancelled) setMapError('Não foi possível carregar o mapa agora.')
@@ -557,9 +608,11 @@ export function LiveCourierMap({
       courierMarkersRef.current.clear()
       storeMarkerRef.current?.remove()
       storeMarkerRef.current = null
+      destinationMarkerRef.current?.remove()
+      destinationMarkerRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
-      leafletRef.current = null
+      mapLibreRef.current = null
     }
   }, [storeLatitude, storeLongitude, storeName, storeLogoUrl])
 
@@ -568,7 +621,7 @@ export function LiveCourierMap({
       setIsFullscreen(document.fullscreenElement === mapCardRef.current)
 
       window.setTimeout(() => {
-        mapRef.current?.invalidateSize()
+        mapRef.current?.resize()
       },120)
     }
 
@@ -618,9 +671,10 @@ export function LiveCourierMap({
   }, [refreshNetwork, storeId, supabase])
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !leafletRef.current) return
+    if (!mapReady || !mapRef.current || !mapLibreRef.current) return
 
-    const L = leafletRef.current
+    const map = mapRef.current
+    const maplibregl = mapLibreRef.current
     const activeIds = new Set<string>()
 
     couriers.forEach(courier => {
@@ -629,26 +683,23 @@ export function LiveCourierMap({
       activeIds.add(courier.id)
       const selected = courier.id === selectedCourierId
       const inRoute = deliveryByCourier.has(courier.id)
-
-      const icon = L.divIcon({
-        className:'ce-fallback-marker-wrap',
-        html:avatarMarkerHtml(courier,selected,inRoute),
-        iconSize:[58,58],
-        iconAnchor:[29,29],
-      })
-
+      const html = avatarMarkerHtml(courier,selected,inRoute)
       const existing = courierMarkersRef.current.get(courier.id)
 
       if (existing) {
-        existing.setLatLng([courier.currentLatitude,courier.currentLongitude])
-        existing.setIcon(icon)
+        existing.setLngLat([courier.currentLongitude,courier.currentLatitude])
+        existing.getElement().innerHTML = html
       } else {
-        const marker = L.marker(
-          [courier.currentLatitude,courier.currentLongitude],
-          { icon },
-        ).addTo(mapRef.current)
+        const element = htmlMarkerElement('ce-maplibre-courier-marker',html)
+        element.addEventListener('click',() => setSelectedCourierId(courier.id))
 
-        marker.on('click',() => setSelectedCourierId(courier.id))
+        const marker = new maplibregl.Marker({
+          element,
+          anchor:'center',
+        })
+          .setLngLat([courier.currentLongitude,courier.currentLatitude])
+          .addTo(map)
+
         courierMarkersRef.current.set(courier.id,marker)
       }
     })
@@ -692,7 +743,7 @@ export function LiveCourierMap({
           <div className="live-map-toolbar">
             <div>
               <strong>Mapa operacional</strong>
-              <span>Mapa ChamaEntrega · atualização automática</span>
+              <span>MapLibre · OpenFreeMap · atualização automática</span>
             </div>
             <div className="live-map-toolbar-actions">
               <button type="button" onClick={fitVisible}><Icon name="map" size={16}/> Enquadrar todos</button>
