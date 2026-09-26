@@ -147,7 +147,7 @@ function storeMarkerHtml(storeName: string, storeLogoUrl: string | null) {
     ? `<img src="${escapeHtml(storeLogoUrl)}" alt="" referrerpolicy="no-referrer"/>`
     : `<span class="ce-store-marker-fallback">${escapeHtml(storeName.slice(0,1).toUpperCase())}</span>`
 
-  return `<div class="ce-store-logo-marker"><span class="ce-store-logo-ring">${logo}</span></div>`
+  return `<div class="ce-store-logo-marker"><span class="reference-profile-logo ce-map-store-profile">${logo}</span></div>`
 }
 
 function avatarMarkerHtml(courier: LiveCourier, selected: boolean, inRoute: boolean) {
