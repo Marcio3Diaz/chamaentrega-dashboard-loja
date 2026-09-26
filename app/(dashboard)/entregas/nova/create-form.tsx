@@ -163,8 +163,45 @@ export function CreateDeliveryForm({
       setNeighborhood(payload.neighborhood || '')
       setCity(payload.city || '')
       setStateCode(payload.state || '')
-      setCepLatitude(payload.latitude ?? null)
-      setCepLongitude(payload.longitude ?? null)
+      let previewLatitude = payload.latitude ?? null
+      let previewLongitude = payload.longitude ?? null
+
+      try {
+        const previewResponse = await fetch('/api/geocode',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            address:[
+              payload.street,
+              payload.neighborhood,
+              payload.city,
+              payload.state,
+              formatCep(payload.cep || normalized),
+            ].filter(Boolean).join(', '),
+            street:payload.street || '',
+            neighborhood:payload.neighborhood || '',
+            city:payload.city || '',
+            state:payload.state || '',
+            cep:normalized,
+          }),
+        })
+
+        if (previewResponse.ok) {
+          const preview = await previewResponse.json() as {
+            latitude?:number
+            longitude?:number
+          }
+          if (preview.latitude != null && preview.longitude != null) {
+            previewLatitude = preview.latitude
+            previewLongitude = preview.longitude
+          }
+        }
+      } catch {
+        // Mantém as coordenadas do provedor de CEP como fallback visual.
+      }
+
+      setCepLatitude(previewLatitude)
+      setCepLongitude(previewLongitude)
       setLocationPrecision('')
       resetLocation()
       window.setTimeout(() => numberInputRef.current?.focus(),20)
@@ -485,6 +522,8 @@ export function CreateDeliveryForm({
           <DeliveryLocationPicker
             latitude={latitude ? Number(latitude) : null}
             longitude={longitude ? Number(longitude) : null}
+            previewLatitude={cepLatitude}
+            previewLongitude={cepLongitude}
             storeLatitude={storeLatitude}
             storeLongitude={storeLongitude}
             onSelect={applyManualLocation}
