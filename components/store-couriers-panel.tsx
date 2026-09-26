@@ -444,7 +444,9 @@ export function StoreCouriersPanel({
               return (
                 <article key={request.courierId} className="ce2-request">
                   <span className="ce2-avatar request">
-                    {request.avatarUrl ? <img src={request.avatarUrl} alt="" /> : request.fullName.slice(0,1).toUpperCase()}
+                    <span className="ce2-avatar-photo">
+                      {request.avatarUrl ? <img src={request.avatarUrl} alt="" /> : request.fullName.slice(0,1).toUpperCase()}
+                    </span>
                     <i className={request.isOnline ? 'online' : ''}/>
                   </span>
                   <div className="ce2-request-person">
@@ -514,7 +516,9 @@ export function StoreCouriersPanel({
                 <div className="ce2-courier-top">
                   <div className="ce2-person">
                     <span className="ce2-avatar">
-                      {courier.avatarUrl ? <img src={courier.avatarUrl} alt="" /> : courier.fullName.slice(0,1).toUpperCase()}
+                      <span className="ce2-avatar-photo">
+                        {courier.avatarUrl ? <img src={courier.avatarUrl} alt="" /> : courier.fullName.slice(0,1).toUpperCase()}
+                      </span>
                       <i className={courier.isOnline ? 'online' : ''}/>
                     </span>
                     <div>
