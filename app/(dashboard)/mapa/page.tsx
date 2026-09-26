@@ -82,6 +82,7 @@ export default async function LiveMapPage({
     <LiveCourierMap
       storeId={store.id}
       storeName={store.name}
+      storeLogoUrl={store.logo_url ?? null}
       storeLatitude={store.latitude == null ? null : Number(store.latitude)}
       storeLongitude={store.longitude == null ? null : Number(store.longitude)}
       initialCouriers={couriers}
