@@ -2,6 +2,17 @@ import { requireStore } from '@/lib/auth'
 import { getOperationalRepository } from '@/lib/data/get-operational-repository'
 import { IntegratedOrdersBoard, type IntegratedOrder, type LinkedDelivery } from '@/components/integrated-orders-board'
 
+const STORE_TIME_ZONE = 'America/Sao_Paulo'
+
+function dayKey(value:string | Date) {
+  return new Intl.DateTimeFormat('en-CA',{
+    timeZone:STORE_TIME_ZONE,
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+  }).format(typeof value === 'string' ? new Date(value) : value)
+}
+
 function statusFromDelivery(status:string):IntegratedOrder['status'] {
   if (status === 'completed') return 'completed'
   if (status === 'cancelled' || status === 'expired') return 'cancelled'
@@ -25,9 +36,15 @@ export default async function OrdersPage({
     repository.listStoreOrders(store.id, 250),
     repository.listDeliveriesByStore(store.id, 250),
   ])
-  const deliveryRows = allDeliveryRows.filter(row => row.status !== 'draft')
+  const todayKey = dayKey(new Date())
+  const deliveryRows = allDeliveryRows.filter(row =>
+    row.status !== 'draft' && dayKey(row.created_at) === todayKey
+  )
+  const todayOrderRows = orderRows.filter((row:any) =>
+    dayKey(row.received_at ?? row.created_at) === todayKey
+  )
 
-  const integratedOrders:IntegratedOrder[] = orderRows.map((row:any) => ({
+  const integratedOrders:IntegratedOrder[] = todayOrderRows.map((row:any) => ({
     id: row.id,
     storeId: row.store_id,
     source: row.source,
