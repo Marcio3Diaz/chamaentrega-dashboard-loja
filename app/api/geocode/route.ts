@@ -73,14 +73,56 @@ export async function POST(request: Request) {
       address,
       [street,number,neighborhood,city,state,cep ? `CEP ${cep}` : '', 'Brasil'].filter(Boolean).join(', '),
       [street,number,city,state,cep ? `CEP ${cep}` : '', 'Brasil'].filter(Boolean).join(', '),
+      [street,neighborhood,city,state,'Brasil'].filter(Boolean).join(', '),
       [street,city,state,'Brasil'].filter(Boolean).join(', '),
-      cep ? [cep,'Brasil'].join(', ') : '',
+      cep ? [cep.slice(0,5) + '-' + cep.slice(5),neighborhood,city,state,'Brasil'].filter(Boolean).join(', ') : '',
+      cep ? [cep.slice(0,5) + '-' + cep.slice(5),city,state,'Brasil'].filter(Boolean).join(', ') : '',
     ].filter((value,index,array) => value && array.indexOf(value) === index)
 
     let matched: { lat?: string; lon?: string; display_name?: string } | null = null
     let lastServiceError = false
 
-    for (const query of queries) {
+    if (cep) {
+      const structured = new URL('https://nominatim.openstreetmap.org/search')
+      structured.searchParams.set('format','jsonv2')
+      structured.searchParams.set('limit','5')
+      structured.searchParams.set('countrycodes','br')
+      structured.searchParams.set('addressdetails','1')
+      structured.searchParams.set('postalcode',cep.slice(0,5) + '-' + cep.slice(5))
+      if (city) structured.searchParams.set('city',city)
+      if (state) structured.searchParams.set('state',state)
+      structured.searchParams.set('country','Brazil')
+
+      try {
+        const response = await fetch(structured,{
+          cache:'no-store',
+          signal:AbortSignal.timeout(7000),
+          headers:{
+            Accept:'application/json',
+            'Accept-Language':'pt-BR,pt;q=0.9',
+            'User-Agent':'ChamaEntrega/1.0',
+          },
+        })
+
+        if (response.ok) {
+          const results = await response.json() as Array<{
+            lat?: string
+            lon?: string
+            display_name?: string
+          }>
+
+          matched = results.find(item =>
+            Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))
+          ) ?? null
+        } else {
+          lastServiceError = true
+        }
+      } catch {
+        lastServiceError = true
+      }
+    }
+
+    for (const query of matched ? [] : queries) {
       const url = new URL('https://nominatim.openstreetmap.org/search')
       url.searchParams.set('format','jsonv2')
       url.searchParams.set('limit','5')
