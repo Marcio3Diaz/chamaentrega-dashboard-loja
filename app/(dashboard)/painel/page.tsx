@@ -127,16 +127,46 @@ export default async function OverviewPage() {
 
   return (
     <div className="reference-dashboard">
-      <section
-        className="reference-hero generic-hero-banner official-png-banner"
-        aria-label="Sua loja no ChamaEntrega"
-      >
-        <img
-          className="official-png-banner-image"
-          src="/images/chamaentrega-dashboard-banner-20260926.png?v=1"
-          alt="ChamaEntrega — entregador em avenida iluminada à noite"
-        />
-        <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
+      <section className="home-command-hero" aria-label="Sua loja no ChamaEntrega">
+        <div className="home-command-backdrop" aria-hidden="true" />
+        <div className="home-command-content">
+          <span className="home-command-eyebrow">CENTRAL DA OPERAÇÃO</span>
+          <h1>Sua loja em movimento com o <span>ChamaEntrega</span></h1>
+          <p>
+            Acompanhe pedidos, entregadores e rotas em tempo real. Publique uma nova entrega
+            em poucos segundos.
+          </p>
+
+          <div className="home-command-actions">
+            <Link href="/entregas/nova" className="home-command-primary">
+              <Icon name="route" size={18}/> Nova entrega
+            </Link>
+            <Link href="/pedidos" className="home-command-secondary">
+              <Icon name="box" size={18}/> Ver pedidos
+            </Link>
+          </div>
+
+          <div className="home-command-live">
+            <span><i /> {active} entrega{active === 1 ? '' : 's'} em andamento</span>
+            <span>{couriersOnline} entregador{couriersOnline === 1 ? '' : 'es'} online</span>
+            <span>{currency(walletAvailable)} disponíveis</span>
+          </div>
+        </div>
+
+        <div className="home-command-side">
+          <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
+
+          <div className="home-command-shortcuts">
+            <Link href="/entregadores">
+              <Icon name="users" size={18}/>
+              <span><strong>Entregadores</strong><small>Rede e disponibilidade</small></span>
+            </Link>
+            <Link href="/integracoes">
+              <Icon name="link" size={18}/>
+              <span><strong>Integrações</strong><small>Canais conectados</small></span>
+            </Link>
+          </div>
+        </div>
       </section>
 
       <section className="reference-metrics">
