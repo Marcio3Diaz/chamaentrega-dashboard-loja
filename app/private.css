@@ -23556,3 +23556,57 @@ html[data-theme="light"] .reference-activity-list>div:hover{
     grid-template-columns:1fr;
   }
 }
+
+
+/* MAPA V2 — loja com logo circular; sem marcador de retirada */
+.ce-store-marker-wrap{
+  width:58px!important;
+  height:58px!important;
+  min-width:58px!important;
+  min-height:58px!important;
+  max-width:58px!important;
+  max-height:58px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+.ce-store-logo-marker{
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:center;
+}
+.ce-store-logo-ring{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:4px solid #ffb800;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.38),
+    0 0 0 4px rgba(255,184,0,.14);
+}
+.ce-store-logo-ring img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  border-radius:50%;
+  background:#fff;
+}
+.ce-store-marker-fallback{
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#251a08;
+  background:linear-gradient(135deg,#ffb300,#ffd95a);
+  font-size:20px;
+  font-weight:950;
+}
