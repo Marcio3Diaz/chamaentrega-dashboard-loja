@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 type Props = {
   latitude: number | null
   longitude: number | null
+  previewLatitude: number | null
+  previewLongitude: number | null
   storeLatitude: number | null
   storeLongitude: number | null
   onSelect: (latitude:number,longitude:number) => void
@@ -54,6 +56,8 @@ function loadLeaflet() {
 export function DeliveryLocationPicker({
   latitude,
   longitude,
+  previewLatitude,
+  previewLongitude,
   storeLatitude,
   storeLongitude,
   onSelect,
@@ -78,17 +82,20 @@ export function DeliveryLocationPicker({
         leafletRef.current = L
 
         const hasDestination = latitude != null && longitude != null
+        const hasPreview = previewLatitude != null && previewLongitude != null
         const hasStore = storeLatitude != null && storeLongitude != null
         const center:[number,number] = hasDestination
           ? [latitude as number,longitude as number]
-          : hasStore
-            ? [storeLatitude as number,storeLongitude as number]
-            : [-22.9068,-43.1729]
+          : hasPreview
+            ? [previewLatitude as number,previewLongitude as number]
+            : hasStore
+              ? [storeLatitude as number,storeLongitude as number]
+              : [-22.9068,-43.1729]
 
         const map = L.map(elementRef.current,{
           zoomControl:true,
           attributionControl:true,
-        }).setView(center,hasDestination ? 17 : hasStore ? 14 : 11)
+        }).setView(center,hasDestination ? 17 : hasPreview ? 16 : hasStore ? 14 : 11)
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
           maxZoom:19,
@@ -150,6 +157,14 @@ export function DeliveryLocationPicker({
       leafletRef.current = null
     }
   },[])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || latitude != null || longitude != null) return
+    if (previewLatitude == null || previewLongitude == null) return
+
+    map.setView([previewLatitude,previewLongitude],16,{ animate:true })
+  },[previewLatitude,previewLongitude,latitude,longitude])
 
   useEffect(() => {
     const L = leafletRef.current
