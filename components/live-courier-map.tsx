@@ -45,6 +45,7 @@ type LiveRoutePoint = {
 type Props = {
   storeId: string
   storeName: string
+  storeLogoUrl: string | null
   storeLatitude: number | null
   storeLongitude: number | null
   initialCouriers: LiveCourier[]
@@ -141,6 +142,14 @@ function escapeHtml(value: string) {
   }[char] ?? char))
 }
 
+function storeMarkerHtml(storeName: string, storeLogoUrl: string | null) {
+  const logo = storeLogoUrl
+    ? `<img src="${escapeHtml(storeLogoUrl)}" alt="" referrerpolicy="no-referrer"/>`
+    : `<span class="ce-store-marker-fallback">${escapeHtml(storeName.slice(0,1).toUpperCase())}</span>`
+
+  return `<div class="ce-store-logo-marker"><span class="ce-store-logo-ring">${logo}</span></div>`
+}
+
 function avatarMarkerHtml(courier: LiveCourier, selected: boolean, inRoute: boolean) {
   const classes = [
     'ce-fallback-courier-marker',
@@ -160,6 +169,7 @@ function avatarMarkerHtml(courier: LiveCourier, selected: boolean, inRoute: bool
 export function LiveCourierMap({
   storeId,
   storeName,
+  storeLogoUrl,
   storeLatitude,
   storeLongitude,
   initialCouriers,
@@ -176,7 +186,6 @@ export function LiveCourierMap({
   const courierMarkersRef = useRef<Map<string,any>>(new Map())
   const storeMarkerRef = useRef<any>(null)
   const routeLineRef = useRef<any>(null)
-  const pickupMarkerRef = useRef<any>(null)
   const destinationMarkerRef = useRef<any>(null)
   const firstFitRef = useRef(false)
 
@@ -322,31 +331,11 @@ export function LiveCourierMap({
     const L = leafletRef.current
 
     routeLineRef.current?.remove()
-    pickupMarkerRef.current?.remove()
     destinationMarkerRef.current?.remove()
     routeLineRef.current = null
-    pickupMarkerRef.current = null
     destinationMarkerRef.current = null
 
     if (!selectedDelivery) return
-
-    if (
-      selectedDelivery.pickupLatitude != null &&
-      selectedDelivery.pickupLongitude != null
-    ) {
-      pickupMarkerRef.current = L.circleMarker(
-        [selectedDelivery.pickupLatitude, selectedDelivery.pickupLongitude],
-        {
-          radius: 7,
-          color: '#ffb800',
-          weight: 3,
-          fillColor: '#10151a',
-          fillOpacity: 1,
-        },
-      )
-        .bindTooltip('Retirada', { direction: 'top' })
-        .addTo(mapRef.current)
-    }
 
     if (
       selectedDelivery.deliveryLatitude != null &&
@@ -382,18 +371,14 @@ export function LiveCourierMap({
 
     return () => {
       routeLineRef.current?.remove()
-      pickupMarkerRef.current?.remove()
-      destinationMarkerRef.current?.remove()
+        destinationMarkerRef.current?.remove()
       routeLineRef.current = null
-      pickupMarkerRef.current = null
-      destinationMarkerRef.current = null
+        destinationMarkerRef.current = null
     }
   }, [
     mapReady,
     routePoints,
     selectedDelivery?.id,
-    selectedDelivery?.pickupLatitude,
-    selectedDelivery?.pickupLongitude,
     selectedDelivery?.deliveryLatitude,
     selectedDelivery?.deliveryLongitude,
   ])
@@ -544,16 +529,16 @@ export function LiveCourierMap({
         if (storeLatitude != null && storeLongitude != null) {
           const storeIcon = L.divIcon({
             className: 'ce-store-marker-wrap',
-            html: '<span class="ce-store-marker-dot" aria-hidden="true"></span>',
-            iconSize: [18,18],
-            iconAnchor: [9,9],
+            html: storeMarkerHtml(storeName,storeLogoUrl),
+            iconSize: [58,58],
+            iconAnchor: [29,29],
           })
 
           storeMarkerRef.current = L.marker(
             [storeLatitude,storeLongitude],
-            { icon: storeIcon },
+            { icon: storeIcon, zIndexOffset: 850 },
           )
-            .bindTooltip(storeName, { direction: 'top' })
+            .bindTooltip(storeName, { direction: 'top', offset: [0,-24] })
             .addTo(map)
         }
 
@@ -576,7 +561,7 @@ export function LiveCourierMap({
       mapRef.current = null
       leafletRef.current = null
     }
-  }, [storeLatitude, storeLongitude, storeName])
+  }, [storeLatitude, storeLongitude, storeName, storeLogoUrl])
 
   useEffect(() => {
     const onFullscreenChange = () => {
