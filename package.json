@@ -15,7 +15,8 @@
     "db:mysql:reset": "docker compose -f docker-compose.mysql.yml down -v",
     "db:test:mysql": "node scripts/test-mysql-schema.mjs",
     "db:apply:mysql": "node scripts/apply-mysql-schema.mjs",
-    "db:import:mysql": "node scripts/import-mysql-payload.mjs"
+    "db:import:mysql": "node scripts/import-mysql-payload.mjs",
+    "db:mysql:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-local-mysql.ps1"
   },
   "engines": {
     "node": ">=22.13.0"
