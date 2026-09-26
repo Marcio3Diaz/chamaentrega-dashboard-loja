@@ -21964,3 +21964,384 @@ html[data-theme="light"] .premium-shell:has(.wallet-page) .mobile-nav a{
     object-position:center!important;
   }
 }
+
+
+/* =================================================================
+   DASHBOARD V5 — TEMA CREME CLARO GLOBAL
+   Aplica a identidade clara em TODAS as páginas do Portal da Loja.
+   ================================================================= */
+html[data-theme="light"] body{
+  background:#f3ecdf!important;
+  color:#2f271f!important;
+}
+html[data-theme="light"] .premium-shell{
+  --bg:#f3ecdf;
+  --surface:#fffaf3;
+  --surface-2:#f9f1e6;
+  --surface-3:#f1e6d7;
+  --text:#2f271f;
+  --muted:#7f7263;
+  --line:#e3d7c6;
+  --gold:#e7a900;
+  --gold-2:#ffbe1a;
+  --green:#199d62;
+  --red:#d84b52;
+  --blue:#2b8fd8;
+  --panel:#fffaf3;
+  --panel-2:#f9f1e6;
+  --panel-3:#fffdf9;
+  --line-strong:#dfd0bd;
+  background:#f3ecdf!important;
+  color:#2f271f!important;
+}
+html[data-theme="light"] .premium-main,
+html[data-theme="light"] .premium-content{
+  background:#f3ecdf!important;
+  color:#2f271f!important;
+}
+html[data-theme="light"] .premium-content{
+  max-width:none!important;
+  padding:16px 18px 32px!important;
+}
+html[data-theme="light"] .premium-sidebar{
+  background:linear-gradient(180deg,#fbf6ee 0%,#f7efe4 58%,#f1e7d9 100%)!important;
+  border-right:1px solid #e2d6c5!important;
+  box-shadow:8px 0 28px rgba(84,62,31,.045)!important;
+}
+html[data-theme="light"] .official-brand-link{
+  background:transparent!important;
+}
+html[data-theme="light"] .official-brand-logo{
+  filter:none!important;
+  opacity:1!important;
+}
+html[data-theme="light"] .premium-store-chip,
+html[data-theme="light"] .store-switcher-menu{
+  color:#3c3229!important;
+  border-color:#e1d4c2!important;
+  background:#fffaf3!important;
+  box-shadow:0 9px 24px rgba(72,49,21,.06)!important;
+}
+html[data-theme="light"] .store-copy strong,
+html[data-theme="light"] .store-switcher-menu strong{
+  color:#302820!important;
+}
+html[data-theme="light"] .store-copy small,
+html[data-theme="light"] .store-switcher-menu small,
+html[data-theme="light"] .store-chevron{
+  color:#887a68!important;
+}
+html[data-theme="light"] .store-switcher-menu button{
+  color:#4f4337!important;
+  border-color:#eee3d4!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .store-switcher-menu button:hover,
+html[data-theme="light"] .store-switcher-menu button.active{
+  background:#fff2c9!important;
+  border-color:#e9c764!important;
+}
+html[data-theme="light"] .premium-nav a{
+  color:#5d5144!important;
+}
+html[data-theme="light"] .premium-nav a .nav-icon{
+  color:#756654!important;
+}
+html[data-theme="light"] .premium-nav a:hover{
+  color:#2b231b!important;
+  background:#fff9ef!important;
+}
+html[data-theme="light"] .premium-nav a.primary{
+  color:#2c2110!important;
+  border-color:#e4ad00!important;
+  background:linear-gradient(90deg,#ffe5a0,#fff3ce)!important;
+  box-shadow:inset 3px 0 0 #e8ad00,0 7px 18px rgba(163,118,22,.08)!important;
+}
+html[data-theme="light"] .premium-nav a.primary .nav-icon{
+  color:#bd7d00!important;
+}
+html[data-theme="light"] .account-box,
+html[data-theme="light"] .signout{
+  color:#4d4237!important;
+}
+html[data-theme="light"] .account-box{
+  border:1px solid #e1d5c4!important;
+  background:#fff9ef!important;
+  border-radius:14px!important;
+}
+html[data-theme="light"] .account-box strong{color:#2e261e!important}
+html[data-theme="light"] .account-box small{color:#8b7d6b!important}
+html[data-theme="light"] .account-avatar{
+  color:#6c5521!important;
+  border-color:#ead58e!important;
+  background:#fff1c1!important;
+}
+html[data-theme="light"] .signout{
+  border:1px solid #e1d5c4!important;
+  background:#fffdf9!important;
+}
+
+html[data-theme="light"] .reference-topbar,
+html[data-theme="light"] .premium-topbar{
+  background:rgba(255,251,244,.97)!important;
+  border-bottom:1px solid #e4d8c7!important;
+  box-shadow:0 8px 28px rgba(91,67,34,.045)!important;
+  backdrop-filter:blur(18px)!important;
+}
+html[data-theme="light"] .reference-search{
+  color:#746655!important;
+  border-color:#e2d6c5!important;
+  background:#f7efe4!important;
+}
+html[data-theme="light"] .reference-search input{
+  color:#302820!important;
+}
+html[data-theme="light"] .reference-search input::placeholder{
+  color:#978977!important;
+}
+html[data-theme="light"] .reference-search kbd{
+  color:#766956!important;
+  border-color:#dfd2bf!important;
+  background:#efe5d7!important;
+}
+html[data-theme="light"] .reference-bell,
+html[data-theme="light"] .icon-button{
+  color:#55493c!important;
+}
+html[data-theme="light"] .reference-bell{
+  border-color:#e2d5c4!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .reference-wallet-chip{
+  color:#3a3025!important;
+  border-color:#e4c878!important;
+  background:#fff5d9!important;
+}
+html[data-theme="light"] .reference-wallet-chip strong{color:#30251a!important}
+html[data-theme="light"] .reference-wallet-chip small{color:#887963!important}
+html[data-theme="light"] .reference-new-delivery,
+html[data-theme="light"] .button-gold{
+  color:#251a08!important;
+  border-color:#e0a000!important;
+  background:linear-gradient(135deg,#ffb300,#ffd95a)!important;
+  box-shadow:0 8px 22px rgba(177,122,0,.12)!important;
+}
+html[data-theme="light"] .reference-store-profile{
+  color:#392f26!important;
+  border-color:#e1d5c5!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .reference-store-profile strong{color:#302820!important}
+html[data-theme="light"] .reference-store-profile small{color:#857765!important}
+
+html[data-theme="light"] .content h1,
+html[data-theme="light"] .content h2,
+html[data-theme="light"] .content h3,
+html[data-theme="light"] .content strong{
+  color:#2b241d;
+}
+html[data-theme="light"] .content .subtle,
+html[data-theme="light"] .content p,
+html[data-theme="light"] .content small{
+  color:#7b6e60;
+}
+html[data-theme="light"] .eyebrow{
+  color:#b67800!important;
+}
+html[data-theme="light"] .card,
+html[data-theme="light"] .premium-card,
+html[data-theme="light"] .form-section,
+html[data-theme="light"] .metric,
+html[data-theme="light"] .premium-metric,
+html[data-theme="light"] .placeholder{
+  color:#2f271f!important;
+  border-color:#e3d7c6!important;
+  background:#fffaf3!important;
+  box-shadow:0 7px 20px rgba(76,54,24,.04)!important;
+}
+html[data-theme="light"] .card-head,
+html[data-theme="light"] .premium-card-head{
+  border-bottom-color:#eadfce!important;
+  background:#fff8ec!important;
+}
+html[data-theme="light"] .table,
+html[data-theme="light"] .premium-table{
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .table th,
+html[data-theme="light"] .premium-table th{
+  color:#796c5d!important;
+  border-bottom-color:#eadfce!important;
+  background:#f9f1e6!important;
+}
+html[data-theme="light"] .table td,
+html[data-theme="light"] .premium-table td{
+  color:#554a3f!important;
+  border-bottom-color:#eee4d7!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .table tbody tr:hover td,
+html[data-theme="light"] .premium-table tbody tr:hover td{
+  background:#fff8e9!important;
+}
+html[data-theme="light"] .table-main,
+html[data-theme="light"] .table td strong,
+html[data-theme="light"] .premium-table td strong{
+  color:#2b241d!important;
+}
+html[data-theme="light"] .table-sub,
+html[data-theme="light"] .table-address{
+  color:#786b5e!important;
+}
+html[data-theme="light"] .status{
+  border:1px solid #e2d5c3!important;
+  color:#5f5348!important;
+  background:#f7efe4!important;
+}
+html[data-theme="light"] .status.available{
+  color:#8a5b00!important;
+  border-color:#efd180!important;
+  background:#fff3cd!important;
+}
+html[data-theme="light"] .status.completed{
+  color:#176c48!important;
+  border-color:#b9dfce!important;
+  background:#eaf8f1!important;
+}
+html[data-theme="light"] .status.accepted,
+html[data-theme="light"] .status.heading_to_pickup,
+html[data-theme="light"] .status.at_pickup,
+html[data-theme="light"] .status.heading_to_dropoff,
+html[data-theme="light"] .status.at_dropoff{
+  color:#176a9f!important;
+  border-color:#bcd8e9!important;
+  background:#ecf6fc!important;
+}
+
+html[data-theme="light"] .field label{
+  color:#76695c!important;
+}
+html[data-theme="light"] .field input,
+html[data-theme="light"] .field textarea,
+html[data-theme="light"] .field select,
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] textarea,
+html[data-theme="light"] select{
+  color:#2b241d!important;
+  border-color:#e0d3c2!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder{
+  color:#a09383!important;
+}
+html[data-theme="light"] .field input:focus,
+html[data-theme="light"] .field textarea:focus,
+html[data-theme="light"] .field select:focus{
+  border-color:#e4aa13!important;
+  box-shadow:0 0 0 3px rgba(228,170,19,.10)!important;
+}
+html[data-theme="light"] .form-actions{
+  border-color:#e2d5c4!important;
+  background:rgba(255,250,243,.96)!important;
+}
+html[data-theme="light"] .button-dark,
+html[data-theme="light"] .outline-link,
+html[data-theme="light"] .reference-outline-button{
+  color:#574a3d!important;
+  border-color:#dfd2c0!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .notice{
+  color:#6e5318!important;
+  border-color:#ead292!important;
+  background:#fff6dc!important;
+}
+html[data-theme="light"] .empty,
+html[data-theme="light"] .premium-empty{
+  color:#8a7d6d!important;
+  background:#fffdf9!important;
+}
+
+html[data-theme="light"] .store-moderation-banner{
+  color:#654e1d!important;
+  border-color:#ead08a!important;
+  background:#fff5d8!important;
+}
+html[data-theme="light"] .store-moderation-banner strong{
+  color:#533d0d!important;
+}
+html[data-theme="light"] .store-moderation-banner small{
+  color:#806a3d!important;
+}
+
+/* Modal, dropdown e painéis interativos: evita blocos escuros perdidos. */
+html[data-theme="light"] [role="dialog"],
+html[data-theme="light"] .modal,
+html[data-theme="light"] [class*="modal-"],
+html[data-theme="light"] [class*="-modal"],
+html[data-theme="light"] [class*="drawer"],
+html[data-theme="light"] [class*="popover"],
+html[data-theme="light"] [class*="dropdown"]{
+  color:#2f271f;
+}
+html[data-theme="light"] [role="dialog"] input,
+html[data-theme="light"] [role="dialog"] textarea,
+html[data-theme="light"] [role="dialog"] select{
+  color:#2b241d!important;
+  border-color:#e0d3c2!important;
+  background:#fffdf9!important;
+}
+
+/* Páginas que ainda não possuíam tema claro próprio. */
+html[data-theme="light"] .deliveries-page,
+html[data-theme="light"] .orders-page,
+html[data-theme="light"] .couriers-page,
+html[data-theme="light"] .integrations-page,
+html[data-theme="light"] .dispatch-page,
+html[data-theme="light"] .map-page,
+html[data-theme="light"] .wallet-page,
+html[data-theme="light"] .settings-page{
+  color:#2f271f!important;
+  background:#f3ecdf!important;
+}
+html[data-theme="light"] .deliveries-list-card{
+  border-color:#e3d7c6!important;
+  background:#fffaf3!important;
+}
+
+/* Navegação mobile também segue o creme. */
+html[data-theme="light"] .mobile-nav{
+  border:1px solid #e2d5c4!important;
+  background:rgba(255,250,243,.97)!important;
+  box-shadow:0 10px 30px rgba(71,50,25,.10)!important;
+}
+html[data-theme="light"] .mobile-nav a{
+  color:#66594b!important;
+}
+
+/* Ajustes de densidade e legibilidade. */
+html[data-theme="light"] .premium-nav a{
+  min-height:46px!important;
+  font-size:12.5px!important;
+}
+html[data-theme="light"] .premium-table td{
+  font-size:11px!important;
+}
+html[data-theme="light"] .premium-table th{
+  font-size:9px!important;
+}
+html[data-theme="light"] .button{
+  min-height:44px!important;
+  font-size:12px!important;
+}
+
+/* Respeita o banner PNG oficial sem converter para WebP. */
+.reference-dashboard .official-png-banner-image{
+  image-rendering:auto!important;
+}
+
+/* Tema escuro continua disponível apenas quando o usuário escolher explicitamente. */
+html[data-theme="dark"] .premium-shell{
+  color-scheme:dark;
+}
