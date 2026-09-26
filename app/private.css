@@ -23746,3 +23746,121 @@ html[data-theme="light"] .reference-activity-list>div:hover{
     max-width:none;
   }
 }
+
+
+/* ===============================================================
+   MAPLIBRE + OPENFREEMAP — mapas oficiais do ChamaEntrega
+   =============================================================== */
+.maplibre-map,
+.live-map-canvas.maplibregl-map,
+.delivery-location-picker-map.maplibregl-map{
+  font-family:inherit;
+}
+.delivery-map-provider-badge{
+  position:absolute;
+  right:12px;
+  top:12px;
+  z-index:700;
+  min-height:27px;
+  display:flex;
+  align-items:center;
+  padding:0 9px;
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:999px;
+  color:#675948;
+  background:rgba(255,250,243,.92);
+  box-shadow:0 6px 18px rgba(66,45,20,.10);
+  backdrop-filter:blur(10px);
+  font-size:8px;
+  font-weight:850;
+  pointer-events:none;
+}
+.delivery-location-picker .maplibregl-ctrl-bottom-right{
+  bottom:58px;
+}
+.delivery-location-picker .maplibregl-ctrl-bottom-left{
+  bottom:2px;
+}
+.delivery-location-picker .maplibregl-ctrl-group,
+.live-map-stage .maplibregl-ctrl-group{
+  overflow:hidden;
+  border:1px solid rgba(79,63,43,.12);
+  border-radius:10px;
+  box-shadow:0 5px 15px rgba(42,31,18,.12);
+}
+.delivery-location-picker .maplibregl-ctrl button,
+.live-map-stage .maplibregl-ctrl button{
+  background-color:rgba(255,253,249,.96);
+}
+.ce-maplibre-destination-marker,
+.ce-live-destination-marker{
+  width:42px;
+  height:50px;
+  display:grid;
+  place-items:center;
+  cursor:grab;
+}
+.ce-maplibre-destination-marker:active{
+  cursor:grabbing;
+}
+.ce-maplibre-destination-marker>span,
+.ce-live-destination-marker>span{
+  position:relative;
+  width:37px;
+  height:37px;
+  display:grid;
+  place-items:center;
+  border:4px solid #fff;
+  border-radius:50% 50% 50% 9px;
+  background:#ffb800;
+  box-shadow:0 9px 24px rgba(0,0,0,.30);
+  transform:rotate(-45deg);
+}
+.ce-maplibre-destination-marker>span:after,
+.ce-live-destination-marker>span:after{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  background:#17130f;
+}
+.ce-maplibre-destination-marker i,
+.ce-live-destination-marker i{
+  display:none;
+}
+.ce-maplibre-store-marker,
+.ce-maplibre-courier-marker{
+  width:58px;
+  height:58px;
+  cursor:pointer;
+}
+.ce-maplibre-store-marker .ce-store-logo-marker,
+.ce-maplibre-courier-marker .ce-fallback-courier-marker{
+  width:58px;
+  height:58px;
+}
+.live-map-stage .maplibregl-popup-content{
+  padding:8px 11px;
+  border:1px solid #e7dbc9;
+  border-radius:9px;
+  color:#31271d;
+  background:#fffaf3;
+  box-shadow:0 8px 22px rgba(52,37,18,.14);
+  font:800 10px/1.3 inherit;
+}
+.live-map-stage .maplibregl-popup-tip{
+  border-top-color:#fffaf3;
+}
+.live-map-stage .maplibregl-ctrl-attrib,
+.delivery-location-picker .maplibregl-ctrl-attrib{
+  font-size:8px;
+  opacity:.82;
+}
+@media(max-width:600px){
+  .delivery-map-provider-badge{
+    display:none;
+  }
+  .delivery-location-picker .maplibregl-ctrl-bottom-right{
+    bottom:72px;
+  }
+}
