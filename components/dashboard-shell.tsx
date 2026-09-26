@@ -10,15 +10,15 @@ import { CHAMAENTREGA_LOGO_CREME } from '@/lib/brand-logo-creme'
 
 const nav = [
   { href:'/painel', label:'Início', icon:'home', exact:true },
-  { href:'/pedidos', label:'Pedidos', icon:'box' },
+  { href:'/pedidos', label:'Pedidos', icon:'box', exact:false },
   { href:'/entregas/nova', label:'Criar entrega', icon:'route', exact:true },
-  { href:'/entregadores', label:'Entregadores', icon:'user' },
-  { href:'/financeiro', label:'Financeiro', icon:'chart' },
+  { href:'/entregadores', label:'Entregadores', icon:'user', exact:false },
+  { href:'/financeiro', label:'Financeiro', icon:'chart', exact:false },
   { href:'/entregas', label:'Entregas', icon:'box', exact:true },
-  { href:'/cardapio', label:'Cardápio', icon:'store' },
-  { href:'/integracoes', label:'Integrações', icon:'link' },
-  { href:'/despacho', label:'Despacho', icon:'activity' },
-  { href:'/configuracoes', label:'Configurações', icon:'gear' },
+  { href:'/cardapio', label:'Cardápio', icon:'store', exact:false },
+  { href:'/integracoes', label:'Integrações', icon:'link', exact:false },
+  { href:'/despacho', label:'Despacho', icon:'activity', exact:false },
+  { href:'/configuracoes', label:'Configurações', icon:'gear', exact:false },
 ] as const
 
 type StoreOption = {
