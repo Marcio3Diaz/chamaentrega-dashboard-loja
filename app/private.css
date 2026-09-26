@@ -22385,3 +22385,118 @@ html[data-theme="light"] .catalog-integration-list a:hover{
   html[data-theme="light"] .catalog-hero{padding:18px;align-items:flex-start}
   html[data-theme="light"] .catalog-metrics{grid-template-columns:1fr}
 }
+
+
+/* =================================================================
+   V5.1 — componentes especializados também no creme
+   ================================================================= */
+html[data-theme="light"] .orders-hub-page,
+html[data-theme="light"] .ce2-page,
+html[data-theme="light"] .integrations-page,
+html[data-theme="light"] .dispatch-page{
+  color:#2f271f!important;
+  background:#f3ecdf!important;
+}
+html[data-theme="light"] .orders-hub-hero,
+html[data-theme="light"] .ce2-head,
+html[data-theme="light"] .integrations-hero,
+html[data-theme="light"] .dispatch-hero{
+  border-color:#e2d5c3!important;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(255,184,0,.10),transparent 30%),
+    linear-gradient(145deg,#fffaf2,#f6eee3)!important;
+  box-shadow:0 7px 20px rgba(76,54,24,.045)!important;
+}
+html[data-theme="light"] .orders-hub-workspace,
+html[data-theme="light"] .orders-hub-main,
+html[data-theme="light"] .orders-hub-detail,
+html[data-theme="light"] .ce2-requests,
+html[data-theme="light"] .ce2-network,
+html[data-theme="light"] .ce2-request,
+html[data-theme="light"] .ce2-courier-card,
+html[data-theme="light"] .integration-card,
+html[data-theme="light"] .integration-detail,
+html[data-theme="light"] .integrations-flow,
+html[data-theme="light"] .dispatch-queue,
+html[data-theme="light"] .dispatch-map-card,
+html[data-theme="light"] .dispatch-suggestion,
+html[data-theme="light"] .dispatch-insights{
+  color:#2f271f!important;
+  border-color:#e2d5c3!important;
+  background:#fffaf3!important;
+  box-shadow:0 7px 20px rgba(76,54,24,.04)!important;
+}
+html[data-theme="light"] .orders-hub-filters,
+html[data-theme="light"] .orders-command-toolbar,
+html[data-theme="light"] .ce2-toolbar,
+html[data-theme="light"] .ce2-section-head,
+html[data-theme="light"] .integration-detail-head,
+html[data-theme="light"] .dispatch-panel-head{
+  border-color:#eadfce!important;
+  background:#fff8ec!important;
+}
+html[data-theme="light"] .order-command-card,
+html[data-theme="light"] .order-command-block,
+html[data-theme="light"] .orders-detail-section,
+html[data-theme="light"] .ce2-stat,
+html[data-theme="light"] .ce2-profile-strip,
+html[data-theme="light"] .ce2-active-route,
+html[data-theme="light"] .integration-switch-row,
+html[data-theme="light"] .integration-note,
+html[data-theme="light"] .dispatch-route-row,
+html[data-theme="light"] .dispatch-summary,
+html[data-theme="light"] .dispatch-courier{
+  color:#463b31!important;
+  border-color:#e5d8c6!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .orders-hub-page input,
+html[data-theme="light"] .orders-hub-page select,
+html[data-theme="light"] .ce2-page input,
+html[data-theme="light"] .ce2-page select,
+html[data-theme="light"] .integrations-page input,
+html[data-theme="light"] .integrations-page select,
+html[data-theme="light"] .dispatch-page input,
+html[data-theme="light"] .dispatch-page select{
+  color:#2b241d!important;
+  border-color:#e0d3c2!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .orders-filter-row button,
+html[data-theme="light"] .ce2-filters button,
+html[data-theme="light"] .ce2-btn.ghost,
+html[data-theme="light"] .integration-secondary,
+html[data-theme="light"] .orders-detail-actions .secondary,
+html[data-theme="light"] .order-command-actions .ghost{
+  color:#574a3d!important;
+  border-color:#dfd2c0!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .orders-filter-row button.active,
+html[data-theme="light"] .ce2-filters button.active,
+html[data-theme="light"] .ce2-btn.gold,
+html[data-theme="light"] .integration-primary,
+html[data-theme="light"] .orders-detail-actions .primary,
+html[data-theme="light"] .dispatch-send{
+  color:#251a08!important;
+  border-color:#e0a000!important;
+  background:linear-gradient(135deg,#ffb300,#ffd95a)!important;
+}
+html[data-theme="light"] .orders-command-empty,
+html[data-theme="light"] .orders-detail-empty,
+html[data-theme="light"] .ce2-empty,
+html[data-theme="light"] .ce2-empty-request,
+html[data-theme="light"] .dispatch-empty{
+  color:#8a7d6d!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .dispatch-route-map{
+  border-color:#e2d5c3!important;
+  background:#f4eadc!important;
+}
+html[data-theme="light"] .integration-last-error,
+html[data-theme="light"] .integration-danger{
+  color:#a13b41!important;
+  border-color:#ecc4c6!important;
+  background:#fff0f0!important;
+}
