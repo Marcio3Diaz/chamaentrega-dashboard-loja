@@ -22958,3 +22958,138 @@ html[data-theme="light"] .form-action-hint{
     width:100%;
   }
 }
+
+
+/* Criar entrega V3.1 — resumo de rota compacto, sem painéis redundantes */
+.delivery-route-summary{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 14px;
+  border:1px solid #e2d5c3;
+  border-radius:13px;
+  background:#fffdf9;
+}
+.delivery-route-summary.ready{
+  border-color:#bfe0cf;
+  background:#f1fbf6;
+}
+.delivery-route-status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.delivery-route-status>i{
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
+  border-radius:50%;
+  background:#98a09d;
+}
+.delivery-route-summary.ready .delivery-route-status>i{
+  background:#1dcc75;
+  box-shadow:0 0 0 4px rgba(29,204,117,.10);
+}
+.delivery-route-status strong,
+.delivery-route-status span{
+  display:block;
+}
+.delivery-route-status strong{
+  color:#2f271f;
+  font-size:12px;
+}
+.delivery-route-status span{
+  margin-top:2px;
+  color:#7b6e60;
+  font-size:9px;
+  line-height:1.35;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.delivery-route-metrics{
+  display:flex;
+  align-items:stretch;
+  gap:8px;
+}
+.delivery-route-metrics>div{
+  min-width:92px;
+  padding:8px 10px;
+  border:1px solid #e6dac9;
+  border-radius:10px;
+  background:#fffaf3;
+}
+.delivery-route-metrics small,
+.delivery-route-metrics strong{
+  display:block;
+}
+.delivery-route-metrics small{
+  color:#8a7d6d;
+  font-size:8px;
+}
+.delivery-route-metrics strong{
+  margin-top:2px;
+  color:#2f271f;
+  font-size:12px;
+}
+.delivery-route-map-details{
+  position:relative;
+}
+.delivery-route-map-details>summary{
+  list-style:none;
+  cursor:pointer;
+  padding:8px 11px;
+  border:1px solid #dfd2c0;
+  border-radius:9px;
+  color:#574a3d;
+  background:#fffdf9;
+  font-size:9px;
+  font-weight:850;
+  white-space:nowrap;
+}
+.delivery-route-map-details>summary::-webkit-details-marker{
+  display:none;
+}
+.delivery-route-map{
+  position:absolute;
+  right:0;
+  top:42px;
+  z-index:15;
+  width:420px;
+  max-width:70vw;
+  padding:8px;
+  border:1px solid #e2d5c3;
+  border-radius:12px;
+  background:#fffaf3;
+  box-shadow:0 16px 40px rgba(63,45,24,.14);
+}
+.delivery-route-map iframe{
+  display:block;
+  width:100%;
+  height:260px;
+  border:0;
+  border-radius:9px;
+}
+@media(max-width:900px){
+  .delivery-route-summary{
+    grid-template-columns:1fr;
+    align-items:stretch;
+  }
+  .delivery-route-metrics{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+  }
+  .delivery-route-map{
+    position:static;
+    width:100%;
+    max-width:none;
+    margin-top:8px;
+  }
+}
+@media(max-width:560px){
+  .delivery-route-metrics{
+    grid-template-columns:1fr;
+  }
+}
