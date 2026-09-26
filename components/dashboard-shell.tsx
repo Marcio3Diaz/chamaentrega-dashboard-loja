@@ -13,6 +13,7 @@ const nav = [
   { href:'/pedidos', label:'Pedidos', icon:'box', exact:false },
   { href:'/entregas/nova', label:'Criar entrega', icon:'route', exact:true },
   { href:'/entregadores', label:'Entregadores', icon:'user', exact:false },
+  { href:'/mapa', label:'Mapa ao vivo', icon:'map', exact:false },
   { href:'/financeiro', label:'Financeiro', icon:'chart', exact:false },
   { href:'/entregas', label:'Entregas', icon:'box', exact:true },
   { href:'/integracoes', label:'Integrações', icon:'link', exact:false },
