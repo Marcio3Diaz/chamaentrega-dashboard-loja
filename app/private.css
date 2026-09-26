@@ -22555,3 +22555,139 @@ html[data-theme="light"] .integration-danger{
 .ce2-avatar>i{
   z-index:3!important;
 }
+
+
+/* =================================================================
+   CHAT V2 — um chat por entregador + avatares circulares
+   ================================================================= */
+.store-chat-avatar{
+  position:relative!important;
+  width:43px!important;
+  height:43px!important;
+  min-width:43px!important;
+  min-height:43px!important;
+  flex:0 0 43px!important;
+  aspect-ratio:1 / 1!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+  border-radius:50%!important;
+  background:transparent!important;
+}
+.store-chat-avatar.large{
+  width:46px!important;
+  height:46px!important;
+  min-width:46px!important;
+  min-height:46px!important;
+  flex-basis:46px!important;
+}
+.store-chat-avatar-photo{
+  width:100%!important;
+  height:100%!important;
+  aspect-ratio:1 / 1!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  border-radius:50%!important;
+  color:#14110b!important;
+  background:linear-gradient(135deg,#ffad00,#ffd23a)!important;
+  font-size:13px!important;
+  font-weight:950!important;
+  line-height:1!important;
+}
+.store-chat-avatar-photo img,
+.store-chat-message-avatar img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  aspect-ratio:1 / 1!important;
+  border-radius:50%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+.store-chat-message-avatar{
+  width:27px!important;
+  height:27px!important;
+  min-width:27px!important;
+  min-height:27px!important;
+  flex:0 0 27px!important;
+  aspect-ratio:1 / 1!important;
+  border-radius:50%!important;
+  overflow:hidden!important;
+}
+html[data-theme="light"] .store-chat-page,
+html[data-theme="light"] .store-chat-shell,
+html[data-theme="light"] .store-chat-conversations,
+html[data-theme="light"] .store-chat-panel{
+  color:#2f271f!important;
+}
+html[data-theme="light"] .store-chat-page-head,
+html[data-theme="light"] .store-chat-conversations,
+html[data-theme="light"] .store-chat-panel,
+html[data-theme="light"] .store-chat-panel-head{
+  border-color:#e2d5c3!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .store-chat-shell{
+  border-color:#e2d5c3!important;
+  background:#fffaf3!important;
+}
+html[data-theme="light"] .store-chat-conversation{
+  color:#3e342b!important;
+}
+html[data-theme="light"] .store-chat-conversation:hover{
+  border-color:#eadfcf!important;
+  background:#fff8eb!important;
+}
+html[data-theme="light"] .store-chat-conversation.selected{
+  border-color:#e6bd4f!important;
+  background:#fff2c8!important;
+}
+html[data-theme="light"] .store-chat-conversation-line strong,
+html[data-theme="light"] .store-chat-panel-person strong,
+html[data-theme="light"] .store-chat-panel-order strong{
+  color:#2b241d!important;
+}
+html[data-theme="light"] .store-chat-conversation-line small,
+html[data-theme="light"] .store-chat-preview,
+html[data-theme="light"] .store-chat-panel-person small,
+html[data-theme="light"] .store-chat-panel-order span{
+  color:#7e7163!important;
+}
+html[data-theme="light"] .store-chat-search,
+html[data-theme="light"] .store-chat-composer{
+  border-color:#e2d5c3!important;
+  background:#fff8ec!important;
+}
+html[data-theme="light"] .store-chat-search input,
+html[data-theme="light"] .store-chat-composer textarea{
+  color:#2b241d!important;
+  border-color:#e0d3c2!important;
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .store-chat-messages{
+  background:#fffdf9!important;
+}
+html[data-theme="light"] .store-chat-date-divider span{
+  color:#76695b!important;
+  border-color:#e3d7c6!important;
+  background:#f7efe4!important;
+}
+html[data-theme="light"] .store-chat-bubble{
+  color:#2f271f!important;
+  border-color:#e3d7c6!important;
+  background:#f6efe6!important;
+}
+html[data-theme="light"] .store-chat-bubble p{
+  color:#2f271f!important;
+}
+html[data-theme="light"] .store-chat-message-row.mine .store-chat-bubble{
+  border-color:#e7c55f!important;
+  background:#fff1c5!important;
+}
+html[data-theme="light"] .store-chat-context{
+  border-color:#e2d5c3!important;
+  background:#f9f1e6!important;
+}
