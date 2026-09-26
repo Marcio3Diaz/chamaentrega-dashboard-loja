@@ -15,9 +15,6 @@ const nav = [
   { href:'/entregadores', label:'Entregadores', icon:'user', exact:false },
   { href:'/financeiro', label:'Financeiro', icon:'chart', exact:false },
   { href:'/entregas', label:'Entregas', icon:'box', exact:true },
-  { href:'/cardapio', label:'Cardápio', icon:'store', exact:false },
-  { href:'/integracoes', label:'Integrações', icon:'link', exact:false },
-  { href:'/despacho', label:'Despacho', icon:'activity', exact:false },
   { href:'/configuracoes', label:'Configurações', icon:'gear', exact:false },
 ] as const
 
