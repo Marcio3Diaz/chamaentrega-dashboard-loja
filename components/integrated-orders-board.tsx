@@ -90,7 +90,7 @@ const sourceMeta: Record<OrderSource,{label:string;logo?:string;className:string
   '99food':{ label:'99Food', logo:'/integrations/99food.svg', className:'food99' },
   goomer:{ label:'Goomer', logo:'/integrations/goomer.svg', className:'goomer' },
   own_menu:{ label:'Cardápio próprio', className:'own' },
-  manual:{ label:'ChamaEntrega', className:'manual' },
+  manual:{ label:'ChamaEntrega', logo:'/brand/chamaentrega-flame-official.webp', className:'manual' },
 }
 
 
