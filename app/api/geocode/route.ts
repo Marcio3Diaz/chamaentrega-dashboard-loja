@@ -6,6 +6,12 @@ export const dynamic = 'force-dynamic'
 
 type GeocodeRequest = {
   address?: string
+  street?: string
+  number?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  cep?: string
 }
 
 export async function POST(request: Request) {
@@ -42,8 +48,14 @@ export async function POST(request: Request) {
     }
 
     const address = String(parsed.data.address ?? '').trim()
+    const street = String(parsed.data.street ?? '').trim()
+    const number = String(parsed.data.number ?? '').trim()
+    const neighborhood = String(parsed.data.neighborhood ?? '').trim()
+    const city = String(parsed.data.city ?? '').trim()
+    const state = String(parsed.data.state ?? '').trim()
+    const cep = String(parsed.data.cep ?? '').replace(/\D/g,'').slice(0,8)
 
-    if (address.length < 6) {
+    if (address.length < 6 && street.length < 3) {
       return NextResponse.json(
         { error: 'Informe um endereço mais completo.' },
         { status: 400 },
@@ -57,51 +69,74 @@ export async function POST(request: Request) {
       )
     }
 
-    const url = new URL('https://nominatim.openstreetmap.org/search')
-    url.searchParams.set('format', 'jsonv2')
-    url.searchParams.set('limit', '1')
-    url.searchParams.set('countrycodes', 'br')
-    url.searchParams.set('addressdetails', '1')
-    url.searchParams.set('q', address)
+    const queries = [
+      address,
+      [street,number,neighborhood,city,state,cep ? `CEP ${cep}` : '', 'Brasil'].filter(Boolean).join(', '),
+      [street,number,city,state,cep ? `CEP ${cep}` : '', 'Brasil'].filter(Boolean).join(', '),
+      [street,city,state,'Brasil'].filter(Boolean).join(', '),
+      cep ? [cep,'Brasil'].join(', ') : '',
+    ].filter((value,index,array) => value && array.indexOf(value) === index)
 
-    const response = await fetch(url, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(7000),
-      headers: {
-        Accept: 'application/json',
-        'Accept-Language': 'pt-BR,pt;q=0.9',
-        'User-Agent': 'ChamaEntrega/1.0',
-      },
-    })
+    let matched: { lat?: string; lon?: string; display_name?: string } | null = null
+    let lastServiceError = false
 
-    if (!response.ok) {
+    for (const query of queries) {
+      const url = new URL('https://nominatim.openstreetmap.org/search')
+      url.searchParams.set('format','jsonv2')
+      url.searchParams.set('limit','5')
+      url.searchParams.set('countrycodes','br')
+      url.searchParams.set('addressdetails','1')
+      url.searchParams.set('q',query)
+
+      const response = await fetch(url,{
+        cache:'no-store',
+        signal:AbortSignal.timeout(7000),
+        headers:{
+          Accept:'application/json',
+          'Accept-Language':'pt-BR,pt;q=0.9',
+          'User-Agent':'ChamaEntrega/1.0',
+        },
+      })
+
+      if (!response.ok) {
+        lastServiceError = true
+        continue
+      }
+
+      const results = await response.json() as Array<{
+        lat?: string
+        lon?: string
+        display_name?: string
+      }>
+
+      const candidate = results.find(item =>
+        Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))
+      )
+
+      if (candidate) {
+        matched = candidate
+        break
+      }
+    }
+
+    if (!matched) {
       return NextResponse.json(
-        { error: 'O serviço de localização não respondeu.' },
-        { status: 502 },
+        {
+          error:lastServiceError
+            ? 'O serviço de localização não respondeu corretamente. Tente novamente.'
+            : 'Endereço não localizado. Confira o número ou tente sem complemento.',
+        },
+        { status:lastServiceError ? 502 : 404 },
       )
     }
 
-    const results = await response.json() as Array<{
-      lat?: string
-      lon?: string
-      display_name?: string
-    }>
-
-    const first = results[0]
-    const latitude = Number(first?.lat)
-    const longitude = Number(first?.lon)
-
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      return NextResponse.json(
-        { error: 'Endereço não localizado. Inclua número, bairro e cidade.' },
-        { status: 404 },
-      )
-    }
+    const latitude = Number(matched.lat)
+    const longitude = Number(matched.lon)
 
     return NextResponse.json({
       latitude,
       longitude,
-      displayName: String(first?.display_name ?? address),
+      displayName:String(matched.display_name ?? address),
     })
   } catch (error) {
     const timedOut = error instanceof DOMException && error.name === 'TimeoutError'
