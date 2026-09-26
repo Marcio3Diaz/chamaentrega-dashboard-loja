@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useMemo, useRef, useState } from 'react'
 import { createDeliveryAction, type CreateState } from './actions'
 
 const initial: CreateState = {}
@@ -45,6 +45,23 @@ function haversineKm(lat1:number,lon1:number,lat2:number,lon2:number) {
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
 }
 
+function onlyDigits(value:string) {
+  return value.replace(/\D/g,'')
+}
+
+function formatCep(value:string) {
+  const digits = onlyDigits(value).slice(0,8)
+  return digits.length > 5 ? `${digits.slice(0,5)}-${digits.slice(5)}` : digits
+}
+
+function formatPhone(value:string) {
+  const digits = onlyDigits(value).slice(0,11)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 7) return `(${digits.slice(0,2)}) ${digits.slice(2)}`
+  if (digits.length <= 10) return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`
+  return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`
+}
+
 function money(value:number) {
   return new Intl.NumberFormat('pt-BR',{
     style:'currency',
@@ -73,7 +90,17 @@ export function CreateDeliveryForm({
 }) {
   const [state, action, pending] = useActionState(createDeliveryAction, initial)
   const [fee, setFee] = useState('')
-  const [address,setAddress] = useState(initialOrder?.deliveryAddress ?? '')
+  const [cep,setCep] = useState('')
+  const [street,setStreet] = useState(initialOrder?.deliveryAddress ?? '')
+  const [streetNumber,setStreetNumber] = useState('')
+  const [complement,setComplement] = useState('')
+  const [neighborhood,setNeighborhood] = useState('')
+  const [city,setCity] = useState(storeCity ?? '')
+  const [stateCode,setStateCode] = useState(storeState ?? '')
+  const [phone,setPhone] = useState(initialOrder?.customerPhone ?? '')
+  const [cepError,setCepError] = useState('')
+  const [lookingUpCep,setLookingUpCep] = useState(false)
+  const numberInputRef = useRef<HTMLInputElement | null>(null)
   const [latitude,setLatitude] = useState(initialOrder?.deliveryLatitude ?? '')
   const [longitude,setLongitude] = useState(initialOrder?.deliveryLongitude ?? '')
   const [deliveryDistance,setDeliveryDistance] = useState('')
@@ -82,6 +109,61 @@ export function CreateDeliveryForm({
   const [geocodeError,setGeocodeError] = useState('')
   const [locating,setLocating] = useState(false)
   const [lastLocatedAddress,setLastLocatedAddress] = useState('')
+
+  const address = useMemo(() => {
+    const streetLine = [street.trim(),streetNumber.trim()].filter(Boolean).join(', ')
+    const cityLine = [city.trim(),stateCode.trim()].filter(Boolean).join(' - ')
+    return [
+      streetLine,
+      complement.trim(),
+      neighborhood.trim(),
+      cityLine,
+      cep.trim() ? `CEP ${cep.trim()}` : '',
+    ].filter(Boolean).join(', ')
+  },[street,streetNumber,complement,neighborhood,city,stateCode,cep])
+
+  function resetLocation() {
+    setResolvedAddress('')
+    setGeocodeError('')
+    setLatitude('')
+    setLongitude('')
+    setDeliveryDistance('')
+    setEstimatedMinutes('')
+  }
+
+  async function lookupCep() {
+    const normalized = onlyDigits(cep)
+    if (lookingUpCep || normalized.length !== 8) return
+
+    setLookingUpCep(true)
+    setCepError('')
+
+    try {
+      const response = await fetch(`/api/cep?cep=${normalized}`,{ cache:'no-store' })
+      const payload = await response.json() as {
+        street?:string
+        neighborhood?:string
+        city?:string
+        state?:string
+        cep?:string
+        error?:string
+      }
+
+      if (!response.ok) throw new Error(payload.error || 'CEP não encontrado.')
+
+      setCep(formatCep(payload.cep || normalized))
+      setStreet(payload.street || '')
+      setNeighborhood(payload.neighborhood || '')
+      setCity(payload.city || '')
+      setStateCode(payload.state || '')
+      resetLocation()
+      window.setTimeout(() => numberInputRef.current?.focus(),20)
+    } catch (error) {
+      setCepError(error instanceof Error ? error.message : 'Não foi possível consultar o CEP.')
+    } finally {
+      setLookingUpCep(false)
+    }
+  }
 
   const feeValue = useMemo(() => {
     const value = Number(fee.replace(',', '.'))
@@ -121,13 +203,15 @@ export function CreateDeliveryForm({
     setResolvedAddress('')
 
     try {
-      const locationContext = [storeCity,storeState,'Brasil']
+      const locationContext = [city || storeCity,stateCode || storeState,'Brasil']
         .map(value => value?.trim())
         .filter(Boolean)
         .join(', ')
-      const geocodeAddress = locationContext
-        ? `${address.trim()}, ${locationContext}`
-        : address.trim()
+      const geocodeAddress = address.includes(city || '')
+        ? `${address.trim()}, Brasil`
+        : locationContext
+          ? `${address.trim()}, ${locationContext}`
+          : address.trim()
 
       const response = await fetch('/api/geocode',{
         method:'POST',
@@ -215,49 +299,124 @@ export function CreateDeliveryForm({
         </div>
         <div className="field">
           <label>Telefone</label>
-          <input name="customer_phone" placeholder="(21) 99999-9999" defaultValue={initialOrder?.customerPhone ?? ''} />
+          <input
+            name="customer_phone"
+            inputMode="tel"
+            placeholder="(21) 99999-9999"
+            value={phone}
+            onChange={event => setPhone(formatPhone(event.target.value))}
+          />
         </div>
 
-        <div className="field full">
-          <label>Endereço de entrega</label>
-          <div className="geo-address-row">
-            <input
-              name="delivery_address"
-              required
-              placeholder="Ex.: Av. de Santa Cruz, 1200, Senador Camará"
-              value={address}
-              onChange={event => {
-                setAddress(event.target.value)
-                setResolvedAddress('')
-                setGeocodeError('')
-                setLatitude('')
-                setLongitude('')
-                setDeliveryDistance('')
-                setEstimatedMinutes('')
-              }}
-              onBlur={() => {
-                const current = address.trim()
-                if (current.length >= 6 && current !== lastLocatedAddress && !locating) {
-                  void locateAddress()
-                }
-              }}
-              onKeyDown={event => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  void locateAddress()
-                }
-              }}
-            />
+        <div className="delivery-address-builder full">
+          <div className="delivery-address-head">
+            <div>
+              <span className="delivery-step-badge">1</span>
+              <div>
+                <strong>Localizar pelo CEP</strong>
+                <small>Informe o CEP para preencher rua, bairro, cidade e estado automaticamente.</small>
+              </div>
+            </div>
+            <span className={cep.length === 9 ? 'delivery-address-state ready' : 'delivery-address-state'}>
+              {cep.length === 9 ? 'CEP preenchido' : '8 dígitos'}
+            </span>
+          </div>
+
+          <div className="cep-search-row">
+            <label className="field">
+              <span>CEP</span>
+              <input
+                inputMode="numeric"
+                autoComplete="postal-code"
+                placeholder="00000-000"
+                value={cep}
+                onChange={event => {
+                  setCep(formatCep(event.target.value))
+                  setCepError('')
+                  resetLocation()
+                }}
+                onKeyDown={event => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void lookupCep()
+                  }
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="cep-search-button"
+              onClick={() => void lookupCep()}
+              disabled={lookingUpCep || onlyDigits(cep).length !== 8}
+            >
+              {lookingUpCep ? 'BUSCANDO...' : 'BUSCAR CEP'}
+            </button>
+          </div>
+
+          {cepError ? <div className="error">{cepError}</div> : null}
+
+          <div className="address-fields-grid">
+            <label className="field street">
+              <span>Rua / Avenida</span>
+              <input
+                autoComplete="address-line1"
+                placeholder="Rua ou avenida"
+                value={street}
+                onChange={event => { setStreet(event.target.value); resetLocation() }}
+              />
+            </label>
+            <label className="field number">
+              <span>Número</span>
+              <input
+                ref={numberInputRef}
+                inputMode="numeric"
+                placeholder="1200"
+                value={streetNumber}
+                onChange={event => { setStreetNumber(event.target.value.slice(0,20)); resetLocation() }}
+              />
+            </label>
+            <label className="field complement">
+              <span>Complemento</span>
+              <input
+                autoComplete="address-line2"
+                placeholder="Apto, bloco, casa..."
+                value={complement}
+                onChange={event => { setComplement(event.target.value); resetLocation() }}
+              />
+            </label>
+            <label className="field neighborhood">
+              <span>Bairro</span>
+              <input value={neighborhood} onChange={event => { setNeighborhood(event.target.value); resetLocation() }} />
+            </label>
+            <label className="field city">
+              <span>Cidade</span>
+              <input value={city} onChange={event => { setCity(event.target.value); resetLocation() }} />
+            </label>
+            <label className="field state">
+              <span>UF</span>
+              <input maxLength={2} value={stateCode} onChange={event => { setStateCode(event.target.value.toUpperCase()); resetLocation() }} />
+            </label>
+          </div>
+
+          <div className="address-preview-card">
+            <div>
+              <span className="delivery-step-badge">2</span>
+              <div>
+                <small>Endereço que será usado na entrega</small>
+                <strong>{address || 'Preencha o CEP e o número do cliente.'}</strong>
+              </div>
+            </div>
             <button
               type="button"
               className="geo-locate-button"
-              onMouseDown={event => event.preventDefault()}
               onClick={() => void locateAddress()}
-              disabled={locating || address.trim().length < 6}
+              disabled={locating || street.trim().length < 3 || !streetNumber.trim()}
             >
-              {locating ? 'IDENTIFICANDO...' : 'IDENTIFICAR LOCALIZAÇÃO'}
+              {locating ? 'LOCALIZANDO...' : 'IDENTIFICAR NO MAPA'}
             </button>
           </div>
+
+          <input type="hidden" name="delivery_address" value={address}/>
         </div>
 
         <input type="hidden" name="delivery_latitude" value={latitude}/>
@@ -268,8 +427,8 @@ export function CreateDeliveryForm({
           <div className={hasCoordinates ? 'geo-status ok' : 'geo-status'}>
             <i/>
             <span>
-              <strong>{hasCoordinates ? 'Localização identificada pelo sistema' : locating ? 'Identificando endereço...' : 'Digite o endereço do cliente'}</strong>
-              {resolvedAddress || 'O ChamaEntrega encontra o ponto no mapa e calcula automaticamente distância, tempo e taxa.'}
+              <strong>{hasCoordinates ? 'Destino confirmado no mapa' : locating ? 'Identificando endereço...' : 'Localização ainda não confirmada'}</strong>
+              {resolvedAddress || 'Busque o CEP, informe o número e confirme o destino no mapa.'}
             </span>
           </div>
           {deliveryDistance ? <div>
@@ -381,9 +540,9 @@ export function CreateDeliveryForm({
     </section>
 
     <div className="notice">
-      Informe apenas o endereço do cliente. O ChamaEntrega identifica a localização e calcula a rota automaticamente.
+      O CEP ajuda a reduzir erros de endereço. Depois de preencher o número, confirme o destino no mapa antes de publicar.
     </div>
-    {!hasCoordinates ? <div className="notice geo-warning">Digite o endereço completo para o sistema identificar o destino no mapa.</div> : null}
+    {!hasCoordinates ? <div className="notice geo-warning">Busque o CEP, informe o número e clique em “Identificar no mapa”.</div> : null}
     {insufficient ? <div className="error">Saldo insuficiente para publicar esta entrega. Adicione saldo no Financeiro.</div> : null}
     {state.error ? <div className="error">{state.error}</div> : null}
 
