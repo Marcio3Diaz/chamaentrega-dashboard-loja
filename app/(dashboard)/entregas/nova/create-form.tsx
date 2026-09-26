@@ -468,51 +468,56 @@ export function CreateDeliveryForm({
         <input type="hidden" name="delivery_longitude" value={longitude}/>
         <input type="hidden" name="pickup_distance_km" value="0"/>
 
-        <div className={`delivery-route-summary full ${hasCoordinates ? 'ready' : ''}`}>
-          <div className="delivery-route-status">
-            <i/>
-            <div>
-              <strong>{
-                hasCoordinates
-                  ? locationPrecision === 'cep'
-                    ? 'Localização aproximada pelo CEP'
-                    : 'Destino confirmado'
-                  : locating
-                    ? 'Identificando endereço...'
-                    : 'Aguardando localização'
-              }</strong>
-              <span>{resolvedAddress || 'Busque o CEP, informe o número e confirme o destino.'}</span>
-            </div>
-          </div>
-
-          <div className="delivery-route-metrics">
-            <div>
-              <small>Distância</small>
-              <strong>{deliveryDistance ? `${Number(deliveryDistance).toFixed(1).replace('.',',')} km` : '—'}</strong>
-            </div>
-            <div>
-              <small>Tempo</small>
-              <strong>{estimatedMinutes ? `${estimatedMinutes} min` : '—'}</strong>
-            </div>
-            <div>
-              <small>Taxa sugerida</small>
-              <strong>{feeValue > 0 ? money(feeValue) : '—'}</strong>
-            </div>
-          </div>
-
-          {hasCoordinates && mapPreviewUrl ? (
-            <details className="delivery-route-map-details">
-              <summary>Ver mapa</summary>
-              <div className="delivery-route-map">
-                <iframe
-                  title="Localização do cliente"
-                  src={mapPreviewUrl}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+        <div className={`delivery-map-panel full ${hasCoordinates ? 'ready' : ''}`}>
+          <div className="delivery-map-canvas">
+            {hasCoordinates && mapPreviewUrl ? (
+              <iframe
+                title="Mapa interativo do destino"
+                src={mapPreviewUrl}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            ) : (
+              <div className="delivery-map-empty">
+                <div className="delivery-map-empty-icon">⌖</div>
+                <strong>{locating ? 'Localizando endereço...' : 'Mapa aguardando destino'}</strong>
+                <span>Busque o CEP, informe o número e clique em “Identificar no mapa”.</span>
               </div>
-            </details>
-          ) : null}
+            )}
+          </div>
+
+          <div className="delivery-map-overlay">
+            <div className="delivery-route-status">
+              <i/>
+              <div>
+                <strong>{
+                  hasCoordinates
+                    ? locationPrecision === 'cep'
+                      ? 'Localização aproximada pelo CEP'
+                      : 'Destino confirmado'
+                    : locating
+                      ? 'Identificando endereço...'
+                      : 'Aguardando localização'
+                }</strong>
+                <span>{resolvedAddress || 'Nenhum endereço confirmado ainda.'}</span>
+              </div>
+            </div>
+
+            <div className="delivery-route-metrics">
+              <div>
+                <small>Distância</small>
+                <strong>{deliveryDistance ? `${Number(deliveryDistance).toFixed(1).replace('.',',')} km` : '—'}</strong>
+              </div>
+              <div>
+                <small>Tempo</small>
+                <strong>{estimatedMinutes ? `${estimatedMinutes} min` : '—'}</strong>
+              </div>
+              <div>
+                <small>Taxa</small>
+                <strong>{feeValue > 0 ? money(feeValue) : '—'}</strong>
+              </div>
+            </div>
+          </div>
         </div>
 
         {geocodeError ? <div className="error full">{geocodeError}</div> : null}
