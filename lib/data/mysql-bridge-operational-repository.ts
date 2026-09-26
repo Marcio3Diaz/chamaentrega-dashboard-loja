@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getMysqlPool } from '@/lib/database/mysql'
 import { MysqlOperationalRepository } from '@/lib/data/mysql-operational-repository'
+import { SupabaseOperationalRepository } from '@/lib/data/supabase-operational-repository'
 import type {
   StoreOrderRecord,
   CourierOperationalRecord,
@@ -38,14 +39,10 @@ const COURIER_COLUMNS = [
 
 const STORE_COLUMNS = [
   'id','owner_id','name','phone','logo_url','address','latitude','longitude',
-  'is_active','moderation_status','moderation_reason','city','state','zip_code',
-  'street','street_number','complement','neighborhood','organization_id',
-  'moderated_at','moderated_by','approved_at','created_at','updated_at',
+  'is_active','moderation_status','moderation_reason','city','state','created_at',
 ] as const
 
-const STORE_MEMBER_COLUMNS = [
-  'store_id','user_id','status','role','created_at','updated_at',
-] as const
+const PROFILE_ACCESS_COLUMNS = ['id','role'] as const
 
 function normalizeMysqlValue(value: unknown) {
   if (value == null) return null
@@ -87,79 +84,55 @@ async function upsertRows(
 }
 
 async function syncStoresForUser(userId:string) {
+  const supabaseRepository = new SupabaseOperationalRepository()
+  const stores = await supabaseRepository.listStoresForUser(userId)
   const supabase = await createClient()
 
-  const [{ data:userProfiles,error:profileError },{ data:owned,error:ownedError },{ data:memberships,error:memberError }] =
-    await Promise.all([
-      supabase
-        .from('profiles')
-        .select(PROFILE_COLUMNS.join(','))
-        .eq('id',userId),
-      supabase
-        .from('stores')
-        .select(STORE_COLUMNS.join(','))
-        .eq('owner_id',userId),
-      supabase
-        .from('store_members')
-        .select(STORE_MEMBER_COLUMNS.join(','))
-        .eq('user_id',userId)
-        .eq('status','active'),
-    ])
-
-  if (profileError) throw profileError
-  if (ownedError) throw ownedError
-  if (memberError) throw memberError
-
-  const memberStoreIds = (memberships ?? [])
-    .map((row:any) => String(row.store_id ?? ''))
-    .filter(Boolean)
-
-  const { data:memberStores,error:memberStoresError } = memberStoreIds.length
-    ? await supabase
-        .from('stores')
-        .select(STORE_COLUMNS.join(','))
-        .in('id',memberStoreIds)
-    : { data:[], error:null }
-
-  if (memberStoresError) throw memberStoresError
-
-  const storeRows = [
-    ...((owned ?? []) as unknown as Record<string,unknown>[]),
-    ...((memberStores ?? []) as unknown as Record<string,unknown>[]),
-  ]
-
   const ownerIds = Array.from(new Set(
-    storeRows
-      .map(row => String(row.owner_id ?? ''))
+    stores
+      .map(store => String(store.owner_id ?? ''))
       .filter(Boolean),
   ))
 
-  const missingOwnerIds = ownerIds.filter(id => id !== userId)
-  let ownerProfiles:Record<string,unknown>[] = []
+  const profileIds = Array.from(new Set([userId,...ownerIds]))
+  const { data:profiles,error:profilesError } = await supabase
+    .from('profiles')
+    .select(PROFILE_ACCESS_COLUMNS.join(','))
+    .in('id',profileIds)
 
-  if (missingOwnerIds.length) {
-    const { data,error } = await supabase
-      .from('profiles')
-      .select(PROFILE_COLUMNS.join(','))
-      .in('id',missingOwnerIds)
-
-    if (error) throw error
-    ownerProfiles = (data ?? []) as unknown as Record<string,unknown>[]
-  }
+  if (profilesError) throw profilesError
 
   await upsertRows(
     'profiles',
-    PROFILE_COLUMNS,
-    [
-      ...((userProfiles ?? []) as unknown as Record<string,unknown>[]),
-      ...ownerProfiles,
-    ],
+    PROFILE_ACCESS_COLUMNS,
+    (profiles ?? []) as unknown as Record<string,unknown>[],
   )
-  await upsertRows('stores',STORE_COLUMNS,storeRows)
+
+  await upsertRows(
+    'stores',
+    STORE_COLUMNS,
+    stores as unknown as Record<string,unknown>[],
+  )
+
+  const ownedIds = new Set(
+    stores
+      .filter(store => store.owner_id === userId)
+      .map(store => store.id),
+  )
+
+  const memberRows = stores
+    .filter(store => !ownedIds.has(store.id))
+    .map(store => ({
+      store_id:store.id,
+      user_id:userId,
+      status:'active',
+      role:'operator',
+    }))
+
   await upsertRows(
     'store_members',
-    STORE_MEMBER_COLUMNS,
-    (memberships ?? []) as unknown as Record<string,unknown>[],
+    ['store_id','user_id','status','role'],
+    memberRows,
     ['store_id','user_id'],
   )
 }
