@@ -73,6 +73,17 @@ const statusMeta: Record<OrderStatus,{label:string;className:string;step:number}
   cancelled:{ label:'Cancelado', className:'cancelled', step:0 },
 }
 
+const STORE_TIME_ZONE = 'America/Sao_Paulo'
+
+function orderDayKey(value:string | Date) {
+  return new Intl.DateTimeFormat('en-CA',{
+    timeZone:STORE_TIME_ZONE,
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+  }).format(typeof value === 'string' ? new Date(value) : value)
+}
+
 const sourceMeta: Record<OrderSource,{label:string;logo?:string;className:string}> = {
   whatsapp:{ label:'WhatsApp', logo:'/integrations/whatsapp.svg', className:'whatsapp' },
   ifood:{ label:'iFood', logo:'/integrations/ifood.svg', className:'ifood' },
@@ -202,13 +213,41 @@ export function IntegratedOrdersBoard({
   )
   const [page,setPage] = useState(1)
   const [message,setMessage] = useState(initialMessage)
+  const [currentDayKey,setCurrentDayKey] = useState(() => orderDayKey(new Date()))
 
-  const deliveryMap = useMemo(() => new Map(deliveries.map(item => [item.id,item])),[deliveries])
+  useEffect(() => {
+    const refreshDay = () => {
+      const next = orderDayKey(new Date())
+      setCurrentDayKey(current => current === next ? current : next)
+    }
+    refreshDay()
+    const timer = window.setInterval(refreshDay,30_000)
+    return () => window.clearInterval(timer)
+  },[])
 
-  const enriched = useMemo(() => orders.map(order => {
+  const todayOrders = useMemo(
+    () => orders.filter(order => orderDayKey(order.receivedAt || order.createdAt) === currentDayKey),
+    [orders,currentDayKey],
+  )
+
+  const todayDeliveryIds = useMemo(
+    () => new Set(todayOrders.map(order => order.deliveryId).filter(Boolean) as string[]),
+    [todayOrders],
+  )
+
+  const deliveryMap = useMemo(
+    () => new Map(
+      deliveries
+        .filter(item => todayDeliveryIds.has(item.id))
+        .map(item => [item.id,item]),
+    ),
+    [deliveries,todayDeliveryIds],
+  )
+
+  const enriched = useMemo(() => todayOrders.map(order => {
     const delivery = order.deliveryId ? deliveryMap.get(order.deliveryId) : undefined
     return { order,delivery,status:effectiveStatus(order,delivery) }
-  }),[orders,deliveryMap])
+  }),[todayOrders,deliveryMap])
 
   const counts = useMemo(() => {
     const base:Record<string,number> = { all:enriched.length,new:0,preparing:0,ready:0,seeking_courier:0,in_route:0,completed:0,cancelled:0 }
@@ -217,10 +256,10 @@ export function IntegratedOrdersBoard({
   },[enriched])
 
   const sourceCounts = useMemo(() => {
-    const base:Record<string,number> = { all:orders.length }
-    orders.forEach(item => { base[item.source] = (base[item.source] ?? 0) + 1 })
+    const base:Record<string,number> = { all:todayOrders.length }
+    todayOrders.forEach(item => { base[item.source] = (base[item.source] ?? 0) + 1 })
     return base
-  },[orders])
+  },[todayOrders])
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('pt-BR')
@@ -409,25 +448,11 @@ export function IntegratedOrdersBoard({
     return () => window.clearTimeout(timer)
   },[message])
 
-  const todayKey = new Intl.DateTimeFormat('en-CA', {
-    year:'numeric',
-    month:'2-digit',
-    day:'2-digit',
-  }).format(new Date())
-
-  const todayItems = enriched.filter(({order}) =>
-    new Intl.DateTimeFormat('en-CA', {
-      year:'numeric',
-      month:'2-digit',
-      day:'2-digit',
-    }).format(new Date(order.receivedAt)) === todayKey
-  )
-
   const metrics = {
-    total: todayItems.length,
-    new: todayItems.filter(item => item.status === 'new').length,
-    preparing: todayItems.filter(item => item.status === 'preparing').length,
-    ready: todayItems.filter(item => item.status === 'ready').length,
+    total: enriched.length,
+    new: enriched.filter(item => item.status === 'new').length,
+    preparing: enriched.filter(item => item.status === 'preparing').length,
+    ready: enriched.filter(item => item.status === 'ready').length,
   }
 
   return (
@@ -649,7 +674,7 @@ export function IntegratedOrdersBoard({
                 <div className="orders-command-empty">
                   <span>✦</span>
                   <strong>Nenhuma comanda encontrada</strong>
-                  <p>Os pedidos e entregas da operação aparecerão aqui em formato de comanda.</p>
+                  <p>Os pedidos de hoje aparecerão aqui. A tela inicia vazia a cada novo dia.</p>
                 </div>
               ) : null}
             </div>
