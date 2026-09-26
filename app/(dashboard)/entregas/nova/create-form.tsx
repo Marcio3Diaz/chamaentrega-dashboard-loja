@@ -99,6 +99,9 @@ export function CreateDeliveryForm({
   const [stateCode,setStateCode] = useState(storeState ?? '')
   const [phone,setPhone] = useState(initialOrder?.customerPhone ?? '')
   const [cepError,setCepError] = useState('')
+  const [cepLatitude,setCepLatitude] = useState<number | null>(null)
+  const [cepLongitude,setCepLongitude] = useState<number | null>(null)
+  const [locationPrecision,setLocationPrecision] = useState<'exact' | 'cep' | ''>('')
   const [lookingUpCep,setLookingUpCep] = useState(false)
   const numberInputRef = useRef<HTMLInputElement | null>(null)
   const [latitude,setLatitude] = useState(initialOrder?.deliveryLatitude ?? '')
@@ -146,6 +149,9 @@ export function CreateDeliveryForm({
         city?:string
         state?:string
         cep?:string
+        latitude?:number | null
+        longitude?:number | null
+        coordinateSource?:string | null
         error?:string
       }
 
@@ -156,6 +162,9 @@ export function CreateDeliveryForm({
       setNeighborhood(payload.neighborhood || '')
       setCity(payload.city || '')
       setStateCode(payload.state || '')
+      setCepLatitude(payload.latitude ?? null)
+      setCepLongitude(payload.longitude ?? null)
+      setLocationPrecision('')
       resetLocation()
       window.setTimeout(() => numberInputRef.current?.focus(),20)
     } catch (error) {
@@ -241,6 +250,7 @@ export function CreateDeliveryForm({
       setLatitude(String(payload.latitude))
       setLongitude(String(payload.longitude))
       setResolvedAddress(payload.displayName || address)
+      setLocationPrecision('exact')
       setLastLocatedAddress(address.trim())
 
       if (storeLatitude != null && storeLongitude != null) {
@@ -261,15 +271,42 @@ export function CreateDeliveryForm({
         }
       }
     } catch (error) {
-      setLatitude('')
-      setLongitude('')
-      setDeliveryDistance('')
-      setEstimatedMinutes('')
-      setGeocodeError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível localizar o endereço.',
-      )
+      if (cepLatitude != null && cepLongitude != null) {
+        setLatitude(String(cepLatitude))
+        setLongitude(String(cepLongitude))
+        setResolvedAddress(address || `CEP ${cep}`)
+        setLocationPrecision('cep')
+        setGeocodeError('Número exato não encontrado. Usando localização aproximada do CEP; confira o ponto no mapa.')
+
+        if (storeLatitude != null && storeLongitude != null) {
+          const direct = haversineKm(
+            storeLatitude,
+            storeLongitude,
+            cepLatitude,
+            cepLongitude,
+          )
+          const roadDistance = Math.max(.1,direct*pricing.roadFactor)
+          const estimated = Math.max(10,Math.round(8 + roadDistance*2.4))
+
+          setDeliveryDistance(roadDistance.toFixed(2))
+          setEstimatedMinutes(String(estimated))
+
+          if (pricing.enabled) {
+            setFee(suggestedFee(roadDistance).toFixed(2).replace('.',','))
+          }
+        }
+      } else {
+        setLatitude('')
+        setLongitude('')
+        setDeliveryDistance('')
+        setEstimatedMinutes('')
+        setLocationPrecision('')
+        setGeocodeError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível localizar o endereço.',
+        )
+      }
     } finally {
       setLocating(false)
     }
@@ -435,7 +472,15 @@ export function CreateDeliveryForm({
           <div className={hasCoordinates ? 'geo-status ok' : 'geo-status'}>
             <i/>
             <span>
-              <strong>{hasCoordinates ? 'Destino confirmado no mapa' : locating ? 'Identificando endereço...' : 'Localização ainda não confirmada'}</strong>
+              <strong>{
+                hasCoordinates
+                  ? locationPrecision === 'cep'
+                    ? 'Localização aproximada pelo CEP'
+                    : 'Destino confirmado no mapa'
+                  : locating
+                    ? 'Identificando endereço...'
+                    : 'Localização ainda não confirmada'
+              }</strong>
               {resolvedAddress || 'Busque o CEP, informe o número e confirme o destino no mapa.'}
             </span>
           </div>
