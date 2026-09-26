@@ -9,17 +9,17 @@ import { StoreLogoUpload } from '@/components/store-logo-upload'
 import { CHAMAENTREGA_LOGO_CREME } from '@/lib/brand-logo-creme'
 
 const nav = [
-  ['/painel', 'Início', 'home'],
-  ['/pedidos', 'Pedidos', 'box'],
-  ['/entregas/nova', 'Criar entrega', 'route'],
-  ['/entregadores', 'Entregadores', 'user'],
-  ['/financeiro', 'Financeiro', 'chart'],
-  ['/entregas', 'Entregas', 'box'],
-  ['/integracoes', 'Cardápio', 'store'],
-  ['/integracoes', 'Integrações', 'link'],
-  ['/despacho', 'Promoções', 'activity'],
-  ['/configuracoes', 'Configurações', 'gear'],
-]
+  { href:'/painel', label:'Início', icon:'home', exact:true },
+  { href:'/pedidos', label:'Pedidos', icon:'box' },
+  { href:'/entregas/nova', label:'Criar entrega', icon:'route', exact:true },
+  { href:'/entregadores', label:'Entregadores', icon:'user' },
+  { href:'/financeiro', label:'Financeiro', icon:'chart' },
+  { href:'/entregas', label:'Entregas', icon:'box', exact:true },
+  { href:'/cardapio', label:'Cardápio', icon:'store' },
+  { href:'/integracoes', label:'Integrações', icon:'link' },
+  { href:'/despacho', label:'Despacho', icon:'activity' },
+  { href:'/configuracoes', label:'Configurações', icon:'gear' },
+] as const
 
 type StoreOption = {
   id: string
@@ -86,6 +86,11 @@ export function DashboardShell({
     rejected:'Cadastro rejeitado',
   }[moderationStatus]
 
+  function isNavActive(href:string, exact?:boolean) {
+    if (exact) return pathname === href
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
   function switchStore(nextStoreId:string) {
     if (nextStoreId === storeId || switchingStore) {
       setStoreMenuOpen(false)
@@ -106,7 +111,7 @@ export function DashboardShell({
       <aside className="sidebar premium-sidebar">
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
-            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores') || pathname === '/entregas' || pathname === '/painel' || pathname.startsWith('/configuracoes') || pathname.startsWith('/financeiro')) ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
+            src={CHAMAENTREGA_LOGO_CREME}
             width={420}
             height={140}
             alt="ChamaEntrega — Chamou, Chegou"
@@ -190,10 +195,14 @@ export function DashboardShell({
         </div>
 
         <nav className="nav premium-nav">
-          {nav.map(([href,label,icon]) => (
-            <Link key={href} href={href} className={pathname===href ? 'primary' : ''}>
-              <span className="nav-icon"><Icon name={icon} size={19}/></span>
-              <span>{label}</span>
+          {nav.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={isNavActive(item.href,item.exact) ? 'primary' : ''}
+            >
+              <span className="nav-icon"><Icon name={item.icon} size={19}/></span>
+              <span>{item.label}</span>
             </Link>
           ))}
         </nav>
