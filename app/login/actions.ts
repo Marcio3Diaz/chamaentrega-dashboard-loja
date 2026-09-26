@@ -51,7 +51,19 @@ export async function loginAction(
   let stores
   try {
     stores = await repository.listStoresForUser(userId)
-  } catch {
+  } catch (error) {
+    console.error('[loginAction] operational store lookup failed', {
+      provider: process.env.DATABASE_PROVIDER ?? 'supabase',
+      mysqlSyncFromSupabase: process.env.MYSQL_SYNC_FROM_SUPABASE ?? 'false',
+      userId,
+      error: error instanceof Error
+        ? {
+            name:error.name,
+            message:error.message,
+            stack:error.stack,
+          }
+        : error,
+    })
     await supabase.auth.signOut()
     return { error: 'Não foi possível validar o acesso à sua loja.' }
   }
