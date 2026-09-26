@@ -163,8 +163,51 @@ export function CreateDeliveryForm({
       setNeighborhood(payload.neighborhood || '')
       setCity(payload.city || '')
       setStateCode(payload.state || '')
-      const previewLatitude = payload.latitude ?? null
-      const previewLongitude = payload.longitude ?? null
+      let previewLatitude:number | null = null
+      let previewLongitude:number | null = null
+
+      // Não usamos coordenadas vindas do serviço de CEP.
+      // Alguns CEPs retornam centroides incorretos (ex.: Centro do Rio).
+      // A prévia do mapa é obtida pela rua + bairro + cidade + UF.
+      try {
+        const previewResponse = await fetch('/api/geocode',{
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify({
+            address:[
+              payload.street,
+              payload.neighborhood,
+              payload.city,
+              payload.state,
+              'Brasil',
+            ].filter(Boolean).join(', '),
+            street:payload.street || '',
+            neighborhood:payload.neighborhood || '',
+            city:payload.city || '',
+            state:payload.state || '',
+            cep:normalized,
+          }),
+        })
+
+        if (previewResponse.ok) {
+          const preview = await previewResponse.json() as {
+            latitude?:number
+            longitude?:number
+            confidence?:number
+          }
+
+          if (
+            preview.latitude != null
+            && preview.longitude != null
+            && Number(preview.confidence ?? 0) >= 45
+          ) {
+            previewLatitude = Number(preview.latitude)
+            previewLongitude = Number(preview.longitude)
+          }
+        }
+      } catch {
+        // Sem prévia confiável: o mapa permanece centralizado na loja.
+      }
 
       setCepLatitude(previewLatitude)
       setCepLongitude(previewLongitude)
