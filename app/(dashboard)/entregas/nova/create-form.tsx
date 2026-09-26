@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useMemo, useRef, useState } from 'react'
+import { DeliveryLocationPicker } from '@/components/delivery-location-picker'
 import { createDeliveryAction, type CreateState } from './actions'
 
 const initial: CreateState = {}
@@ -182,26 +183,38 @@ export function CreateDeliveryForm({
   const insufficient = feeValue > availableBalance
   const hasCoordinates = Boolean(latitude && longitude)
 
-  const mapPreviewUrl = useMemo(() => {
-    if (!hasCoordinates) return ''
-    const lat = Number(latitude)
-    const lon = Number(longitude)
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return ''
-    const delta = 0.006
-    const bbox = [
-      lon - delta,
-      lat - delta,
-      lon + delta,
-      lat + delta,
-    ].join(',')
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lon}`)}`
-  },[hasCoordinates,latitude,longitude])
-
   function suggestedFee(distanceKm:number) {
     const extraKm = Math.max(0,distanceKm-pricing.includedKm)
     const raw = pricing.minimumFee + extraKm*pricing.perExtraKm
     const step = Math.max(.01,pricing.roundStep)
     return Math.max(pricing.minimumFee,Math.ceil(raw/step)*step)
+  }
+
+
+  function applyManualLocation(lat:number,lon:number) {
+    setLatitude(String(lat))
+    setLongitude(String(lon))
+    setResolvedAddress(address || 'Destino selecionado no mapa')
+    setLocationPrecision('exact')
+    setGeocodeError('')
+
+    if (storeLatitude != null && storeLongitude != null) {
+      const direct = haversineKm(
+        storeLatitude,
+        storeLongitude,
+        lat,
+        lon,
+      )
+      const roadDistance = Math.max(.1,direct*pricing.roadFactor)
+      const estimated = Math.max(10,Math.round(8 + roadDistance*2.4))
+
+      setDeliveryDistance(roadDistance.toFixed(2))
+      setEstimatedMinutes(String(estimated))
+
+      if (pricing.enabled) {
+        setFee(suggestedFee(roadDistance).toFixed(2).replace('.',','))
+      }
+    }
   }
 
   async function locateAddress() {
@@ -469,22 +482,13 @@ export function CreateDeliveryForm({
         <input type="hidden" name="pickup_distance_km" value="0"/>
 
         <div className={`delivery-map-panel full ${hasCoordinates ? 'ready' : ''}`}>
-          <div className="delivery-map-canvas">
-            {hasCoordinates && mapPreviewUrl ? (
-              <iframe
-                title="Mapa interativo do destino"
-                src={mapPreviewUrl}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            ) : (
-              <div className="delivery-map-empty">
-                <div className="delivery-map-empty-icon">⌖</div>
-                <strong>{locating ? 'Localizando endereço...' : 'Mapa aguardando destino'}</strong>
-                <span>Busque o CEP, informe o número e clique em “Identificar no mapa”.</span>
-              </div>
-            )}
-          </div>
+          <DeliveryLocationPicker
+            latitude={latitude ? Number(latitude) : null}
+            longitude={longitude ? Number(longitude) : null}
+            storeLatitude={storeLatitude}
+            storeLongitude={storeLongitude}
+            onSelect={applyManualLocation}
+          />
 
           <div className="delivery-map-overlay">
             <div className="delivery-route-status">
@@ -499,7 +503,7 @@ export function CreateDeliveryForm({
                       ? 'Identificando endereço...'
                       : 'Aguardando localização'
                 }</strong>
-                <span>{resolvedAddress || 'Nenhum endereço confirmado ainda.'}</span>
+                <span>{resolvedAddress || 'Clique no mapa para marcar o destino manualmente.'}</span>
               </div>
             </div>
 
@@ -587,14 +591,14 @@ export function CreateDeliveryForm({
     <div className="notice">
       O CEP ajuda a reduzir erros de endereço. Depois de preencher o número, confirme o destino no mapa antes de publicar.
     </div>
-    {!hasCoordinates ? <div className="notice geo-warning">Busque o CEP, informe o número e clique em “Identificar no mapa”.</div> : null}
+    {!hasCoordinates ? <div className="notice geo-warning">Busque o endereço automaticamente ou clique no mapa para marcar o destino manualmente.</div> : null}
     {insufficient ? <div className="error">Saldo insuficiente para publicar esta entrega. Adicione saldo no Financeiro.</div> : null}
     {state.error ? <div className="error">{state.error}</div> : null}
 
     <div className="form-actions">
       <div className="form-action-hint">
         {!hasCoordinates
-          ? 'Digite o endereço para identificar a localização.'
+          ? 'Identifique o endereço ou marque o destino diretamente no mapa.'
           : feeValue <= 0
             ? 'Informe a taxa do entregador.'
             : insufficient
