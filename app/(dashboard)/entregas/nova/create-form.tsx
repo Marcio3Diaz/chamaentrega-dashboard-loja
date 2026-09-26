@@ -216,7 +216,15 @@ export function CreateDeliveryForm({
       const response = await fetch('/api/geocode',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({address:geocodeAddress}),
+        body:JSON.stringify({
+          address:geocodeAddress,
+          street:street.trim(),
+          number:streetNumber.trim(),
+          neighborhood:neighborhood.trim(),
+          city:(city || storeCity || '').trim(),
+          state:(stateCode || storeState || '').trim(),
+          cep:onlyDigits(cep),
+        }),
       })
 
       const payload = await response.json() as {
