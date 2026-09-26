@@ -17,6 +17,15 @@ export type StoreChatConversation = {
   updatedAt: string
 }
 
+type StoreCourierThread = {
+  courierId: string
+  courierName: string
+  courierAvatarUrl: string | null
+  deliveries: StoreChatConversation[]
+  primary: StoreChatConversation
+  deliveryIds: string[]
+}
+
 type ChatMessage = {
   id: string
   delivery_id: string
@@ -125,15 +134,14 @@ export function StoreDeliveryChat({
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
 
-  const initialSelected =
-    initialConversations.some(item => item.deliveryId === initialDeliveryId)
-      ? initialDeliveryId
-      : initialConversations.find(item => activeStatuses.has(item.status))?.deliveryId ??
-        initialConversations[0]?.deliveryId ??
-        null
+  const initialSelectedCourierId =
+    initialConversations.find(item => item.deliveryId === initialDeliveryId)?.courierId ??
+    initialConversations.find(item => activeStatuses.has(item.status))?.courierId ??
+    initialConversations[0]?.courierId ??
+    null
 
   const [conversations, setConversations] = useState(initialConversations)
-  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(initialSelected)
+  const [selectedCourierId, setSelectedCourierId] = useState<string | null>(initialSelectedCourierId)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [lastMessages, setLastMessages] = useState<Record<string,ChatMessage>>({})
   const [unreadCounts, setUnreadCounts] = useState<Record<string,number>>({})
@@ -144,27 +152,68 @@ export function StoreDeliveryChat({
   const [error, setError] = useState('')
   const [realtimeState, setRealtimeState] = useState('CONECTANDO')
 
-  const selectedConversation = conversations.find(item => item.deliveryId === selectedDeliveryId) ?? null
+  const courierThreads = useMemo<StoreCourierThread[]>(() => {
+    const groups = new Map<string,StoreChatConversation[]>()
 
-  const sortedConversations = useMemo(() => {
+    for (const conversation of conversations) {
+      const current = groups.get(conversation.courierId) ?? []
+      current.push(conversation)
+      groups.set(conversation.courierId,current)
+    }
+
+    return Array.from(groups.entries()).map(([courierId,deliveries]) => {
+      const ordered = [...deliveries].sort((a,b) => {
+        const aActive = activeStatuses.has(a.status) ? 1 : 0
+        const bActive = activeStatuses.has(b.status) ? 1 : 0
+        if (aActive !== bActive) return bActive - aActive
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      })
+      const primary = ordered[0]
+
+      return {
+        courierId,
+        courierName: primary.courierName,
+        courierAvatarUrl: primary.courierAvatarUrl,
+        deliveries: ordered,
+        primary,
+        deliveryIds: ordered.map(item => item.deliveryId),
+      }
+    })
+  }, [conversations])
+
+  const selectedThread = courierThreads.find(item => item.courierId === selectedCourierId) ?? courierThreads[0] ?? null
+  const selectedConversation = selectedThread?.primary ?? null
+  const selectedDeliveryIds = selectedThread?.deliveryIds ?? []
+  const selectedDeliveryIdsKey = selectedDeliveryIds.join(',')
+
+  const sortedThreads = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('pt-BR')
 
-    return [...conversations]
-      .filter(item => {
+    return courierThreads
+      .filter(thread => {
         if (!normalized) return true
         return [
-          item.courierName,
-          item.customerName,
-          item.deliveryAddress,
-          shortId(item.deliveryId),
+          thread.courierName,
+          ...thread.deliveries.flatMap(item => [
+            item.customerName,
+            item.deliveryAddress,
+            shortId(item.deliveryId),
+          ]),
         ].some(value => value.toLocaleLowerCase('pt-BR').includes(normalized))
       })
       .sort((a,b) => {
-        const aMessage = lastMessages[a.deliveryId]?.created_at ?? a.updatedAt
-        const bMessage = lastMessages[b.deliveryId]?.created_at ?? b.updatedAt
-        return new Date(bMessage).getTime() - new Date(aMessage).getTime()
+        const latestFor = (thread:StoreCourierThread) => {
+          const messageDates = thread.deliveryIds
+            .map(id => lastMessages[id]?.created_at)
+            .filter(Boolean) as string[]
+          if (messageDates.length) {
+            return Math.max(...messageDates.map(value => new Date(value).getTime()))
+          }
+          return Math.max(...thread.deliveries.map(item => new Date(item.updatedAt).getTime()))
+        }
+        return latestFor(b) - latestFor(a)
       })
-  }, [conversations, lastMessages, search])
+  }, [courierThreads,lastMessages,search])
 
   const totalUnread = Object.values(unreadCounts).reduce((sum,value) => sum + value, 0)
 
@@ -202,14 +251,20 @@ export function StoreDeliveryChat({
     }
   }, [currentUserId, supabase])
 
-  const loadConversation = useCallback(async (deliveryId: string) => {
+  const loadConversation = useCallback(async (deliveryIds: string[]) => {
     setIsLoadingMessages(true)
     setError('')
+
+    if (!deliveryIds.length) {
+      setMessages([])
+      setIsLoadingMessages(false)
+      return
+    }
 
     const { data, error: fetchError } = await supabase
       .from('delivery_chat_messages')
       .select('id,delivery_id,sender_id,sender_role,body,created_at,read_at')
-      .eq('delivery_id', deliveryId)
+      .in('delivery_id', deliveryIds)
       .order('created_at', { ascending: true })
 
     if (fetchError) {
@@ -221,7 +276,7 @@ export function StoreDeliveryChat({
 
     setMessages((data ?? []) as ChatMessage[])
     setIsLoadingMessages(false)
-    void markRead(deliveryId)
+    for (const deliveryId of deliveryIds) void markRead(deliveryId)
     scrollToBottom(false)
   }, [markRead, scrollToBottom, supabase])
 
@@ -297,25 +352,25 @@ export function StoreDeliveryChat({
 
     setConversations(next)
 
-    if (!selectedDeliveryId && next.length) {
-      setSelectedDeliveryId(
-        next.find(item => activeStatuses.has(item.status))?.deliveryId ?? next[0].deliveryId,
+    if (!selectedCourierId && next.length) {
+      setSelectedCourierId(
+        next.find(item => activeStatuses.has(item.status))?.courierId ?? next[0].courierId,
       )
     }
-  }, [selectedDeliveryId, storeId, supabase])
+  }, [selectedCourierId, storeId, supabase])
 
   useEffect(() => {
     void loadSummaries()
   }, [loadSummaries])
 
   useEffect(() => {
-    if (!selectedDeliveryId) {
+    if (!selectedDeliveryIds.length) {
       setMessages([])
       return
     }
 
-    void loadConversation(selectedDeliveryId)
-  }, [loadConversation, selectedDeliveryId])
+    void loadConversation(selectedDeliveryIds)
+  }, [loadConversation, selectedDeliveryIdsKey])
 
   useEffect(() => {
     const chatChannel = supabase
@@ -337,7 +392,8 @@ export function StoreDeliveryChat({
             [message.delivery_id]: message,
           }))
 
-          if (message.delivery_id === selectedDeliveryId) {
+          const selectedDelivery = selectedDeliveryIds.includes(message.delivery_id)
+          if (selectedDelivery) {
             setMessages(current => {
               if (current.some(item => item.id === message.id)) return current
               return [...current,message]
@@ -401,7 +457,7 @@ export function StoreDeliveryChat({
     markRead,
     refreshConversations,
     scrollToBottom,
-    selectedDeliveryId,
+    selectedDeliveryIdsKey,
     storeId,
     supabase,
   ])
@@ -410,13 +466,13 @@ export function StoreDeliveryChat({
     event?.preventDefault()
 
     const body = draft.trim()
-    if (!body || !selectedDeliveryId || isSending) return
+    if (!body || !selectedConversation || isSending) return
 
     setIsSending(true)
     setError('')
 
     const { error: sendError } = await supabase.rpc('send_delivery_chat_message', {
-      p_delivery_id: selectedDeliveryId,
+      p_delivery_id: selectedConversation.deliveryId,
       p_body: body,
     })
 
@@ -446,11 +502,15 @@ export function StoreDeliveryChat({
     }
   }
 
-  function selectConversation(deliveryId: string) {
-    setSelectedDeliveryId(deliveryId)
-    setUnreadCounts(current => ({ ...current, [deliveryId]: 0 }))
+  function selectConversation(thread: StoreCourierThread) {
+    setSelectedCourierId(thread.courierId)
+    setUnreadCounts(current => {
+      const next = { ...current }
+      for (const deliveryId of thread.deliveryIds) next[deliveryId] = 0
+      return next
+    })
     const url = new URL(window.location.href)
-    url.searchParams.set('delivery', deliveryId)
+    url.searchParams.set('delivery', thread.primary.deliveryId)
     window.history.replaceState({}, '', url)
   }
 
@@ -474,7 +534,7 @@ export function StoreDeliveryChat({
           <div className="store-chat-conversations-head">
             <div>
               <strong>Conversas</strong>
-              <span>{conversations.length} entrega{conversations.length === 1 ? '' : 's'} com entregador</span>
+              <span>{courierThreads.length} entregador{courierThreads.length === 1 ? '' : 'es'} com chat</span>
             </div>
           </div>
 
@@ -488,23 +548,31 @@ export function StoreDeliveryChat({
           </label>
 
           <div className="store-chat-conversation-list">
-            {sortedConversations.length ? sortedConversations.map(conversation => {
-              const lastMessage = lastMessages[conversation.deliveryId]
-              const unread = unreadCounts[conversation.deliveryId] ?? 0
-              const selected = conversation.deliveryId === selectedDeliveryId
-              const active = activeStatuses.has(conversation.status)
+            {sortedThreads.length ? sortedThreads.map(thread => {
+              const conversation = thread.primary
+              const threadMessages = thread.deliveryIds
+                .map(id => lastMessages[id])
+                .filter(Boolean) as ChatMessage[]
+              const lastMessage = threadMessages.sort((a,b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              )[0]
+              const unread = thread.deliveryIds.reduce((sum,id) => sum + (unreadCounts[id] ?? 0),0)
+              const selected = thread.courierId === selectedThread?.courierId
+              const active = thread.deliveries.some(item => activeStatuses.has(item.status))
 
               return (
                 <button
                   type="button"
-                  key={conversation.deliveryId}
+                  key={thread.courierId}
                   className={`store-chat-conversation ${selected ? 'selected' : ''}`}
-                  onClick={() => selectConversation(conversation.deliveryId)}
+                  onClick={() => selectConversation(thread)}
                 >
                   <span className="store-chat-avatar">
-                    {conversation.courierAvatarUrl
-                      ? <img src={conversation.courierAvatarUrl} alt="" />
-                      : <span>{conversation.courierName.slice(0,1).toUpperCase()}</span>}
+                    <span className="store-chat-avatar-photo">
+                      {conversation.courierAvatarUrl
+                        ? <img src={conversation.courierAvatarUrl} alt="" />
+                        : <span>{conversation.courierName.slice(0,1).toUpperCase()}</span>}
+                    </span>
                     <i className={active ? 'active' : ''} />
                   </span>
 
@@ -513,7 +581,11 @@ export function StoreDeliveryChat({
                       <strong>{conversation.courierName}</strong>
                       <small>{dateLabel(lastMessage?.created_at ?? conversation.updatedAt)}</small>
                     </span>
-                    <span className="store-chat-order">#{shortId(conversation.deliveryId)} · {conversation.customerName}</span>
+                    <span className="store-chat-order">
+                      {thread.deliveries.length > 1
+                        ? `${thread.deliveries.length} entregas · última #${shortId(conversation.deliveryId)}`
+                        : `#${shortId(conversation.deliveryId)} · ${conversation.customerName}`}
+                    </span>
                     <span className="store-chat-preview">
                       {lastMessage
                         ? `${lastMessage.sender_id === currentUserId ? 'Você: ' : ''}${lastMessage.body}`
@@ -540,15 +612,19 @@ export function StoreDeliveryChat({
               <header className="store-chat-panel-head">
                 <div className="store-chat-panel-person">
                   <span className="store-chat-avatar large">
-                    {selectedConversation.courierAvatarUrl
-                      ? <img src={selectedConversation.courierAvatarUrl} alt="" />
-                      : <span>{selectedConversation.courierName.slice(0,1).toUpperCase()}</span>}
-                    <i className={activeStatuses.has(selectedConversation.status) ? 'active' : ''} />
+                    <span className="store-chat-avatar-photo">
+                      {selectedConversation.courierAvatarUrl
+                        ? <img src={selectedConversation.courierAvatarUrl} alt="" />
+                        : <span>{selectedConversation.courierName.slice(0,1).toUpperCase()}</span>}
+                    </span>
+                    <i className={selectedThread?.deliveries.some(item => activeStatuses.has(item.status)) ? 'active' : ''} />
                   </span>
                   <span>
                     <strong>{selectedConversation.courierName}</strong>
                     <small>
-                      Entrega #{shortId(selectedConversation.deliveryId)} · {statusLabels[selectedConversation.status] ?? selectedConversation.status}
+                      {selectedThread && selectedThread.deliveries.length > 1
+                        ? `${selectedThread.deliveries.length} entregas vinculadas · atual #${shortId(selectedConversation.deliveryId)}`
+                        : `Entrega #${shortId(selectedConversation.deliveryId)} · ${statusLabels[selectedConversation.status] ?? selectedConversation.status}`}
                     </small>
                   </span>
                 </div>
@@ -596,7 +672,7 @@ export function StoreDeliveryChat({
                     <span className="store-chat-empty-icon">✦</span>
                     <strong>Conversa iniciada</strong>
                     <p>
-                      Envie uma mensagem para {selectedConversation.courierName}. Esta conversa fica vinculada à entrega #{shortId(selectedConversation.deliveryId)}.
+                      Envie uma mensagem para {selectedConversation.courierName}. O histórico reúne as conversas das entregas vinculadas a este entregador.
                     </p>
                   </div>
                 )}
@@ -636,7 +712,7 @@ export function StoreDeliveryChat({
       </section>
 
       <p className="store-chat-footnote">
-        O chat é restrito à loja e ao entregador atribuído à entrega. {storeName} só vê conversas dos próprios pedidos.
+        Cada entregador possui um único chat ativo por loja. {storeName} vê apenas o histórico das próprias entregas desse parceiro.
       </p>
     </div>
   )
