@@ -14,6 +14,21 @@ type ViaCepResponse = {
   erro?: boolean
 }
 
+type BrasilApiCepV2Response = {
+  cep?: string
+  state?: string
+  city?: string
+  neighborhood?: string
+  street?: string
+  location?: {
+    type?: string
+    coordinates?: {
+      longitude?: string | number | null
+      latitude?: string | number | null
+    } | null
+  } | null
+}
+
 export async function GET(request: Request) {
   try {
     if (!isTrustedBrowserOrigin(request)) {
@@ -40,6 +55,25 @@ export async function GET(request: Request) {
       )
     }
 
+    let brasilApiData: BrasilApiCepV2Response | null = null
+
+    try {
+      const brasilResponse = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`,{
+        cache:'no-store',
+        signal:AbortSignal.timeout(6000),
+        headers:{
+          Accept:'application/json',
+          'User-Agent':'ChamaEntrega/1.0',
+        },
+      })
+
+      if (brasilResponse.ok) {
+        brasilApiData = await brasilResponse.json() as BrasilApiCepV2Response
+      }
+    } catch {
+      // ViaCEP abaixo continua como fallback cadastral.
+    }
+
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`,{
       cache:'no-store',
       signal:AbortSignal.timeout(6000),
@@ -49,29 +83,44 @@ export async function GET(request: Request) {
       },
     })
 
-    if (!response.ok) {
+    if (!response.ok && !brasilApiData) {
       return NextResponse.json(
-        { error:'O serviço de CEP não respondeu.' },
+        { error:'Os serviços de CEP não responderam.' },
         { status:502 },
       )
     }
 
-    const payload = await response.json() as ViaCepResponse
+    const payload = response.ok
+      ? await response.json() as ViaCepResponse
+      : null
 
-    if (payload.erro) {
+    if (payload?.erro && !brasilApiData) {
       return NextResponse.json(
         { error:'CEP não encontrado.' },
         { status:404 },
       )
     }
 
+    const rawLatitude = brasilApiData?.location?.coordinates?.latitude
+    const rawLongitude = brasilApiData?.location?.coordinates?.longitude
+    const latitude = rawLatitude == null ? null : Number(rawLatitude)
+    const longitude = rawLongitude == null ? null : Number(rawLongitude)
+    const hasCoordinates =
+      latitude !== null
+      && longitude !== null
+      && Number.isFinite(latitude)
+      && Number.isFinite(longitude)
+
     return NextResponse.json({
-      cep:payload.cep ?? cep,
-      street:String(payload.logradouro ?? ''),
-      complement:String(payload.complemento ?? ''),
-      neighborhood:String(payload.bairro ?? ''),
-      city:String(payload.localidade ?? ''),
-      state:String(payload.uf ?? ''),
+      cep:payload?.cep ?? brasilApiData?.cep ?? cep,
+      street:String(payload?.logradouro ?? brasilApiData?.street ?? ''),
+      complement:String(payload?.complemento ?? ''),
+      neighborhood:String(payload?.bairro ?? brasilApiData?.neighborhood ?? ''),
+      city:String(payload?.localidade ?? brasilApiData?.city ?? ''),
+      state:String(payload?.uf ?? brasilApiData?.state ?? ''),
+      latitude:hasCoordinates ? latitude : null,
+      longitude:hasCoordinates ? longitude : null,
+      coordinateSource:hasCoordinates ? 'cep' : null,
     })
   } catch (error) {
     const timedOut = error instanceof DOMException && error.name === 'TimeoutError'
