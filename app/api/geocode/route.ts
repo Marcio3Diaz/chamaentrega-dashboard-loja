@@ -220,8 +220,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // A street was supplied, so generic city-level matches are not acceptable.
-    const minimumScore=street ? 45 : 15
+    // Quando uma rua foi informada, só aceitamos resultado realmente compatível
+    // com a via. Isso impede centroides genéricos de cidade/estado.
+    const minimumScore=street ? 60 : 15
 
     if (!best || best.score < minimumScore) {
       return NextResponse.json(
