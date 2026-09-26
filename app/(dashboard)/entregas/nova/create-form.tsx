@@ -163,42 +163,8 @@ export function CreateDeliveryForm({
       setNeighborhood(payload.neighborhood || '')
       setCity(payload.city || '')
       setStateCode(payload.state || '')
-      let previewLatitude = payload.latitude ?? null
-      let previewLongitude = payload.longitude ?? null
-
-      try {
-        const previewResponse = await fetch('/api/geocode',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            address:[
-              payload.street,
-              payload.neighborhood,
-              payload.city,
-              payload.state,
-              formatCep(payload.cep || normalized),
-            ].filter(Boolean).join(', '),
-            street:payload.street || '',
-            neighborhood:payload.neighborhood || '',
-            city:payload.city || '',
-            state:payload.state || '',
-            cep:normalized,
-          }),
-        })
-
-        if (previewResponse.ok) {
-          const preview = await previewResponse.json() as {
-            latitude?:number
-            longitude?:number
-          }
-          if (preview.latitude != null && preview.longitude != null) {
-            previewLatitude = preview.latitude
-            previewLongitude = preview.longitude
-          }
-        }
-      } catch {
-        // Mantém as coordenadas do provedor de CEP como fallback visual.
-      }
+      const previewLatitude = payload.latitude ?? null
+      const previewLongitude = payload.longitude ?? null
 
       setCepLatitude(previewLatitude)
       setCepLongitude(previewLongitude)
@@ -321,41 +287,23 @@ export function CreateDeliveryForm({
         }
       }
     } catch (error) {
+      setLatitude('')
+      setLongitude('')
+      setDeliveryDistance('')
+      setEstimatedMinutes('')
+      setLocationPrecision('')
+      setResolvedAddress('')
+      setGeocodeError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível localizar o endereço. Marque o ponto correto manualmente no mapa.',
+      )
+
+      // O CEP serve apenas para centralizar visualmente o mapa.
+      // Nunca transformamos uma coordenada aproximada do CEP em destino confirmado.
       if (cepLatitude != null && cepLongitude != null) {
-        setLatitude(String(cepLatitude))
-        setLongitude(String(cepLongitude))
-        setResolvedAddress(address || `CEP ${cep}`)
-        setLocationPrecision('cep')
-        setGeocodeError('Número exato não encontrado. Usando localização aproximada do CEP; confira o ponto no mapa.')
-
-        if (storeLatitude != null && storeLongitude != null) {
-          const direct = haversineKm(
-            storeLatitude,
-            storeLongitude,
-            cepLatitude,
-            cepLongitude,
-          )
-          const roadDistance = Math.max(.1,direct*pricing.roadFactor)
-          const estimated = Math.max(10,Math.round(8 + roadDistance*2.4))
-
-          setDeliveryDistance(roadDistance.toFixed(2))
-          setEstimatedMinutes(String(estimated))
-
-          if (pricing.enabled) {
-            setFee(suggestedFee(roadDistance).toFixed(2).replace('.',','))
-          }
-        }
-      } else {
-        setLatitude('')
-        setLongitude('')
-        setDeliveryDistance('')
-        setEstimatedMinutes('')
-        setLocationPrecision('')
-        setGeocodeError(
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível localizar o endereço.',
-        )
+        setCepLatitude(cepLatitude)
+        setCepLongitude(cepLongitude)
       }
     } finally {
       setLocating(false)
