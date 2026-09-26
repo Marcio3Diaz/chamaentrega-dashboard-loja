@@ -43,6 +43,37 @@ O Docker executa automaticamente:
 
 - `mysql/001_core.sql`
 - `mysql/002_align_store_members.sql`
+- `mysql/003_align_supabase_core_fields.sql`
+
+A porta é publicada somente em `127.0.0.1:3307`, portanto o MySQL não fica exposto para outros computadores da rede.
+
+## Windows: setup rápido
+
+Pré-requisito: Docker Desktop instalado e aberto.
+
+No PowerShell, dentro da pasta do projeto:
+
+```powershell
+npm run db:mysql:setup
+```
+
+O script:
+
+1. verifica se o Docker está instalado;
+2. sobe o MySQL 8.4;
+3. aguarda o healthcheck;
+4. confirma com `MYSQL_LOCAL_OK`;
+5. mostra as variáveis que devem entrar no `.env.local`.
+
+Para o ambiente local de transição use:
+
+```env
+DATABASE_PROVIDER=mysql
+MYSQL_DATABASE_URL=mysql://chamaentrega:chamaentrega_dev@127.0.0.1:3307/chamaentrega
+MYSQL_SYNC_FROM_SUPABASE=true
+```
+
+Mantenha também no `.env.local` as variáveis públicas atuais do Supabase, pois Auth e Realtime continuam ativos durante a transição.
 
 ## Teste do schema
 
