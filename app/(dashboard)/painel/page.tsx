@@ -133,8 +133,8 @@ export default async function OverviewPage() {
       >
         <img
           className="official-png-banner-image"
-          src="/images/chamaentrega-dashboard-banner-generic.png?v=20260924-3"
-          alt="Sua loja no ChamaEntrega — entregador em uma avenida iluminada à noite"
+          src="/images/chamaentrega-dashboard-banner-20260926.png?v=1"
+          alt="ChamaEntrega — entregador em avenida iluminada à noite"
         />
         <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
       </section>
