@@ -468,51 +468,52 @@ export function CreateDeliveryForm({
         <input type="hidden" name="delivery_longitude" value={longitude}/>
         <input type="hidden" name="pickup_distance_km" value="0"/>
 
-        <div className="geo-result full">
-          <div className={hasCoordinates ? 'geo-status ok' : 'geo-status'}>
+        <div className={`delivery-route-summary full ${hasCoordinates ? 'ready' : ''}`}>
+          <div className="delivery-route-status">
             <i/>
-            <span>
+            <div>
               <strong>{
                 hasCoordinates
                   ? locationPrecision === 'cep'
                     ? 'Localização aproximada pelo CEP'
-                    : 'Destino confirmado no mapa'
+                    : 'Destino confirmado'
                   : locating
                     ? 'Identificando endereço...'
-                    : 'Localização ainda não confirmada'
+                    : 'Aguardando localização'
               }</strong>
-              {resolvedAddress || 'Busque o CEP, informe o número e confirme o destino no mapa.'}
-            </span>
-          </div>
-          {deliveryDistance ? <div>
-            <small>Distância da loja</small>
-            <strong>{Number(deliveryDistance).toFixed(1).replace('.',',')} km</strong>
-          </div> : null}
-          {estimatedMinutes ? <div>
-            <small>Tempo estimado</small>
-            <strong>{estimatedMinutes} min</strong>
-          </div> : null}
-        </div>
-
-        {hasCoordinates && mapPreviewUrl ? (
-          <div className="geo-map-preview full">
-            <div className="geo-map-preview-head">
-              <div>
-                <strong>Destino no mapa</strong>
-                <span>Localização encontrada automaticamente a partir do endereço.</span>
-              </div>
-              <button type="button" onClick={() => void locateAddress()} disabled={locating}>
-                Atualizar localização
-              </button>
+              <span>{resolvedAddress || 'Busque o CEP, informe o número e confirme o destino.'}</span>
             </div>
-            <iframe
-              title="Localização do cliente"
-              src={mapPreviewUrl}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
           </div>
-        ) : null}
+
+          <div className="delivery-route-metrics">
+            <div>
+              <small>Distância</small>
+              <strong>{deliveryDistance ? `${Number(deliveryDistance).toFixed(1).replace('.',',')} km` : '—'}</strong>
+            </div>
+            <div>
+              <small>Tempo</small>
+              <strong>{estimatedMinutes ? `${estimatedMinutes} min` : '—'}</strong>
+            </div>
+            <div>
+              <small>Taxa sugerida</small>
+              <strong>{feeValue > 0 ? money(feeValue) : '—'}</strong>
+            </div>
+          </div>
+
+          {hasCoordinates && mapPreviewUrl ? (
+            <details className="delivery-route-map-details">
+              <summary>Ver mapa</summary>
+              <div className="delivery-route-map">
+                <iframe
+                  title="Localização do cliente"
+                  src={mapPreviewUrl}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </details>
+          ) : null}
+        </div>
 
         {geocodeError ? <div className="error full">{geocodeError}</div> : null}
 
@@ -575,20 +576,6 @@ export function CreateDeliveryForm({
         <input type="hidden" name="estimated_minutes" value={estimatedMinutes}/>
         <input type="hidden" name="delivery_distance_km" value={deliveryDistance}/>
 
-        <div className="delivery-auto-summary full">
-          <div>
-            <small>Localização</small>
-            <strong>{hasCoordinates ? 'Identificada automaticamente' : 'Aguardando endereço'}</strong>
-          </div>
-          <div>
-            <small>Distância</small>
-            <strong>{deliveryDistance ? `${Number(deliveryDistance).toFixed(1).replace('.',',')} km` : '—'}</strong>
-          </div>
-          <div>
-            <small>Tempo estimado</small>
-            <strong>{estimatedMinutes ? `${estimatedMinutes} min` : '—'}</strong>
-          </div>
-        </div>
       </div>
     </section>
 
