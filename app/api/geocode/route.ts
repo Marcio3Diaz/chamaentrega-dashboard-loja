@@ -2,33 +2,42 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { acceptsJson, isTrustedBrowserOrigin, readJsonWithinLimit } from '@/lib/security/origin'
 
-export const dynamic='force-dynamic'
+export const dynamic = 'force-dynamic'
 
-type GeocodeRequest={
-  address?:string
-  street?:string
-  number?:string
-  neighborhood?:string
-  city?:string
-  state?:string
-  cep?:string
+type GeocodeRequest = {
+  address?: string
+  street?: string
+  number?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  cep?: string
 }
 
-type GoogleAddressComponent={
-  long_name:string
-  short_name:string
-  types:string[]
+type NominatimAddress = {
+  road?: string
+  pedestrian?: string
+  footway?: string
+  residential?: string
+  neighbourhood?: string
+  suburb?: string
+  city_district?: string
+  city?: string
+  town?: string
+  municipality?: string
+  state?: string
+  postcode?: string
+  country_code?: string
 }
 
-type GoogleResult={
-  formatted_address:string
-  partial_match?:boolean
-  types:string[]
-  geometry:{
-    location:{ lat:number; lng:number }
-    location_type:string
-  }
-  address_components:GoogleAddressComponent[]
+type NominatimResult = {
+  lat?: string
+  lon?: string
+  display_name?: string
+  type?: string
+  category?: string
+  addresstype?: string
+  address?: NominatimAddress
 }
 
 function normalize(value:string) {
@@ -41,95 +50,83 @@ function normalize(value:string) {
     .trim()
 }
 
-function component(
-  components:GoogleAddressComponent[],
-  ...types:string[]
-) {
-  return components.find(item => types.some(type => item.types.includes(type)))
-}
-
-function compatible(expected:string,actual:string) {
+function similar(expected:string,actual:string) {
   const a=normalize(expected)
   const b=normalize(actual)
-  if (!a || !b) return true
+  if (!a || !b) return false
   if (a === b || a.includes(b) || b.includes(a)) return true
 
   const tokens=a.split(' ').filter(token => token.length >= 3)
-  if (!tokens.length) return true
-
+  if (!tokens.length) return false
   const matches=tokens.filter(token => b.includes(token)).length
   return matches / tokens.length >= .6
 }
 
-function scoreResult(
-  result:GoogleResult,
+function candidateScore(
+  item:NominatimResult,
   expected:{
     street:string
     neighborhood:string
     city:string
     state:string
     cep:string
-    number:string
   },
 ) {
-  const components=result.address_components ?? []
-  const route=component(components,'route')?.long_name ?? ''
-  const locality=
-    component(components,'sublocality_level_1','sublocality','neighborhood')?.long_name
-    ?? ''
-  const city=
-    component(components,'administrative_area_level_2','locality')?.long_name
-    ?? ''
-  const state=component(components,'administrative_area_level_1')?.short_name ?? ''
-  const postal=component(components,'postal_code')?.long_name.replace(/\D/g,'') ?? ''
-  const streetNumber=component(components,'street_number')?.long_name ?? ''
+  const lat=Number(item.lat)
+  const lon=Number(item.lon)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return -1000
+
+  // Brasil only + geographic sanity check.
+  if (lat < -34 || lat > 6 || lon < -74 || lon > -32) return -1000
+
+  const a=item.address ?? {}
+  const road=a.road || a.pedestrian || a.footway || a.residential || ''
+  const hood=a.neighbourhood || a.suburb || a.city_district || ''
+  const candidateCity=a.city || a.town || a.municipality || ''
+  const postcode=String(a.postcode ?? '').replace(/\D/g,'')
+  const stateName=a.state ?? ''
 
   let score=0
 
   if (expected.street) {
-    if (compatible(expected.street,route)) score+=70
-    else score-=100
-  }
-
-  if (expected.number) {
-    if (streetNumber && normalize(streetNumber) === normalize(expected.number)) score+=30
-    else if (streetNumber) score-=20
+    if (similar(expected.street,road)) score += 60
+    else score -= 70
   }
 
   if (expected.neighborhood) {
-    if (
-      compatible(expected.neighborhood,locality)
-      || compatible(expected.neighborhood,result.formatted_address)
-    ) score+=20
+    if (similar(expected.neighborhood,hood) || similar(expected.neighborhood,String(item.display_name ?? ''))) score += 22
   }
 
   if (expected.city) {
-    if (
-      compatible(expected.city,city)
-      || compatible(expected.city,result.formatted_address)
-    ) score+=20
-    else score-=35
+    if (similar(expected.city,candidateCity) || similar(expected.city,String(item.display_name ?? ''))) score += 22
+    else score -= 25
   }
 
   if (expected.state) {
-    if (normalize(expected.state) === normalize(state)) score+=12
+    const stateUpper=expected.state.toUpperCase()
+    const hay=normalize([stateName,item.display_name ?? ''].join(' '))
+    if (
+      hay.includes(normalize(stateUpper))
+      || (stateUpper === 'RJ' && hay.includes('rio de janeiro'))
+    ) score += 10
   }
 
-  if (expected.cep && postal) {
-    if (postal === expected.cep) score+=35
-    else if (postal.slice(0,5) === expected.cep.slice(0,5)) score+=12
-    else score-=15
+  if (expected.cep && postcode) {
+    if (postcode === expected.cep) score += 30
+    else if (postcode.slice(0,5) === expected.cep.slice(0,5)) score += 10
+    else score -= 10
   }
 
-  if (result.partial_match) score-=12
-  if (result.types.includes('street_address')) score+=15
-  if (result.geometry?.location_type === 'ROOFTOP') score+=15
-  if (result.geometry?.location_type === 'APPROXIMATE') score-=15
+  // Reject city/state-level matches when a street was supplied.
+  if (
+    expected.street
+    && ['city','municipality','state','administrative'].includes(String(item.addresstype ?? '').toLowerCase())
+  ) score -= 100
 
   return score
 }
 
-export async function POST(request:Request) {
+export async function POST(request: Request) {
   try {
     if (!isTrustedBrowserOrigin(request)) {
       return NextResponse.json({ error:'Origem não autorizada.' },{ status:403 })
@@ -158,109 +155,90 @@ export async function POST(request:Request) {
       )
     }
 
-    const apiKey=
-      process.env.GOOGLE_MAPS_API_KEY?.trim()
-      || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim()
-
-    if (!apiKey) {
-      return NextResponse.json(
-        { error:'Google Maps ainda não foi configurado no servidor.' },
-        { status:503 },
-      )
-    }
-
+    const address=String(parsed.data.address ?? '').trim()
     const street=String(parsed.data.street ?? '').trim()
     const number=String(parsed.data.number ?? '').trim()
     const neighborhood=String(parsed.data.neighborhood ?? '').trim()
     const city=String(parsed.data.city ?? '').trim()
     const state=String(parsed.data.state ?? '').trim()
     const cep=String(parsed.data.cep ?? '').replace(/\D/g,'').slice(0,8)
-    const suppliedAddress=String(parsed.data.address ?? '').trim()
 
-    const address=[
-      street,
-      number,
-      neighborhood,
-      city,
-      state,
-      cep ? cep.slice(0,5)+'-'+cep.slice(5) : '',
-      'Brasil',
-    ].filter(Boolean).join(', ') || suppliedAddress
-
-    if (address.length < 6) {
+    if (address.length < 6 && street.length < 3) {
       return NextResponse.json({ error:'Informe um endereço mais completo.' },{ status:400 })
     }
 
-    const url=new URL('https://maps.googleapis.com/maps/api/geocode/json')
-    url.searchParams.set('address',address)
-    url.searchParams.set('key',apiKey)
-    url.searchParams.set('language','pt-BR')
-    url.searchParams.set('region','br')
-    url.searchParams.set('bounds','-23.082,-43.796|-22.746,-43.099')
-
-    const response=await fetch(url,{
-      cache:'no-store',
-      signal:AbortSignal.timeout(8000),
-      headers:{ Accept:'application/json' },
-    })
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error:'O Google Maps não respondeu corretamente.' },
-        { status:502 },
-      )
+    if (address.length > 350) {
+      return NextResponse.json({ error:'Endereço muito longo.' },{ status:400 })
     }
 
-    const payload=await response.json() as {
-      status:string
-      error_message?:string
-      results?:GoogleResult[]
+    const queries=[
+      [street,number,neighborhood,city,state,'Brasil'].filter(Boolean).join(', '),
+      [street,number,city,state,'Brasil'].filter(Boolean).join(', '),
+      address,
+      [street,neighborhood,city,state,'Brasil'].filter(Boolean).join(', '),
+    ].filter((value,index,array) => value && array.indexOf(value) === index)
+
+    const expected={ street,neighborhood,city,state,cep }
+    let best:{ item:NominatimResult; score:number } | null=null
+    let lastServiceError=false
+
+    for (const query of queries) {
+      const url=new URL('https://nominatim.openstreetmap.org/search')
+      url.searchParams.set('format','jsonv2')
+      url.searchParams.set('limit','10')
+      url.searchParams.set('countrycodes','br')
+      url.searchParams.set('addressdetails','1')
+      url.searchParams.set('q',query)
+
+      try {
+        const response=await fetch(url,{
+          cache:'no-store',
+          signal:AbortSignal.timeout(7000),
+          headers:{
+            Accept:'application/json',
+            'Accept-Language':'pt-BR,pt;q=0.9',
+            'User-Agent':'ChamaEntrega/1.0',
+          },
+        })
+
+        if (!response.ok) {
+          lastServiceError=true
+          continue
+        }
+
+        const results=await response.json() as NominatimResult[]
+
+        for (const item of results) {
+          const score=candidateScore(item,expected)
+          if (!best || score > best.score) best={ item,score }
+        }
+
+        // Strong street-level result: stop trying weaker queries.
+        if (best && best.score >= 70) break
+      } catch {
+        lastServiceError=true
+      }
     }
 
-    if (payload.status !== 'OK' || !payload.results?.length) {
-      return NextResponse.json(
-        {
-          error:payload.status === 'ZERO_RESULTS'
-            ? 'Endereço não encontrado no Google Maps. Marque o ponto manualmente.'
-            : 'Não foi possível localizar o endereço no Google Maps.',
-        },
-        { status:payload.status === 'ZERO_RESULTS' ? 404 : 502 },
-      )
-    }
-
-    const expected={ street,number,neighborhood,city,state,cep }
-
-    const ranked=payload.results
-      .map(result => ({ result,score:scoreResult(result,expected) }))
-      .sort((a,b) => b.score-a.score)
-
-    const best=ranked[0]
-    const minimumScore=street ? 65 : 15
+    // A street was supplied, so generic city-level matches are not acceptable.
+    const minimumScore=street ? 45 : 15
 
     if (!best || best.score < minimumScore) {
       return NextResponse.json(
-        { error:'O Google Maps encontrou um ponto genérico. Marque o destino correto manualmente.' },
-        { status:404 },
-      )
-    }
-
-    const lat=Number(best.result.geometry.location.lat)
-    const lng=Number(best.result.geometry.location.lng)
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return NextResponse.json(
-        { error:'O Google Maps retornou uma coordenada inválida.' },
-        { status:502 },
+        {
+          error:lastServiceError
+            ? 'O serviço de localização não respondeu corretamente. Marque o ponto manualmente no mapa.'
+            : 'Número exato não localizado. Marque o ponto correto manualmente no mapa.',
+        },
+        { status:lastServiceError ? 502 : 404 },
       )
     }
 
     return NextResponse.json({
-      latitude:lat,
-      longitude:lng,
-      displayName:best.result.formatted_address,
+      latitude:Number(best.item.lat),
+      longitude:Number(best.item.lon),
+      displayName:String(best.item.display_name ?? address),
       confidence:best.score,
-      provider:'google',
-      locationType:best.result.geometry.location_type,
     })
   } catch (error) {
     const timedOut=error instanceof DOMException && error.name === 'TimeoutError'
@@ -268,7 +246,7 @@ export async function POST(request:Request) {
     return NextResponse.json(
       {
         error:timedOut
-          ? 'O Google Maps demorou para responder. Marque o ponto manualmente.'
+          ? 'O serviço de localização demorou para responder. Marque o ponto manualmente no mapa.'
           : 'Não foi possível localizar o endereço.',
       },
       { status:timedOut ? 504 : 500 },
