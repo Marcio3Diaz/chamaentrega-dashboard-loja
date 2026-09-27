@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { loadGoogleMaps } from '@/lib/google-maps-client'
 
 type Props = {
   latitude: number | null
@@ -13,10 +12,56 @@ type Props = {
   onSelect: (latitude:number,longitude:number) => void
 }
 
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+const MAPLIBRE_VERSION = '6.11.2'
+
+let mapLibrePromise: Promise<any> | null = null
+
+function loadMapLibre() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Mapa indisponível.'))
+
+  const w = window as any
+  if (w.__ceMapLibre) return Promise.resolve(w.__ceMapLibre)
+  if (mapLibrePromise) return mapLibrePromise
+
+  mapLibrePromise = new Promise((resolve,reject) => {
+    if (!document.querySelector('link[data-ce-maplibre]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`
+      link.setAttribute('data-ce-maplibre','true')
+      document.head.appendChild(link)
+    }
+
+    const onReady = () => {
+      const library = (window as any).__ceMapLibre
+      if (library) resolve(library)
+      else reject(new Error('Não foi possível carregar o mapa.'))
+    }
+
+    window.addEventListener('ce-maplibre-ready',onReady,{ once:true })
+
+    if (document.querySelector('script[data-ce-maplibre]')) return
+
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.setAttribute('data-ce-maplibre','true')
+    script.textContent = `
+      import * as maplibregl from 'https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.mjs';
+      window.__ceMapLibre = maplibregl;
+      window.dispatchEvent(new Event('ce-maplibre-ready'));
+    `
+    script.onerror = () => reject(new Error('Não foi possível carregar o mapa.'))
+    document.head.appendChild(script)
+  })
+
+  return mapLibrePromise
+}
+
 function destinationMarkerElement() {
-  const element=document.createElement('div')
-  element.className='ce-google-destination-marker'
-  element.innerHTML='<span><i></i></span>'
+  const element = document.createElement('div')
+  element.className = 'ce-maplibre-destination-marker'
+  element.innerHTML = '<span><i></i></span>'
   return element
 }
 
@@ -29,73 +74,71 @@ export function DeliveryLocationPicker({
   storeLongitude,
   onSelect,
 }: Props) {
-  const elementRef=useRef<HTMLDivElement | null>(null)
-  const mapRef=useRef<any>(null)
-  const markerRef=useRef<any>(null)
-  const callbackRef=useRef(onSelect)
-  const [ready,setReady]=useState(false)
-  const [error,setError]=useState('')
+  const elementRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<any>(null)
+  const markerRef = useRef<any>(null)
+  const callbackRef = useRef(onSelect)
+  const [ready,setReady] = useState(false)
+  const [error,setError] = useState('')
 
-  callbackRef.current=onSelect
+  callbackRef.current = onSelect
 
   useEffect(() => {
-    let cancelled=false
+    let cancelled = false
 
-    void loadGoogleMaps()
-      .then(async maps => {
+    void loadMapLibre()
+      .then(maplibregl => {
         if (cancelled || !elementRef.current || mapRef.current) return
 
-        const { AdvancedMarkerElement }=await maps.importLibrary('marker')
+        const hasDestination = latitude != null && longitude != null
+        const hasPreview = previewLatitude != null && previewLongitude != null
+        const hasStore = storeLatitude != null && storeLongitude != null
 
-        const hasDestination=latitude != null && longitude != null
-        const hasPreview=previewLatitude != null && previewLongitude != null
-        const hasStore=storeLatitude != null && storeLongitude != null
-
-        const center=hasDestination
-          ? { lat:latitude as number,lng:longitude as number }
+        const center:[number,number] = hasDestination
+          ? [longitude as number,latitude as number]
           : hasPreview
-            ? { lat:previewLatitude as number,lng:previewLongitude as number }
+            ? [previewLongitude as number,previewLatitude as number]
             : hasStore
-              ? { lat:storeLatitude as number,lng:storeLongitude as number }
-              : { lat:-22.9068,lng:-43.1729 }
+              ? [storeLongitude as number,storeLatitude as number]
+              : [-43.1729,-22.9068]
 
-        const map=new maps.Map(elementRef.current,{
+        const map = new maplibregl.Map({
+          container:elementRef.current,
+          style:MAP_STYLE,
           center,
-          zoom:hasDestination ? 17 : hasPreview ? 16 : hasStore ? 14 : 11,
-          mapId:process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
-          gestureHandling:'greedy',
-          streetViewControl:true,
-          mapTypeControl:true,
-          fullscreenControl:true,
-          clickableIcons:true,
-          controlSize:30,
+          zoom:hasDestination ? 17 : hasPreview ? 15.5 : hasStore ? 14 : 11,
+          attributionControl:true,
         })
 
-        const placeMarker=(lat:number,lng:number,centerMap:boolean) => {
-          if (!markerRef.current) {
-            markerRef.current=new AdvancedMarkerElement({
-              map,
-              position:{ lat,lng },
-              content:destinationMarkerElement(),
-              gmpDraggable:true,
-              title:'Destino da entrega',
-            })
+        map.addControl(new maplibregl.NavigationControl({
+          showCompass:true,
+          showZoom:true,
+        }),'bottom-right')
 
-            markerRef.current.addListener('dragend',(event:any) => {
-              const position=event?.latLng ?? markerRef.current.position
-              const pointLat=typeof position?.lat === 'function' ? position.lat() : position?.lat
-              const pointLng=typeof position?.lng === 'function' ? position.lng() : position?.lng
-              if (Number.isFinite(Number(pointLat)) && Number.isFinite(Number(pointLng))) {
-                callbackRef.current(Number(pointLat),Number(pointLng))
-              }
+        const placeMarker = (lat:number,lon:number,centerMap:boolean) => {
+          if (!markerRef.current) {
+            markerRef.current = new maplibregl.Marker({
+              element:destinationMarkerElement(),
+              draggable:true,
+              anchor:'bottom',
+            })
+              .setLngLat([lon,lat])
+              .addTo(map)
+
+            markerRef.current.on('dragend',() => {
+              const point = markerRef.current.getLngLat()
+              callbackRef.current(Number(point.lat),Number(point.lng))
             })
           } else {
-            markerRef.current.position={ lat,lng }
+            markerRef.current.setLngLat([lon,lat])
           }
 
           if (centerMap) {
-            map.panTo({ lat,lng })
-            map.setZoom(17)
+            map.easeTo({
+              center:[lon,lat],
+              zoom:17,
+              duration:650,
+            })
           }
         }
 
@@ -103,80 +146,89 @@ export function DeliveryLocationPicker({
           placeMarker(latitude as number,longitude as number,false)
         }
 
-        map.addListener('click',(event:any) => {
-          const lat=Number(event.latLng?.lat())
-          const lng=Number(event.latLng?.lng())
-          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
-          placeMarker(lat,lng,false)
-          callbackRef.current(lat,lng)
+        map.on('click',(event:any) => {
+          const lat = Number(event.lngLat.lat)
+          const lon = Number(event.lngLat.lng)
+          placeMarker(lat,lon,false)
+          callbackRef.current(lat,lon)
         })
 
-        mapRef.current=map
-        setReady(true)
-        setError('')
+        map.on('load',() => {
+          setReady(true)
+          setError('')
+          window.setTimeout(() => map.resize(),80)
+        })
+
+        map.on('error',(event:any) => {
+          if (!map.loaded() && event?.error) {
+            setError('Não foi possível carregar os dados do mapa.')
+          }
+        })
+
+        mapRef.current = map
       })
       .catch(reason => {
         if (!cancelled) {
-          setError(reason instanceof Error ? reason.message : 'Google Maps indisponível.')
+          setError(reason instanceof Error ? reason.message : 'Mapa indisponível.')
         }
       })
 
     return () => {
-      cancelled=true
-      if (markerRef.current) markerRef.current.map=null
-      markerRef.current=null
-      mapRef.current=null
+      cancelled = true
+      markerRef.current?.remove()
+      markerRef.current = null
+      mapRef.current?.remove()
+      mapRef.current = null
     }
   },[])
 
   useEffect(() => {
-    const map=mapRef.current
+    const map = mapRef.current
     if (!map || latitude != null || longitude != null) return
     if (previewLatitude == null || previewLongitude == null) return
 
-    map.panTo({ lat:previewLatitude,lng:previewLongitude })
-    map.setZoom(16)
+    map.easeTo({
+      center:[previewLongitude,previewLatitude],
+      zoom:15.5,
+      duration:700,
+    })
   },[previewLatitude,previewLongitude,latitude,longitude])
 
   useEffect(() => {
-    const map=mapRef.current
-    if (!map || latitude == null || longitude == null) return
+    const map = mapRef.current
+    const maplibregl = (window as any).__ceMapLibre
+    if (!map || !maplibregl || latitude == null || longitude == null) return
 
-    void loadGoogleMaps().then(async maps => {
-      const { AdvancedMarkerElement }=await maps.importLibrary('marker')
+    if (!markerRef.current) {
+      markerRef.current = new maplibregl.Marker({
+        element:destinationMarkerElement(),
+        draggable:true,
+        anchor:'bottom',
+      })
+        .setLngLat([longitude,latitude])
+        .addTo(map)
 
-      if (!markerRef.current) {
-        markerRef.current=new AdvancedMarkerElement({
-          map,
-          position:{ lat:latitude,lng:longitude },
-          content:destinationMarkerElement(),
-          gmpDraggable:true,
-          title:'Destino da entrega',
-        })
+      markerRef.current.on('dragend',() => {
+        const point = markerRef.current.getLngLat()
+        callbackRef.current(Number(point.lat),Number(point.lng))
+      })
+    } else {
+      markerRef.current.setLngLat([longitude,latitude])
+    }
 
-        markerRef.current.addListener('dragend',(event:any) => {
-          const position=event?.latLng ?? markerRef.current.position
-          const pointLat=typeof position?.lat === 'function' ? position.lat() : position?.lat
-          const pointLng=typeof position?.lng === 'function' ? position.lng() : position?.lng
-          if (Number.isFinite(Number(pointLat)) && Number.isFinite(Number(pointLng))) {
-            callbackRef.current(Number(pointLat),Number(pointLng))
-          }
-        })
-      } else {
-        markerRef.current.position={ lat:latitude,lng:longitude }
-      }
-
-      map.panTo({ lat:latitude,lng:longitude })
-      map.setZoom(17)
+    map.easeTo({
+      center:[longitude,latitude],
+      zoom:17,
+      duration:650,
     })
   },[latitude,longitude])
 
   return (
     <div className="delivery-location-picker">
-      <div ref={elementRef} className="delivery-location-picker-map google-map" />
+      <div ref={elementRef} className="delivery-location-picker-map maplibre-map" />
 
       {!ready && !error ? (
-        <div className="delivery-location-picker-loading">Carregando Google Maps...</div>
+        <div className="delivery-location-picker-loading">Carregando mapa ChamaEntrega...</div>
       ) : null}
 
       {error ? (
@@ -188,7 +240,17 @@ export function DeliveryLocationPicker({
         <span>Você também pode arrastar o marcador para ajustar o ponto exato.</span>
       </div>
 
-      <div className="delivery-map-provider-badge">Google Maps</div>
+      <div className="delivery-map-provider-badge">MapLibre · OpenFreeMap</div>
+      {latitude != null && longitude != null ? (
+        <a
+          className="delivery-waze-button"
+          href={`https://www.waze.com/ul?ll=${latitude}%2C${longitude}&navigate=yes`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Abrir no Waze
+        </a>
+      ) : null}
     </div>
   )
 }
