@@ -45,7 +45,7 @@ export default async function LoginPage({
         <p className="subtle">Publique pedidos prontos, acompanhe entregadores e controle cada corrida em tempo real.</p>
         {errorParam === 'loja' ? (
           <div className="login-error">
-            Não foi possível carregar os dados operacionais da loja. Verifique o servidor local e tente novamente.
+            O banco operacional local não respondeu. Abra o Docker Desktop, inicie o MySQL do ChamaEntrega e tente novamente.
           </div>
         ) : null}
         {errorParam === 'acesso' ? (
