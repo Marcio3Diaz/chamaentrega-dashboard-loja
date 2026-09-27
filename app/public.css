@@ -111,9 +111,9 @@
 }
 .ce-hero{
   position:relative;
-  min-height:560px;
+  min-height:500px;
   display:grid;
-  grid-template-columns:.92fr 1.08fr;
+  grid-template-columns:.88fr 1.12fr;
   gap:0;
   align-items:stretch;
   border-bottom:1px solid rgba(255,184,0,.15);
@@ -127,7 +127,7 @@
   display:flex;
   flex-direction:column;
   justify-content:center;
-  padding:58px 28px 58px clamp(30px,4vw,70px);
+  padding:44px 34px 44px clamp(30px,4vw,70px);
 }
 .ce-eyebrow{
   display:flex;
@@ -147,37 +147,37 @@
 }
 .ce-hero h1{
   margin:20px 0 18px;
-  font-size:clamp(54px,5.2vw,84px);
-  line-height:.90;
-  letter-spacing:-4px;
+  font-size:clamp(48px,4.55vw,72px);
+  line-height:.94;
+  letter-spacing:-3.2px;
 }
 .ce-hero h1 span{
   color:var(--ce-gold);
 }
 .ce-hero-copy>p{
-  max-width:700px;
+  max-width:620px;
   margin:0;
-  color:#8e9ba3;
-  font-size:15px;
-  line-height:1.68;
+  color:#93a0a8;
+  font-size:14px;
+  line-height:1.62;
 }
 .ce-hero-actions{
   display:flex;
   gap:10px;
-  margin-top:26px;
+  margin-top:22px;
 }
 .ce-proof{
   display:flex;
   flex-wrap:wrap;
-  gap:14px;
-  margin-top:18px;
-  color:#75838c;
-  font-size:9px;
+  gap:16px;
+  margin-top:16px;
+  color:#84919a;
+  font-size:9.5px;
 }
 .ce-proof span:before{color:#32df86}
 .ce-hero-art{
   position:relative;
-  min-height:560px;
+  min-height:500px;
   overflow:hidden;
   background:
     linear-gradient(90deg,#05090c 0%,rgba(5,9,12,.10) 24%,rgba(5,9,12,.02) 74%,rgba(5,9,12,.32) 100%),
@@ -200,10 +200,10 @@
   z-index:3;
 }
 .ce-owner-card{
-  top:55px;
-  left:26%;
-  min-width:165px;
-  padding:11px 13px;
+  top:42px;
+  left:20%;
+  min-width:180px;
+  padding:12px 14px;
   border:1px solid rgba(255,190,30,.16);
   border-radius:10px;
   background:rgba(8,15,19,.82);
@@ -213,17 +213,17 @@
 .ce-owner-card strong{display:block}
 .ce-owner-card small{
   color:#78868f;
-  font-size:7px;
-  letter-spacing:.10em;
+  font-size:7.5px;
+  letter-spacing:.11em;
 }
 .ce-owner-card strong{
-  margin-top:4px;
-  font-size:10px;
+  margin-top:5px;
+  font-size:10.5px;
 }
 .ce-live-card{
-  top:41px;
-  right:44px;
-  min-height:34px;
+  top:38px;
+  right:32px;
+  min-height:36px;
   display:flex;
   align-items:center;
   gap:7px;
@@ -232,7 +232,7 @@
   border-radius:999px;
   background:rgba(12,45,31,.72);
   color:#32df85;
-  font-size:8px;
+  font-size:8.5px;
   font-weight:900;
 }
 .ce-live-card i{
@@ -243,23 +243,23 @@
   box-shadow:0 0 10px rgba(46,222,132,.8);
 }
 .ce-hero-status{
-  right:34px;
-  bottom:50px;
+  right:28px;
+  bottom:34px;
   display:grid;
-  gap:7px;
+  gap:8px;
 }
 .ce-hero-status span{
-  min-height:36px;
+  min-height:38px;
   display:flex;
   align-items:center;
-  gap:8px;
-  padding:0 11px;
+  gap:9px;
+  padding:0 13px;
   border:1px solid rgba(255,255,255,.08);
   border-radius:9px;
   background:rgba(7,14,18,.82);
   color:#d0d7dc;
-  font-size:8px;
-  backdrop-filter:blur(10px);
+  font-size:8.5px;
+  backdrop-filter:blur(12px);
 }
 .ce-hero-status svg{color:var(--ce-gold)}
 
@@ -268,7 +268,7 @@
 .ce-plans,
 .ce-outcomes,
 .ce-faq{
-  padding:42px clamp(28px,4vw,66px);
+  padding:34px clamp(28px,4vw,66px);
 }
 .ce-section-title.inline,
 .ce-section-title.compact{
