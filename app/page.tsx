@@ -167,102 +167,55 @@ export default function PublicHomePage() {
       <a className="ce-skip-link" href="#como-usar">Pular para o conteúdo</a>
       <PublicHeader />
 
-      <section className="ce-hero-v2">
-        <div className="ce-hero-v2-copy">
-          <div className="ce-hero-v2-badge">
-            <span><i/> REDE DE ENTREGA PARA NEGÓCIOS LOCAIS</span>
-            <strong>Rio de Janeiro</strong>
-          </div>
-
+      <section className="ce-hero">
+        <div className="ce-hero-copy">
+          <div className="ce-eyebrow"><i/> LOGÍSTICA INTELIGENTE PARA O SEU NEGÓCIO</div>
           <h1>
-            Sua loja vende.<br/>
-            <span>O ChamaEntrega faz chegar.</span>
+            Sua loja chama.<br/>
+            <span>O ChamaEntrega<br/>resolve.</span>
           </h1>
-
           <p>
-            Organize sua própria operação de entregas, conecte-se à sua rede de entregadores
-            e acompanhe cada corrida em tempo real — sem transformar sua loja em refém de um marketplace.
+            Uma plataforma completa para restaurantes e lojas que querem organizar
+            sua própria operação de entrega, reduzir a dependência de marketplaces
+            e fazer parte de uma rede regional de apoio entre negócios.
           </p>
 
-          <div className="ce-hero-v2-actions">
-            <Link href="/cadastro" prefetch={false} className="ce-hero-v2-primary">
-              <span>
-                <strong>Criar minha loja</strong>
-                <small>Comece sua operação no ChamaEntrega</small>
-              </span>
-              <Icon name="arrow" size={17}/>
+          <div className="ce-hero-actions">
+            <Link href="/cadastro" prefetch={false} className="ce-primary-button big">
+              Criar minha loja <Icon name="arrow" size={16}/>
             </Link>
-
-            <a href="#como-usar" className="ce-hero-v2-secondary">
-              <span>
-                <strong>Ver como funciona</strong>
-                <small>Entenda o fluxo em poucos passos</small>
-              </span>
-              <Icon name="play" size={17}/>
-            </a>
+            <a href="#como-usar" className="ce-secondary-button">Conhecer a plataforma</a>
           </div>
 
-          <div className="ce-hero-v2-proof">
-            <span><Icon name="check" size={14}/> Sua rede de entregadores</span>
-            <span><Icon name="check" size={14}/> Acompanhamento em tempo real</span>
-            <span><Icon name="check" size={14}/> Integração com sua operação</span>
+          <div className="ce-proof">
+            <span>✓ Cadastro da loja online</span>
+            <span>✓ Operação separada por empresa</span>
+            <span>✓ Painel em tempo real</span>
           </div>
         </div>
 
-        <div className="ce-hero-v2-visual">
+        <div className="ce-hero-art">
           <Image
             src="/images/dashboard-hero-courier.webp"
-            alt="Entregador ChamaEntrega em operação"
+            alt=""
             fill
             priority
-            sizes="(max-width: 980px) 100vw, 52vw"
-            className="ce-hero-v2-background"
+            sizes="(max-width: 980px) 100vw, 54vw"
+            className="ce-hero-background"
           />
-
-          <div className="ce-hero-v2-overlay"/>
-
-          <div className="ce-hero-v2-live">
-            <i/>
-            OPERAÇÃO AO VIVO
+          <div className="ce-owner-card">
+            <small>VISÃO DA LOJA</small>
+            <strong>Mais controle para o negócio</strong>
           </div>
 
-          <div className="ce-hero-v2-stat s1">
-            <span><Icon name="store" size={17}/></span>
-            <div><small>LOJA</small><strong>Pedido publicado</strong></div>
+          <div className="ce-live-card">
+            <i/> OPERAÇÃO AO VIVO
           </div>
 
-          <div className="ce-hero-v2-stat s2">
-            <span><Icon name="route" size={17}/></span>
-            <div><small>ROTA</small><strong>Entregador encontrado</strong></div>
+          <div className="ce-hero-status">
+            <span><Icon name="lightning" size={15}/> Entregador encontrado</span>
+            <span><Icon name="money" size={15}/> Saldo protegido</span>
           </div>
-
-          <div className="ce-hero-v2-stat s3">
-            <span><Icon name="pin" size={17}/></span>
-            <div><small>DESTINO</small><strong>Acompanhamento em tempo real</strong></div>
-          </div>
-
-          <div className="ce-hero-v2-bottom-card">
-            <div>
-              <span className="ce-hero-v2-bottom-label">CHAMAENTREGA</span>
-              <strong>Mais controle. Mais autonomia.</strong>
-            </div>
-            <em>Chamou, chegou.</em>
-          </div>
-        </div>
-      </section>
-
-      <section className="ce-trust-strip">
-        <div>
-          <strong>Venda onde quiser.</strong>
-          <span>WhatsApp, cardápio próprio, iFood, 99Food ou balcão.</span>
-        </div>
-        <div>
-          <strong>Entregue com sua rede.</strong>
-          <span>Você organiza quem entrega para sua operação.</span>
-        </div>
-        <div>
-          <strong>Acompanhe tudo.</strong>
-          <span>Pedidos, entregadores, mapa, financeiro e histórico.</span>
         </div>
       </section>
 
