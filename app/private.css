@@ -23935,3 +23935,46 @@ html[data-theme="light"] .reference-activity-list>div:hover{
 .live-map-stage .gmnoprint{
   font-family:inherit!important;
 }
+
+
+/* LOGIN V4 — contraste e leitura corrigidos */
+.login-page{
+  background:
+    radial-gradient(circle at 68% 16%,rgba(255,184,0,.10),transparent 28%),
+    #f3f4f6!important;
+}
+.login-card{
+  color:#f7f7f8!important;
+  background:#1b1d21!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+.login-card h1{
+  color:#ffffff!important;
+}
+.login-card .subtle{
+  color:#9ca5b2!important;
+}
+.login-card .eyebrow{
+  color:#ffb800!important;
+}
+.login-card .field label{
+  color:#aeb6c2!important;
+}
+.login-card .field input{
+  color:#1f2937!important;
+  background:#ffffff!important;
+  border-color:#d9dde3!important;
+}
+.login-card .field input::placeholder{
+  color:#a3aab4!important;
+}
+.login-card .login-error,
+.login-card .error{
+  color:#ff9ca2!important;
+  background:rgba(255,95,102,.10)!important;
+  border-color:rgba(255,95,102,.20)!important;
+}
+.login-card .subtle strong,
+.login-card .subtle a{
+  color:#ffbf21!important;
+}
