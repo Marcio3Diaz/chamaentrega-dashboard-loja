@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Icon } from '@/components/icon'
-import { loadGoogleMaps } from '@/lib/google-maps-client'
 
 export type LiveCourier = {
   id: string
@@ -71,6 +70,51 @@ const statusLabels: Record<string,string> = {
   at_pickup: 'Na loja',
   heading_to_dropoff: 'A caminho do cliente',
   at_dropoff: 'No cliente',
+}
+
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+const MAPLIBRE_VERSION = '6.11.2'
+
+let mapLibrePromise: Promise<any> | null = null
+
+function loadMapLibre() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Mapa indisponível.'))
+  const w = window as any
+  if (w.__ceMapLibre) return Promise.resolve(w.__ceMapLibre)
+  if (mapLibrePromise) return mapLibrePromise
+
+  mapLibrePromise = new Promise((resolve,reject) => {
+    if (!document.querySelector('link[data-ce-maplibre]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`
+      link.setAttribute('data-ce-maplibre','true')
+      document.head.appendChild(link)
+    }
+
+    const onReady = () => {
+      const library = (window as any).__ceMapLibre
+      if (library) resolve(library)
+      else reject(new Error('Não foi possível carregar o mapa.'))
+    }
+
+    window.addEventListener('ce-maplibre-ready',onReady,{ once:true })
+
+    if (document.querySelector('script[data-ce-maplibre]')) return
+
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.setAttribute('data-ce-maplibre','true')
+    script.textContent = `
+      import * as maplibregl from 'https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.mjs';
+      window.__ceMapLibre = maplibregl;
+      window.dispatchEvent(new Event('ce-maplibre-ready'));
+    `
+    script.onerror = () => reject(new Error('Não foi possível carregar o mapa.'))
+    document.head.appendChild(script)
+  })
+
+  return mapLibrePromise
 }
 
 function gpsAge(value: string | null, now: number) {
@@ -161,7 +205,7 @@ export function LiveCourierMap({
   const mapCardRef = useRef<HTMLDivElement | null>(null)
   const mapElementRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
-  const googleMapsRef = useRef<any>(null)
+  const mapLibreRef = useRef<any>(null)
   const courierMarkersRef = useRef<Map<string,any>>(new Map())
   const storeMarkerRef = useRef<any>(null)
   const routeLineRef = useRef<any>(null)
@@ -305,65 +349,73 @@ export function LiveCourierMap({
   }, [selectedDelivery?.id, supabase])
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !googleMapsRef.current) return
+    if (!mapReady || !mapRef.current || !mapLibreRef.current) return
 
-    const map=mapRef.current
-    const maps=googleMapsRef.current
+    const map = mapRef.current
+    const maplibregl = mapLibreRef.current
 
-    if (destinationMarkerRef.current) {
-      destinationMarkerRef.current.map=null
-      destinationMarkerRef.current=null
-    }
+    destinationMarkerRef.current?.remove()
+    destinationMarkerRef.current = null
 
-    if (routeLineRef.current) {
-      routeLineRef.current.setMap(null)
-      routeLineRef.current=null
-    }
+    if (map.getLayer('ce-live-route-line')) map.removeLayer('ce-live-route-line')
+    if (map.getSource('ce-live-route')) map.removeSource('ce-live-route')
 
     if (!selectedDelivery) return
 
-    void maps.importLibrary('marker').then(({ AdvancedMarkerElement }:any) => {
-      if (
-        selectedDelivery.deliveryLatitude != null
-        && selectedDelivery.deliveryLongitude != null
-      ) {
-        destinationMarkerRef.current=new AdvancedMarkerElement({
-          map,
-          position:{
-            lat:selectedDelivery.deliveryLatitude,
-            lng:selectedDelivery.deliveryLongitude,
-          },
-          content:destinationMarkerElement(),
-          title:'Destino',
-        })
-      }
-    })
+    if (
+      selectedDelivery.deliveryLatitude != null &&
+      selectedDelivery.deliveryLongitude != null
+    ) {
+      destinationMarkerRef.current = new maplibregl.Marker({
+        element:destinationMarkerElement(),
+        anchor:'bottom',
+      })
+        .setLngLat([
+          selectedDelivery.deliveryLongitude,
+          selectedDelivery.deliveryLatitude,
+        ])
+        .setPopup(new maplibregl.Popup({ offset:24 }).setText('Destino'))
+        .addTo(map)
+    }
 
     if (routePoints.length >= 2) {
-      routeLineRef.current=new maps.Polyline({
-        map,
-        path:routePoints.map(point => ({
-          lat:point.latitude,
-          lng:point.longitude,
-        })),
-        strokeColor:'#ffb800',
-        strokeOpacity:.92,
-        strokeWeight:5,
-        geodesic:true,
+      const data = {
+        type:'Feature',
+        properties:{},
+        geometry:{
+          type:'LineString',
+          coordinates:routePoints.map(point => [point.longitude,point.latitude]),
+        },
+      }
+
+      map.addSource('ce-live-route',{
+        type:'geojson',
+        data,
+      })
+
+      map.addLayer({
+        id:'ce-live-route-line',
+        type:'line',
+        source:'ce-live-route',
+        paint:{
+          'line-color':'#ffb800',
+          'line-width':5,
+          'line-opacity':.92,
+        },
+        layout:{
+          'line-cap':'round',
+          'line-join':'round',
+        },
       })
     }
 
     return () => {
-      if (destinationMarkerRef.current) {
-        destinationMarkerRef.current.map=null
-        destinationMarkerRef.current=null
-      }
-      if (routeLineRef.current) {
-        routeLineRef.current.setMap(null)
-        routeLineRef.current=null
-      }
+      destinationMarkerRef.current?.remove()
+      destinationMarkerRef.current = null
+      if (map.getLayer('ce-live-route-line')) map.removeLayer('ce-live-route-line')
+      if (map.getSource('ce-live-route')) map.removeSource('ce-live-route')
     }
-  },[
+  }, [
     mapReady,
     routePoints,
     selectedDelivery?.id,
@@ -433,37 +485,27 @@ export function LiveCourierMap({
   }, [storeId, supabase])
 
   const fitVisible = useCallback(() => {
-    if (!mapRef.current || !googleMapsRef.current) return
+    if (!mapRef.current || !mapLibreRef.current) return
 
-    const maps=googleMapsRef.current
-    const points=couriers
+    const maplibregl = mapLibreRef.current
+    const points = couriers
       .filter(item => item.currentLatitude != null && item.currentLongitude != null)
-      .map(item => ({
-        lat:item.currentLatitude!,
-        lng:item.currentLongitude!,
-      }))
+      .map(item => [item.currentLongitude!,item.currentLatitude!] as [number,number])
 
     if (storeLatitude != null && storeLongitude != null) {
-      points.push({ lat:storeLatitude,lng:storeLongitude })
+      points.push([storeLongitude,storeLatitude])
     }
 
     if (!points.length) {
-      mapRef.current.setCenter({ lat:-22.9068,lng:-43.1729 })
-      mapRef.current.setZoom(11)
+      mapRef.current.easeTo({ center:[-43.1729,-22.9068],zoom:11,duration:500 })
     } else if (points.length === 1) {
-      mapRef.current.setCenter(points[0])
-      mapRef.current.setZoom(15)
+      mapRef.current.easeTo({ center:points[0],zoom:15,duration:500 })
     } else {
-      const bounds=new maps.LatLngBounds()
+      const bounds = new maplibregl.LngLatBounds()
       points.forEach(point => bounds.extend(point))
-      mapRef.current.fitBounds(bounds,50)
-
-      const listener=maps.event.addListenerOnce(mapRef.current,'idle',() => {
-        if ((mapRef.current.getZoom?.() ?? 0) > 15) mapRef.current.setZoom(15)
-      })
-      void listener
+      mapRef.current.fitBounds(bounds,{ padding:50,maxZoom:15,duration:650 })
     }
-  },[couriers,storeLatitude,storeLongitude])
+  }, [couriers, storeLatitude, storeLongitude])
 
   const toggleFullscreen = useCallback(async () => {
     const element = mapCardRef.current
@@ -487,11 +529,11 @@ export function LiveCourierMap({
       courier.currentLongitude != null &&
       mapRef.current
     ) {
-      mapRef.current.panTo({
-        lat:courier.currentLatitude,
-        lng:courier.currentLongitude,
+      mapRef.current.flyTo({
+        center:[courier.currentLongitude,courier.currentLatitude],
+        zoom:16,
+        duration:700,
       })
-      mapRef.current.setZoom(16)
     }
   }, [])
 
@@ -501,92 +543,85 @@ export function LiveCourierMap({
   }, [])
 
   useEffect(() => {
-    let cancelled=false
+    let cancelled = false
 
-    void loadGoogleMaps()
-      .then(async maps => {
+    void loadMapLibre()
+      .then(maplibregl => {
         if (cancelled || !mapElementRef.current || mapRef.current) return
 
-        googleMapsRef.current=maps
-        const { AdvancedMarkerElement }=await maps.importLibrary('marker')
+        mapLibreRef.current = maplibregl
 
-        const center=
+        const center:[number,number] =
           storeLatitude != null && storeLongitude != null
-            ? { lat:storeLatitude,lng:storeLongitude }
-            : { lat:-22.9068,lng:-43.1729 }
+            ? [storeLongitude,storeLatitude]
+            : [-43.1729,-22.9068]
 
-        const map=new maps.Map(mapElementRef.current,{
+        const map = new maplibregl.Map({
+          container:mapElementRef.current,
+          style:MAP_STYLE,
           center,
           zoom:12,
-          mapId:process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
-          gestureHandling:'greedy',
-          streetViewControl:true,
-          mapTypeControl:true,
-          fullscreenControl:false,
-          clickableIcons:true,
-          controlSize:30,
+          attributionControl:true,
         })
 
-        if (storeLatitude != null && storeLongitude != null) {
-          const storeElement=htmlMarkerElement(
-            'ce-google-store-marker',
-            storeMarkerHtml(storeName,storeLogoUrl),
-          )
+        map.addControl(new maplibregl.NavigationControl({
+          showCompass:true,
+          showZoom:true,
+        }),'bottom-right')
 
-          storeMarkerRef.current=new AdvancedMarkerElement({
-            map,
-            position:{ lat:storeLatitude,lng:storeLongitude },
-            content:storeElement,
-            title:storeName,
-          })
-        }
+        map.on('load',() => {
+          if (storeLatitude != null && storeLongitude != null) {
+            const storeElement = htmlMarkerElement(
+              'ce-maplibre-store-marker',
+              storeMarkerHtml(storeName,storeLogoUrl),
+            )
 
-        mapRef.current=map
-        setMapReady(true)
-        setMapError('')
+            storeMarkerRef.current = new maplibregl.Marker({
+              element:storeElement,
+              anchor:'center',
+            })
+              .setLngLat([storeLongitude,storeLatitude])
+              .setPopup(new maplibregl.Popup({ offset:28 }).setText(storeName))
+              .addTo(map)
+          }
+
+          setMapReady(true)
+          setMapError('')
+          window.setTimeout(() => map.resize(),80)
+        })
+
+        map.on('error',(event:any) => {
+          if (!map.loaded() && event?.error) {
+            setMapError('Não foi possível carregar o mapa agora.')
+          }
+        })
+
+        mapRef.current = map
       })
-      .catch(reason => {
-        if (!cancelled) {
-          setMapError(
-            reason instanceof Error
-              ? reason.message
-              : 'Não foi possível carregar o Google Maps agora.',
-          )
-        }
+      .catch(() => {
+        if (!cancelled) setMapError('Não foi possível carregar o mapa agora.')
       })
 
     return () => {
-      cancelled=true
-      courierMarkersRef.current.forEach(marker => {
-        marker.map=null
-      })
+      cancelled = true
+      courierMarkersRef.current.forEach(marker => marker.remove())
       courierMarkersRef.current.clear()
-
-      if (storeMarkerRef.current) storeMarkerRef.current.map=null
-      storeMarkerRef.current=null
-
-      if (destinationMarkerRef.current) destinationMarkerRef.current.map=null
-      destinationMarkerRef.current=null
-
-      if (routeLineRef.current) routeLineRef.current.setMap(null)
-      routeLineRef.current=null
-
-      mapRef.current=null
-      googleMapsRef.current=null
+      storeMarkerRef.current?.remove()
+      storeMarkerRef.current = null
+      destinationMarkerRef.current?.remove()
+      destinationMarkerRef.current = null
+      mapRef.current?.remove()
+      mapRef.current = null
+      mapLibreRef.current = null
     }
-  },[storeLatitude,storeLongitude,storeName,storeLogoUrl])
+  }, [storeLatitude, storeLongitude, storeName, storeLogoUrl])
 
   useEffect(() => {
     const onFullscreenChange = () => {
       setIsFullscreen(document.fullscreenElement === mapCardRef.current)
 
       window.setTimeout(() => {
-        const maps=googleMapsRef.current
-        if (maps && mapRef.current) {
-          maps.event.trigger(mapRef.current,'resize')
-          const center=mapRef.current.getCenter?.()
-          if (center) mapRef.current.setCenter(center)
-        }
+        mapRef.current?.resize()
       },120)
     }
 
@@ -636,59 +671,51 @@ export function LiveCourierMap({
   }, [refreshNetwork, storeId, supabase])
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !googleMapsRef.current) return
+    if (!mapReady || !mapRef.current || !mapLibreRef.current) return
 
-    const map=mapRef.current
-    const maps=googleMapsRef.current
-    const activeIds=new Set<string>()
+    const map = mapRef.current
+    const maplibregl = mapLibreRef.current
+    const activeIds = new Set<string>()
 
-    void maps.importLibrary('marker').then(({ AdvancedMarkerElement }:any) => {
-      couriers.forEach(courier => {
-        if (courier.currentLatitude == null || courier.currentLongitude == null) return
+    couriers.forEach(courier => {
+      if (courier.currentLatitude == null || courier.currentLongitude == null) return
 
-        activeIds.add(courier.id)
-        const selected=courier.id === selectedCourierId
-        const inRoute=deliveryByCourier.has(courier.id)
-        const html=avatarMarkerHtml(courier,selected,inRoute)
-        const existing=courierMarkersRef.current.get(courier.id)
+      activeIds.add(courier.id)
+      const selected = courier.id === selectedCourierId
+      const inRoute = deliveryByCourier.has(courier.id)
+      const html = avatarMarkerHtml(courier,selected,inRoute)
+      const existing = courierMarkersRef.current.get(courier.id)
 
-        if (existing) {
-          existing.position={
-            lat:courier.currentLatitude,
-            lng:courier.currentLongitude,
-          }
-          if (existing.content) existing.content.innerHTML=html
-        } else {
-          const element=htmlMarkerElement('ce-google-courier-marker',html)
-          element.addEventListener('click',() => setSelectedCourierId(courier.id))
+      if (existing) {
+        existing.setLngLat([courier.currentLongitude,courier.currentLatitude])
+        existing.getElement().innerHTML = html
+      } else {
+        const element = htmlMarkerElement('ce-maplibre-courier-marker',html)
+        element.addEventListener('click',() => setSelectedCourierId(courier.id))
 
-          const marker=new AdvancedMarkerElement({
-            map,
-            position:{
-              lat:courier.currentLatitude,
-              lng:courier.currentLongitude,
-            },
-            content:element,
-            title:courier.fullName,
-          })
+        const marker = new maplibregl.Marker({
+          element,
+          anchor:'center',
+        })
+          .setLngLat([courier.currentLongitude,courier.currentLatitude])
+          .addTo(map)
 
-          courierMarkersRef.current.set(courier.id,marker)
-        }
-      })
-
-      courierMarkersRef.current.forEach((marker,id) => {
-        if (!activeIds.has(id)) {
-          marker.map=null
-          courierMarkersRef.current.delete(id)
-        }
-      })
-
-      if (!firstFitRef.current) {
-        firstFitRef.current=true
-        window.setTimeout(() => fitVisible(),120)
+        courierMarkersRef.current.set(courier.id,marker)
       }
     })
-  },[couriers,deliveryByCourier,fitVisible,mapReady,selectedCourierId])
+
+    courierMarkersRef.current.forEach((marker,id) => {
+      if (!activeIds.has(id)) {
+        marker.remove()
+        courierMarkersRef.current.delete(id)
+      }
+    })
+
+    if (!firstFitRef.current) {
+      firstFitRef.current = true
+      window.setTimeout(() => fitVisible(),120)
+    }
+  }, [couriers,deliveryByCourier,fitVisible,mapReady,selectedCourierId])
 
   return (
     <div className="live-map-page">
@@ -716,7 +743,7 @@ export function LiveCourierMap({
           <div className="live-map-toolbar">
             <div>
               <strong>Mapa operacional</strong>
-              <span>Google Maps · atualização automática</span>
+              <span>MapLibre · OpenFreeMap · atualização automática</span>
             </div>
             <div className="live-map-toolbar-actions">
               <button type="button" onClick={fitVisible}><Icon name="map" size={16}/> Enquadrar todos</button>
@@ -728,7 +755,7 @@ export function LiveCourierMap({
           </div>
 
           <div className="live-map-stage">
-            <div ref={mapElementRef} className="live-map-canvas google-live-map" />
+            <div ref={mapElementRef} className="live-map-canvas live-fallback-map" />
 
             {!mapReady && !mapError ? <div className="live-map-loading">Carregando mapa...</div> : null}
             {mapError ? <div className="live-map-error">{mapError}</div> : null}
@@ -820,6 +847,16 @@ export function LiveCourierMap({
                 <span>{money(selectedDelivery.deliveryFee)}</span>
                 <span>{selectedDelivery.estimatedMinutes ? `~${selectedDelivery.estimatedMinutes} min` : 'Tempo calculando'}</span>
               </div>
+              {selectedDelivery.deliveryLatitude != null && selectedDelivery.deliveryLongitude != null ? (
+                <a
+                  className="live-waze-button"
+                  href={`https://www.waze.com/ul?ll=${selectedDelivery.deliveryLatitude}%2C${selectedDelivery.deliveryLongitude}&navigate=yes`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Navegar com Waze
+                </a>
+              ) : null}
             </div>
           ) : null}
         </aside>
