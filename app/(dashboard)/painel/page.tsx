@@ -127,46 +127,80 @@ export default async function OverviewPage() {
 
   return (
     <div className="reference-dashboard">
-      <section className="home-command-hero" aria-label="Sua loja no ChamaEntrega">
-        <div className="home-command-backdrop" aria-hidden="true" />
-        <div className="home-command-content">
-          <span className="home-command-eyebrow">CENTRAL DA OPERAÇÃO</span>
-          <h1>Sua loja em movimento com o <span>ChamaEntrega</span></h1>
-          <p>
-            Acompanhe pedidos, entregadores e rotas em tempo real. Publique uma nova entrega
-            em poucos segundos.
-          </p>
+      <section className="home-premium-hero" aria-label="Central da operação">
+        <div className="home-premium-main">
+          <div className="home-premium-kicker">
+            <span><i /> OPERAÇÃO AO VIVO</span>
+            <strong>{store.name}</strong>
+          </div>
 
-          <div className="home-command-actions">
-            <Link href="/entregas/nova" className="home-command-primary">
-              <Icon name="route" size={18}/> Nova entrega
+          <div className="home-premium-copy">
+            <h1>Controle sua operação.<br/><span>Entregue mais, com menos esforço.</span></h1>
+            <p>
+              Pedidos, entregadores, rotas e financeiro reunidos em uma única central.
+              Tudo que sua loja precisa para operar o delivery com mais velocidade.
+            </p>
+          </div>
+
+          <div className="home-premium-actions">
+            <Link href="/entregas/nova" className="home-premium-primary">
+              <span className="home-premium-action-icon"><Icon name="route" size={19}/></span>
+              <span><strong>Criar nova entrega</strong><small>Publique uma corrida em segundos</small></span>
+              <b>→</b>
             </Link>
-            <Link href="/pedidos" className="home-command-secondary">
-              <Icon name="box" size={18}/> Ver pedidos
+            <Link href="/pedidos" className="home-premium-secondary">
+              <span className="home-premium-action-icon"><Icon name="box" size={19}/></span>
+              <span><strong>Central de pedidos</strong><small>Acompanhe a operação do dia</small></span>
+              <b>→</b>
             </Link>
           </div>
 
-          <div className="home-command-live">
+          <div className="home-premium-livebar">
+            <span><i className="online" /> {couriersOnline} entregador{couriersOnline === 1 ? '' : 'es'} online</span>
             <span><i /> {active} entrega{active === 1 ? '' : 's'} em andamento</span>
-            <span>{couriersOnline} entregador{couriersOnline === 1 ? '' : 'es'} online</span>
-            <span>{currency(walletAvailable)} disponíveis</span>
+            <span><i /> {waiting} aguardando entregador</span>
           </div>
         </div>
 
-        <div className="home-command-side">
-          <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
-
-          <div className="home-command-shortcuts">
-            <Link href="/entregadores">
-              <Icon name="users" size={18}/>
-              <span><strong>Entregadores</strong><small>Rede e disponibilidade</small></span>
-            </Link>
-            <Link href="/integracoes">
-              <Icon name="link" size={18}/>
-              <span><strong>Integrações</strong><small>Canais conectados</small></span>
-            </Link>
+        <aside className="home-premium-side">
+          <div className="home-premium-side-top">
+            <div>
+              <span className="home-premium-side-label">Hoje na operação</span>
+              <strong>{deliveries.length}</strong>
+              <small>pedidos registrados</small>
+            </div>
+            <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
           </div>
-        </div>
+
+          <div className="home-premium-side-grid">
+            <div>
+              <span>Em andamento</span>
+              <strong>{active}</strong>
+              <small>{waiting ? `${waiting} buscando entregador` : 'Operação em dia'}</small>
+            </div>
+            <div>
+              <span>Concluídas</span>
+              <strong>{completed}</strong>
+              <small>{deliveries.length ? `${Math.round((completed / deliveries.length) * 100)}% de sucesso` : 'Sem histórico hoje'}</small>
+            </div>
+            <div>
+              <span>Carteira</span>
+              <strong>{currency(walletAvailable)}</strong>
+              <small>saldo disponível</small>
+            </div>
+            <div>
+              <span>Taxas hoje</span>
+              <strong>{currency(gross)}</strong>
+              <small>volume operacional</small>
+            </div>
+          </div>
+
+          <div className="home-premium-shortcuts">
+            <Link href="/mapa"><Icon name="map" size={17}/><span>Mapa ao vivo</span><b>→</b></Link>
+            <Link href="/entregadores"><Icon name="users" size={17}/><span>Entregadores</span><b>→</b></Link>
+            <Link href="/integracoes"><Icon name="link" size={17}/><span>Integrações</span><b>→</b></Link>
+          </div>
+        </aside>
       </section>
 
       <section className="reference-metrics">
