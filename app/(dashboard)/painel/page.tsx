@@ -1,3 +1,4 @@
+import './painel.css'
 import Link from 'next/link'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
