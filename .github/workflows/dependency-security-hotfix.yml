@@ -1,0 +1,44 @@
+name: Dependency security hotfix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/dependency-security-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+
+      - name: Update vulnerable packages
+        run: |
+          npm pkg set dependencies.next=16.4.0
+          npm pkg set overrides.sharp=0.35.5
+          npm pkg set overrides.source-map-js=1.2.2
+          npm install --package-lock-only --ignore-scripts --no-fund
+          npm audit --audit-level=high
+
+      - name: Commit lockfile refresh
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo 'No dependency changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          git commit -m 'security: atualiza dependencias vulneraveis'
+          git push origin HEAD:main
