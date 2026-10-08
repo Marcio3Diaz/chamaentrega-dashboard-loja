@@ -44,20 +44,6 @@ function getSupabaseAdminKey(): string {
   throw new Error('Chave administrativa do Supabase não disponível.')
 }
 
-function createAdminClient(): SupabaseAdmin {
-  return createClient(
-    getRequiredEnv('SUPABASE_URL'),
-    getSupabaseAdminKey(),
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-      },
-    },
-  )
-}
-
 function timingSafeEqual(received: string, expected: string): boolean {
   const encoder = new TextEncoder()
   const left = encoder.encode(received)
@@ -110,21 +96,6 @@ function configuredWebhookUrl(): string {
 function retryDelaySeconds(attempts: number): number {
   const exponent = Math.max(0, Math.min(attempts - 1, 8))
   return Math.min(15 * 60, 5 * (2 ** exponent))
-}
-
-async function getWorkerSecret(supabase: SupabaseAdmin): Promise<string> {
-  const { data, error } = await supabase.rpc('get_serafina_outbox_worker_secret')
-
-  if (error) {
-    throw new Error(`Falha ao ler segredo do worker: ${error.message}`)
-  }
-
-  const value = typeof data === 'string' ? data.trim() : ''
-  if (value.length < 32) {
-    throw new Error('Segredo do worker ausente ou inválido no Vault.')
-  }
-
-  return value
 }
 
 async function markDelivered(
@@ -228,8 +199,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const supabase = createAdminClient()
-    const expectedWorkerSecret = await getWorkerSecret(supabase)
+    const expectedWorkerSecret = getRequiredEnv('SERAFINA_OUTBOX_WORKER_SECRET')
     const receivedWorkerSecret = request.headers
       .get('x-serafina-outbox-worker-secret')
       ?.trim() ?? ''
@@ -243,6 +213,18 @@ Deno.serve(async (request: Request) => {
       throw new Error('SERAFINA_WEBHOOK_SECRET deve ter pelo menos 24 caracteres.')
     }
     const webhookUrl = configuredWebhookUrl()
+
+    const supabase = createClient(
+      getRequiredEnv('SUPABASE_URL'),
+      getSupabaseAdminKey(),
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      },
+    )
 
     const { data, error } = await supabase.rpc(
       'claim_serafina_webhook_outbox',
