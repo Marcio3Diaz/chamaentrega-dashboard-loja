@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireStore } from '@/lib/auth'
+import { sendSerafinaWebhook, mapOrderStatusToSerafina } from '@/lib/integrations/serafina-webhook'
 import { createClient } from '@/lib/supabase/server'
 
 const allowedStatuses = new Set([
@@ -23,6 +24,35 @@ function redirectBack(
   url.searchParams.set('action', result)
   url.searchParams.set('message', message)
   return NextResponse.redirect(url, { status: 303 })
+}
+
+function isSerafinaWebhookTarget(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+
+  const metadata = value as Record<string,unknown>
+  return metadata.webhook_target === 'serafina'
+}
+
+async function notifySerafina(input: {
+  orderId: string
+  externalOrderId: string | null
+  deliveryId: string | null
+  sourceMetadata: unknown
+  nextStatus: string
+}) {
+  if (!input.externalOrderId || !isSerafinaWebhookTarget(input.sourceMetadata)) {
+    return
+  }
+
+  const mappedStatus = mapOrderStatusToSerafina(input.nextStatus)
+  if (!mappedStatus) return
+
+  await sendSerafinaWebhook({
+    externalOrderId:input.externalOrderId,
+    deliveryId:input.deliveryId,
+    status:mappedStatus,
+    eventId:`store-order:${input.orderId}:status:${input.nextStatus}`,
+  })
 }
 
 export async function POST(request: Request) {
@@ -83,7 +113,7 @@ export async function POST(request: Request) {
 
     const { data: order, error: orderError } = await supabase
       .from('store_orders')
-      .select('id,status,delivery_id')
+      .select('id,status,delivery_id,external_order_id,source_metadata')
       .eq('id', orderId)
       .eq('store_id', storeId)
       .maybeSingle()
@@ -125,6 +155,29 @@ export async function POST(request: Request) {
 
     if (error) {
       return redirectBack(request, orderId, 'error', error.message || 'Não foi possível atualizar o pedido.')
+    }
+
+    try {
+      await notifySerafina({
+        orderId:order.id,
+        externalOrderId:order.external_order_id,
+        deliveryId:order.delivery_id,
+        sourceMetadata:order.source_metadata,
+        nextStatus,
+      })
+    } catch (webhookError) {
+      console.error('[orders/status] falha ao notificar Serafina', {
+        orderId:order.id,
+        nextStatus,
+        error:webhookError instanceof Error ? webhookError.message : 'erro desconhecido',
+      })
+
+      return redirectBack(
+        request,
+        orderId,
+        'error',
+        'Status atualizado, mas a confirmação externa falhou. Tente novamente.',
+      )
     }
 
     const message =
