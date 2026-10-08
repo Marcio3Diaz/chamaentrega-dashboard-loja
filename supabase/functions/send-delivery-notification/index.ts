@@ -50,6 +50,13 @@ type SendResult = {
   error?: string
 }
 
+type SerafinaWebhookStatus =
+  | 'searching_driver'
+  | 'accepted'
+  | 'on_the_way'
+  | 'delivered'
+  | 'cancelled'
+
 const FUNCTION_NAME = 'send-delivery-notification'
 const MAX_WEBHOOK_BYTES = 512 * 1024
 const APP_PACKAGE = 'com.marciodiaz.logistica.entregador'
@@ -60,6 +67,7 @@ const PAYMENTS_CHANNEL_ID = 'entregaplus_payments'
 const GENERAL_CHANNEL_ID = 'entregaplus_updates'
 const FIREBASE_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging'
 const DEFAULT_TOKEN_URI = 'https://oauth2.googleapis.com/token'
+const SERAFINA_WEBHOOK_TIMEOUT_MS = 5_000
 
 let cachedAccessToken: string | null = null
 let cachedAccessTokenExpiresAt = 0
@@ -285,7 +293,6 @@ function uniqueNonEmpty(values: string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
 }
 
-
 function simpleFingerprint(value: string): string {
   let hash = 2166136261
 
@@ -302,6 +309,197 @@ function eventVersion(record: JsonRecord): string {
     textValue(record.created_at) ||
     textValue(record.published_at) ||
     new Date().toISOString()
+}
+
+function mapDeliveryStatusToSerafina(status: string): SerafinaWebhookStatus | null {
+  const mapping: Record<string, SerafinaWebhookStatus> = {
+    available: 'searching_driver',
+    accepted: 'accepted',
+    heading_to_pickup: 'accepted',
+    at_pickup: 'accepted',
+    heading_to_dropoff: 'on_the_way',
+    at_dropoff: 'on_the_way',
+    completed: 'delivered',
+    cancelled: 'cancelled',
+    canceled: 'cancelled',
+  }
+
+  return mapping[status] ?? null
+}
+
+function metadataWebhookTarget(value: unknown): string {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return ''
+  }
+
+  return lowerText((value as Record<string, unknown>).webhook_target)
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+async function hmacSha256Hex(secret: string, value: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(value))
+  return bytesToHex(new Uint8Array(signature))
+}
+
+function serafinaWebhookConfig(): { url: string; secret: string } | null {
+  const rawUrl = Deno.env.get('SERAFINA_WEBHOOK_URL')?.trim() ?? ''
+  const secret = Deno.env.get('SERAFINA_WEBHOOK_SECRET')?.trim() ?? ''
+
+  if (!rawUrl || !secret) {
+    return null
+  }
+
+  const url = new URL(rawUrl)
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new Error('SERAFINA_WEBHOOK_URL usa protocolo inválido.')
+  }
+
+  const isProduction = Deno.env.get('DENO_DEPLOYMENT_ID') != null
+  if (isProduction && url.protocol !== 'https:') {
+    throw new Error('SERAFINA_WEBHOOK_URL deve usar HTTPS no ambiente remoto.')
+  }
+
+  if (isProduction && secret.length < 24) {
+    throw new Error('SERAFINA_WEBHOOK_SECRET deve ter pelo menos 24 caracteres.')
+  }
+
+  return { url: url.toString(), secret }
+}
+
+async function postSerafinaWebhook(input: {
+  url: string
+  secret: string
+  eventId: string
+  body: string
+}): Promise<Response> {
+  const timestamp = String(Math.floor(Date.now() / 1000))
+  const digest = await hmacSha256Hex(
+    input.secret,
+    `${timestamp}.${input.body}`,
+  )
+
+  return await fetch(input.url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-chamaentrega-event-id': input.eventId,
+      'x-chamaentrega-timestamp': timestamp,
+      'x-chamaentrega-signature': `sha256=${digest}`,
+    },
+    body: input.body,
+    signal: AbortSignal.timeout(SERAFINA_WEBHOOK_TIMEOUT_MS),
+  })
+}
+
+async function forwardOperationalDeliveryStatusToSerafina(
+  payload: WebhookPayload,
+  supabaseAdmin: SupabaseAdmin,
+): Promise<boolean> {
+  if (
+    payload.schema !== 'public'
+    || payload.table !== 'deliveries'
+    || payload.type !== 'UPDATE'
+    || !payload.record
+  ) {
+    return false
+  }
+
+  const deliveryId = textValue(payload.record.id)
+  const currentStatus = lowerText(payload.record.status)
+  const previousStatus = lowerText(payload.old_record?.status)
+
+  if (!deliveryId || !currentStatus || currentStatus === previousStatus) {
+    return false
+  }
+
+  const serafinaStatus = mapDeliveryStatusToSerafina(currentStatus)
+  if (!serafinaStatus) {
+    return false
+  }
+
+  const { data: order, error } = await supabaseAdmin
+    .from('store_orders')
+    .select('external_order_id,source_metadata')
+    .eq('delivery_id', deliveryId)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Falha ao consultar pedido integrado da entrega: ${error.message}`)
+  }
+
+  if (
+    !order
+    || metadataWebhookTarget(order.source_metadata) !== 'serafina'
+  ) {
+    return false
+  }
+
+  const externalOrderId = textValue(order.external_order_id)
+  if (!externalOrderId || externalOrderId.length > 30) {
+    throw new Error('Pedido Serafina vinculado possui external_order_id inválido.')
+  }
+
+  const config = serafinaWebhookConfig()
+  if (!config) {
+    console.warn(
+      `${FUNCTION_NAME}: entrega Serafina alterou status, mas webhook não está configurado.`,
+      { deliveryId, currentStatus },
+    )
+    return false
+  }
+
+  const body = JSON.stringify({
+    external_order_id: externalOrderId,
+    delivery_id: deliveryId,
+    status: serafinaStatus,
+  })
+  const eventId = `delivery:${deliveryId}:${currentStatus}:${eventVersion(payload.record)}`
+
+  let response = await postSerafinaWebhook({
+    ...config,
+    eventId,
+    body,
+  })
+
+  if ([429, 500, 502, 503, 504].includes(response.status)) {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    response = await postSerafinaWebhook({
+      ...config,
+      eventId,
+      body,
+    })
+  }
+
+  if (!response.ok) {
+    const responseText = await response.text().catch(() => '')
+    throw new Error(
+      `Webhook operacional da Serafina respondeu HTTP ${response.status}`
+      + (responseText ? `: ${responseText.slice(0, 200)}` : ''),
+    )
+  }
+
+  console.info(`${FUNCTION_NAME}: status operacional enviado para Serafina.`, {
+    deliveryId,
+    externalOrderId,
+    deliveryStatus: currentStatus,
+    serafinaStatus,
+    eventId,
+  })
+
+  return true
 }
 
 async function resolveStore(
@@ -418,9 +616,6 @@ async function buildDeliveryPlan(
         status: newStatus,
         route: 'offers',
       },
-      // Sem channel_id explícito: o Android usa o canal padrão declarado
-      // pelo APK instalado. Assim versões anteriores recebem a notificação
-      // pelo canal urgente e versões novas usam o canal exclusivo com som.
       channelId: '',
       priority: 'HIGH',
       notificationPriority: 'PRIORITY_MAX',
@@ -860,12 +1055,17 @@ Deno.serve(async (request: Request) => {
       },
     )
 
+    const serafinaForwarded = await forwardOperationalDeliveryStatusToSerafina(
+      payload,
+      supabaseAdmin,
+    )
     const plan = await buildPushPlan(payload, supabaseAdmin)
 
     if (!plan || plan.targetCourierIds.length === 0) {
       return jsonResponse({
         ok: true,
         skipped: true,
+        serafina_forwarded: serafinaForwarded,
         reason: 'O evento não exige notificação ou não possui destinatário.',
         table: payload.table,
         event_type: payload.type,
@@ -895,6 +1095,7 @@ Deno.serve(async (request: Request) => {
       return jsonResponse({
         ok: true,
         skipped: true,
+        serafina_forwarded: serafinaForwarded,
         reason: 'Nenhum token FCM ativo foi encontrado para os destinatários.',
         event_key: plan.eventKey,
         target_couriers: plan.targetCourierIds.length,
@@ -929,6 +1130,7 @@ Deno.serve(async (request: Request) => {
         ok: true,
         skipped: true,
         duplicate: true,
+        serafina_forwarded: serafinaForwarded,
         reason: 'Este evento já foi enviado ou está sendo processado para todos os tokens ativos.',
         event_key: plan.eventKey,
       })
@@ -1018,6 +1220,7 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({
       ok: failed === 0,
       skipped: false,
+      serafina_forwarded: serafinaForwarded,
       event_key: plan.eventKey,
       notification_type: plan.notificationType,
       target_couriers: plan.targetCourierIds.length,
