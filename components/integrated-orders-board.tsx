@@ -58,6 +58,7 @@ type Props = {
   initialDeliveries: LinkedDelivery[]
   initialSelectedId?: string | null
   initialMessage?: string
+  initialSearch?: string
 }
 
 type FilterStatus = 'all' | OrderStatus
@@ -81,7 +82,6 @@ const sourceMeta: Record<OrderSource,{label:string;logo?:string;className:string
   own_menu:{ label:'Cardápio próprio', className:'own' },
   manual:{ label:'ChamaEntrega', className:'manual' },
 }
-
 
 function shortId(value:string) {
   return value.replaceAll('-','').slice(0,7).toUpperCase()
@@ -188,13 +188,14 @@ export function IntegratedOrdersBoard({
   initialDeliveries,
   initialSelectedId = null,
   initialMessage = '',
+  initialSearch = '',
 }:Props) {
   const supabase = useMemo(() => createClient(),[])
   const [orders,setOrders] = useState(initialOrders)
   const [deliveries,setDeliveries] = useState(initialDeliveries)
   const [statusFilter,setStatusFilter] = useState<FilterStatus>('all')
   const [sourceFilter,setSourceFilter] = useState<FilterSource>('all')
-  const [search,setSearch] = useState('')
+  const [search,setSearch] = useState(initialSearch)
   const [selectedId,setSelectedId] = useState<string | null>(() =>
     initialSelectedId && initialOrders.some(order => order.id === initialSelectedId)
       ? initialSelectedId
@@ -243,6 +244,11 @@ export function IntegratedOrdersBoard({
   const visible = filtered.slice((safePage - 1) * pageSize,safePage * pageSize)
 
   const selected = enriched.find(item => item.order.id === selectedId) ?? enriched[0] ?? null
+
+  useEffect(() => {
+    setSearch(initialSearch)
+    setPage(1)
+  },[initialSearch])
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages)
@@ -361,21 +367,15 @@ export function IntegratedOrdersBoard({
         })
 
         setOrders(current => {
-          if (!mapped) return current
-          const deliveryId = mapped.id
-          const hasIntegratedOrder = current.some(item => !item.id.startsWith('delivery:') && item.deliveryId === deliveryId)
-
-          if (hasIntegratedOrder || row.status === 'draft') {
-            return current.filter(item => !(item.id.startsWith('delivery:') && item.deliveryId === deliveryId))
-          }
+          const hasLinkedOrder = current.some(item => item.deliveryId === row.id)
+          if (hasLinkedOrder || row.status === 'draft') return current
 
           const synthetic = syntheticOrderFromDelivery(row,storeId)
           const exists = current.some(item => item.id === synthetic.id)
-
-          return (exists
+          const next = exists
             ? current.map(item => item.id === synthetic.id ? synthetic : item)
             : [synthetic,...current]
-          ).sort((a,b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
+          return next.sort((a,b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
         })
       })
       .subscribe()
@@ -386,485 +386,162 @@ export function IntegratedOrdersBoard({
     }
   },[storeId,supabase])
 
-  function openDetails(orderId:string) {
-    setSelectedId(orderId)
-
-    const url = new URL(window.location.href)
-    url.searchParams.set('pedido',orderId)
-    window.history.replaceState({},'',url)
-
-    if (window.innerWidth <= 1180) {
-      window.requestAnimationFrame(() => {
-        document.getElementById('pedido-detalhes')?.scrollIntoView({
-          behavior:'smooth',
-          block:'start',
-        })
-      })
-    }
-  }
-
-  useEffect(() => {
-    if (!message) return
-    const timer = window.setTimeout(() => setMessage(''),4200)
-    return () => window.clearTimeout(timer)
-  },[message])
-
-  const todayKey = new Intl.DateTimeFormat('en-CA', {
-    year:'numeric',
-    month:'2-digit',
-    day:'2-digit',
-  }).format(new Date())
-
-  const todayItems = enriched.filter(({order}) =>
-    new Intl.DateTimeFormat('en-CA', {
-      year:'numeric',
-      month:'2-digit',
-      day:'2-digit',
-    }).format(new Date(order.receivedAt)) === todayKey
-  )
-
-  const metrics = {
-    total: todayItems.length,
-    new: todayItems.filter(item => item.status === 'new').length,
-    preparing: todayItems.filter(item => item.status === 'preparing').length,
-    ready: todayItems.filter(item => item.status === 'ready').length,
-  }
+  const statusButtons:FilterStatus[] = ['all','new','preparing','ready','seeking_courier','in_route','completed','cancelled']
+  const sourceButtons:FilterSource[] = ['all','whatsapp','ifood','99food','goomer','own_menu','manual']
 
   return (
-    <div className="orders-hub-page">
-      <section className="orders-hub-hero">
+    <div className="orders-board-page">
+      <section className="orders-board-head">
         <div>
-          <div className="eyebrow">CAIXA DE ENTRADA UNIFICADA</div>
-          <h1>Pedidos <span>Integrados</span></h1>
-          <p>Todos os pedidos da sua loja em um só lugar, vindos de WhatsApp, iFood, 99Food, Goomer e cardápio próprio.</p>
+          <span className="orders-kicker">OPERAÇÃO</span>
+          <h1>Pedidos</h1>
+          <p>Todos os canais em uma única fila operacional.</p>
         </div>
-        <div className="orders-hub-hero-side">
-          <span>Mais pedidos.<br/>Mais vendas.<br/>Mais entregas.</span>
-          <b><i/>AO VIVO</b>
+        <Link href="/entregas/nova" className="button button-gold"><Icon name="plus" size={16}/> NOVA ENTREGA</Link>
+      </section>
+
+      {message ? <div className="notice">{message}</div> : null}
+
+      <section className="orders-toolbar">
+        <div className="orders-search-box">
+          <Icon name="search" size={17}/>
+          <input
+            value={search}
+            onChange={event => { setSearch(event.target.value); setPage(1) }}
+            placeholder="Buscar pedido, cliente, telefone ou endereço..."
+          />
+        </div>
+
+        <div className="orders-source-filter">
+          <span>Filtrar por origem</span>
+          <div>
+            {sourceButtons.map(source => (
+              <button
+                key={source}
+                type="button"
+                className={sourceFilter === source ? 'active' : ''}
+                onClick={() => { setSourceFilter(source); setPage(1) }}
+              >
+                {source === 'all' ? 'Todos' : sourceMeta[source].label}
+                <b>{sourceCounts[source] ?? 0}</b>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="orders-hub-metrics">
-        <article><span className="orders-metric-icon gold">🛒</span><div><small>Total hoje</small><strong>{metrics.total}</strong><span>Pedidos recebidos</span></div></article>
-        <article><span className="orders-metric-icon blue">▤</span><div><small>Novos pedidos</small><strong>{metrics.new}</strong><span>Aguardando atendimento</span></div></article>
-        <article><span className="orders-metric-icon orange">♨</span><div><small>Em preparo</small><strong>{metrics.preparing}</strong><span>Pedidos em produção</span></div></article>
-        <article><span className="orders-metric-icon green">✓</span><div><small>Prontos para entrega</small><strong>{metrics.ready}</strong><span>Aguardando coleta</span></div></article>
-      </section>
-
-      <section className="orders-hub-workspace">
-        <main className="orders-hub-main">
-          <div className="orders-hub-filters">
-            <div className="orders-filter-row">
-              <strong>Filtrar por status:</strong>
-              {([
-                ['all','Todos'],
-                ['new','Novos'],
-                ['preparing','Em preparo'],
-                ['ready','Prontos'],
-                ['seeking_courier','Buscando entregador'],
-                ['in_route','Em rota'],
-                ['completed','Concluídos'],
-              ] as Array<[FilterStatus,string]>).map(([key,label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={statusFilter === key ? 'active' : ''}
-                  onClick={() => { setStatusFilter(key);setPage(1) }}
-                >
-                  {label}<b>{counts[key] ?? 0}</b>
-                </button>
-              ))}
-            </div>
-
-            <div className="orders-filter-row source">
-              <strong>Filtrar por origem:</strong>
-              <button className={sourceFilter === 'all' ? 'active' : ''} onClick={() => {setSourceFilter('all');setPage(1)}}>Todos</button>
-              {(Object.keys(sourceMeta) as OrderSource[]).map(key => (
-                <button
-                  key={key}
-                  className={sourceFilter === key ? 'active' : ''}
-                  onClick={() => {setSourceFilter(key);setPage(1)}}
-                >
-                  <OrderSourceMark source={key}/>
-                  {sourceMeta[key].label}
-                  {sourceCounts[key] ? <b>{sourceCounts[key]}</b> : null}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="orders-command-section">
-            <div className="orders-command-toolbar">
-              <div>
-                <strong>Comandas da operação</strong>
-                <small>Pedidos e entregas em uma visão rápida</small>
-              </div>
-              <label>
-                <span>⌕</span>
-                <input
-                  value={search}
-                  onChange={e => {setSearch(e.target.value);setPage(1)}}
-                  placeholder="Buscar cliente, pedido ou endereço..."
-                />
-              </label>
-            </div>
-
-            <div className="orders-command-grid">
-              {visible.map(({order,delivery,status}) => {
-                const assigned = Boolean(delivery?.assignedCourierId)
-                const standalone = Boolean(order.sourceMetadata.standaloneDelivery)
-
-                return (
-                  <article
-                    key={order.id}
-                    className={`order-command-card ${selected?.order.id === order.id ? 'selected' : ''} ${order.source === 'whatsapp' ? 'whatsapp-source' : ''}`}
-                    onClick={() => setSelectedId(order.id)}
-                  >
-                    {order.source === 'whatsapp' ? (
-                      <span className="order-command-whatsapp-badge" title="Pedido via WhatsApp">
-                        <img src="/integrations/whatsapp.svg" alt="WhatsApp"/>
-                      </span>
-                    ) : null}
-                    <header className="order-command-head">
-                      <div className="order-command-origin">
-                        <OrderSourceMark source={order.source}/>
-                        <div>
-                          <small>{sourceMeta[order.source].label}</small>
-                          <strong>#{order.externalOrderId || shortId(order.id)}</strong>
-                        </div>
-                      </div>
-                      <span className={`order-status-pill ${statusMeta[status].className}`}>
-                        {statusMeta[status].label}
-                      </span>
-                    </header>
-
-                    <div className="order-command-time">
-                      <Icon name="clock" size={13}/>
-                      {onlyTime(order.receivedAt)} · {fullDate(order.receivedAt)}
-                    </div>
-
-                    <section className="order-command-block">
-                      <div className="order-command-label"><Icon name="user" size={14}/>Cliente</div>
-                      <strong>{order.customerName || 'Cliente não informado'}</strong>
-                      <span>{phone(order.customerPhone)}</span>
-                    </section>
-
-                    <section className="order-command-block">
-                      <div className="order-command-label"><Icon name="pin" size={14}/>Entrega</div>
-                      <strong>{order.fulfillmentType === 'pickup' ? 'Retirada na loja' : order.deliveryAddress || 'Endereço não informado'}</strong>
-                    </section>
-
-                    <section className="order-command-block items">
-                      <div className="order-command-label"><Icon name="box" size={14}/>Itens / origem</div>
-                      {order.items.length ? (
-                        <div className="order-command-item-list">
-                          {order.items.slice(0,3).map((item,index) => (
-                            <span key={index}>{itemLabel(item)}</span>
-                          ))}
-                          {order.items.length > 3 ? <small>+{order.items.length - 3} item(ns)</small> : null}
-                        </div>
-                      ) : standalone ? (
-                        <div className="order-command-delivery-only">
-                          <Icon name="truck" size={14}/>
-                          <span>Entrega criada no ChamaEntrega</span>
-                        </div>
-                      ) : (
-                        <span>Itens não informados pela integração</span>
-                      )}
-                    </section>
-
-                    <section className={`order-command-courier ${assigned ? 'assigned' : 'seeking'}`}>
-                      <div className="order-command-label"><Icon name="truck" size={14}/>Entregador</div>
-                      {assigned && delivery ? (
-                        <div className="order-command-courier-row">
-                          <span className="order-command-courier-avatar">
-                            {delivery.assignedCourierAvatarUrl
-                              ? <img src={delivery.assignedCourierAvatarUrl} alt="" />
-                              : <Icon name="user" size={18}/>}
-                          </span>
-                          <div>
-                            <strong>{delivery.assignedCourierName || 'Entregador alocado'}</strong>
-                            <span>{vehicleLabel(delivery.assignedCourierVehicle)} · {currency(delivery.deliveryFee)}</span>
-                            <small>
-                              {statusMeta[effectiveStatus(order,delivery)].label}
-                              {delivery.estimatedMinutes ? ` · ~${delivery.estimatedMinutes} min` : ''}
-                            </small>
-                          </div>
-                        </div>
-                      ) : order.fulfillmentType === 'pickup' ? (
-                        <div className="order-command-courier-row">
-                          <span className="order-command-courier-avatar"><Icon name="store" size={18}/></span>
-                          <div><strong>Retirada na loja</strong><span>Não precisa de entregador</span></div>
-                        </div>
-                      ) : (
-                        <div className="order-command-courier-row">
-                          <span className="order-command-courier-avatar pulse"><Icon name="search" size={18}/></span>
-                          <div>
-                            <strong>Buscando entregador</strong>
-                            <span>Oferta publicada para a rede</span>
-                            {delivery ? <small>Taxa {currency(delivery.deliveryFee)}</small> : null}
-                          </div>
-                        </div>
-                      )}
-                    </section>
-
-                    <footer className="order-command-footer">
-                      <div className="order-command-total">
-                        <small>Total do pedido</small>
-                        <strong>{currency(order.orderTotal)}</strong>
-                      </div>
-                      <div className="order-command-actions">
-                        <button
-                          type="button"
-                          className="ghost"
-                          onClick={event => {
-                            event.stopPropagation()
-                            openDetails(order.id)
-                          }}
-                        >
-                          Ver detalhes
-                        </button>
-                        {delivery?.assignedCourierId ? (
-                          <Link
-                            href={`/mapa?delivery=${delivery.id}`}
-                            onClick={event => event.stopPropagation()}
-                          >
-                            Acompanhar
-                          </Link>
-                        ) : status === 'seeking_courier' && delivery ? (
-                          <Link
-                            href={`/despacho?delivery=${delivery.id}`}
-                            onClick={event => event.stopPropagation()}
-                          >
-                            Ver busca
-                          </Link>
-                        ) : null}
-                      </div>
-                    </footer>
-                  </article>
-                )
-              })}
-
-              {!visible.length ? (
-                <div className="orders-command-empty">
-                  <span>✦</span>
-                  <strong>Nenhuma comanda encontrada</strong>
-                  <p>Os pedidos e entregas da operação aparecerão aqui em formato de comanda.</p>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="orders-hub-pagination">
-              <span>Mostrando {filtered.length ? (safePage - 1) * pageSize + 1 : 0} a {Math.min(safePage * pageSize,filtered.length)} de {filtered.length} pedidos</span>
-              <div>
-                <button disabled={safePage <= 1} onClick={() => setPage(value => Math.max(1,value - 1))}>‹</button>
-                {Array.from({length:Math.min(totalPages,5)},(_,index) => index + 1).map(value => (
-                  <button key={value} className={safePage === value ? 'active' : ''} onClick={() => setPage(value)}>{value}</button>
-                ))}
-                <button disabled={safePage >= totalPages} onClick={() => setPage(value => Math.min(totalPages,value + 1))}>›</button>
-              </div>
-            </div>
-          </div>
-
-          <OrderProgress status={selected?.status ?? 'new'}/>
-        </main>
-
-        <aside className="orders-hub-detail" id="pedido-detalhes">
-          {selected ? (
-            <OrderDetail
-              storeId={storeId}
-              item={selected}
-            />
-          ) : (
-            <div className="orders-detail-empty"><span>☰</span><strong>Selecione um pedido</strong><p>Os detalhes completos aparecerão aqui.</p></div>
-          )}
-        </aside>
-      </section>
-
-      {message ? <div className="orders-hub-toast">{message}</div> : null}
-    </div>
-  )
-}
-
-function OrderSourceMark({source}:{source:OrderSource}) {
-  const meta = sourceMeta[source]
-  return (
-    <span className={`order-source-mark ${meta.className}`}>
-      {meta.logo ? <img src={meta.logo} alt={meta.label}/> : <span>{source === 'own_menu' ? 'CE' : '✦'}</span>}
-    </span>
-  )
-}
-
-function OrderProgress({status}:{status:OrderStatus}) {
-  const step = statusMeta[status].step
-  const steps = [
-    ['✓','Recebido'],
-    ['♨','Em preparo'],
-    ['□','Pedido pronto'],
-    ['⌁','Entrega publicada'],
-    ['➤','Em rota'],
-    ['✓','Entregue'],
-  ]
-  return (
-    <div className="orders-hub-progress">
-      <strong>Fluxo do pedido:</strong>
-      <div>
-        {steps.map(([icon,label],index) => (
-          <span key={label} className={index <= step ? 'active' : ''}>
-            <i>{icon}</i><b>{label}</b>
-          </span>
+      <section className="orders-status-tabs">
+        {statusButtons.map(status => (
+          <button
+            key={status}
+            type="button"
+            className={statusFilter === status ? 'active' : ''}
+            onClick={() => { setStatusFilter(status); setPage(1) }}
+          >
+            {status === 'all' ? 'Todos' : statusMeta[status].label}
+            <b>{counts[status] ?? 0}</b>
+          </button>
         ))}
-      </div>
-      <small>Acompanhe cada etapa do seu pedido em tempo real.</small>
-    </div>
-  )
-}
-
-function OrderDetail({
-  storeId,
-  item,
-}:{
-  storeId:string
-  item:{order:IntegratedOrder;delivery?:LinkedDelivery;status:OrderStatus}
-}) {
-  const { order,delivery,status } = item
-  const meta = sourceMeta[order.source]
-  const standalone = Boolean(order.sourceMetadata.standaloneDelivery)
-
-  const statusForm = (
-    nextStatus:OrderStatus,
-    label:string,
-    icon?:string,
-  ) => (
-    <form action="/api/orders/status" method="post">
-      <input type="hidden" name="storeId" value={storeId}/>
-      <input type="hidden" name="orderId" value={order.id}/>
-      <input type="hidden" name="deliveryId" value={delivery?.id ?? order.deliveryId ?? ''}/>
-      <input type="hidden" name="standalone" value={standalone ? '1' : '0'}/>
-      <input type="hidden" name="status" value={nextStatus}/>
-      <button type="submit">{icon ? `${icon} ` : ''}{label}</button>
-    </form>
-  )
-
-  const primary = (() => {
-    if (status === 'new') return statusForm('preparing','Marcar como em preparo','♨')
-    if (status === 'preparing') return statusForm('ready','Marcar pedido como pronto','✓')
-    if (status === 'ready' && order.fulfillmentType === 'delivery') return <Link href={`/entregas/nova?order=${order.id}`}>+ Criar entrega</Link>
-    if (status === 'ready' && order.fulfillmentType === 'pickup') return statusForm('completed','Marcar como retirado','✓')
-    if (status === 'seeking_courier' && delivery) return <Link href={`/despacho?delivery=${delivery.id}`}>Acompanhar busca</Link>
-    if (status === 'in_route' && delivery) return <Link href={`/mapa?delivery=${delivery.id}`}>Acompanhar no mapa</Link>
-    return null
-  })()
-
-  return (
-    <>
-      <div className="orders-detail-head">
-        <OrderSourceMark source={order.source}/>
-        <div><strong>Pedido #{order.externalOrderId || shortId(order.id)}</strong><span>Recebido via <b>{meta.label}</b></span></div>
-        <span className={`order-status-pill ${statusMeta[status].className}`}>{statusMeta[status].label}</span>
-      </div>
-
-      <div className="orders-detail-time">{onlyTime(order.receivedAt)} · {fullDate(order.receivedAt)}</div>
-
-      <section className="orders-detail-section">
-        <span className="orders-detail-icon"><Icon name="user" size={17}/></span>
-        <div><small>Cliente</small><strong>{order.customerName || 'Cliente'}</strong><span>{phone(order.customerPhone)}</span></div>
-        {order.customerPhone ? <a href={`tel:${order.customerPhone.replace(/\D/g,'')}`} aria-label="Ligar para o cliente"><Icon name="phone" size={15}/></a> : null}
       </section>
 
-      {order.fulfillmentType === 'delivery' ? (
-        <section className="orders-detail-section">
-          <span className="orders-detail-icon"><Icon name="pin" size={17}/></span>
-          <div><small>Endereço de entrega</small><strong>{order.deliveryAddress || 'Endereço não informado'}</strong></div>
-        </section>
-      ) : (
-        <section className="orders-detail-section">
-          <span className="orders-detail-icon"><Icon name="store" size={17}/></span>
-          <div><small>Retirada</small><strong>Cliente retira na loja</strong></div>
-        </section>
-      )}
+      <section className="orders-workspace">
+        <div className="orders-grid-list">
+          {visible.map(({order,delivery,status}) => {
+            const meta = statusMeta[status]
+            const source = sourceMeta[order.source]
+            return (
+              <button
+                type="button"
+                key={order.id}
+                className={selected?.order.id === order.id ? 'order-card active' : 'order-card'}
+                onClick={() => setSelectedId(order.id)}
+              >
+                <span className="order-card-topline">
+                  <span className={`order-source ${source.className}`}>
+                    {source.logo ? <img src={source.logo} alt=""/> : <Icon name="store" size={12}/>} {source.label}
+                  </span>
+                  <span className={`order-status ${meta.className}`}>{meta.label}</span>
+                </span>
+                <strong>#{order.externalOrderId ?? shortId(order.id)}</strong>
+                <span className="order-customer">{order.customerName ?? 'Cliente'}</span>
+                <span className="order-address">{order.deliveryAddress ?? 'Retirada no local'}</span>
+                <span className="order-card-footer">
+                  <b>{currency(order.orderTotal)}</b>
+                  <small>{onlyTime(order.receivedAt)}</small>
+                </span>
+                {delivery?.assignedCourierName ? (
+                  <span className="order-courier-inline">
+                    {delivery.assignedCourierAvatarUrl ? <img src={delivery.assignedCourierAvatarUrl} alt=""/> : <i>{delivery.assignedCourierName.slice(0,1)}</i>}
+                    {delivery.assignedCourierName}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
 
-      <section className="orders-detail-items">
-        <div className="orders-detail-section-title"><Icon name="box" size={16}/>Itens do pedido</div>
-        {order.items.length ? order.items.map((item,index) => (
-          <div className="orders-detail-item" key={index}>
-            <span>{itemLabel(item)}{item.note ? <small>{item.note}</small> : null}</span>
-            {itemPrice(item) != null ? <strong>{currency(itemPrice(item)!)}</strong> : null}
-          </div>
-        )) : <p className="orders-detail-muted">Itens não informados pela integração.</p>}
-      </section>
+          {!visible.length ? <div className="empty premium-empty">Nenhum pedido encontrado com os filtros atuais.</div> : null}
 
-      {order.customerNote ? (
-        <section className="orders-detail-note">
-          <div className="orders-detail-section-title"><Icon name="chat" size={16}/>Observações do cliente</div>
-          <p>“{order.customerNote}”</p>
-        </section>
-      ) : null}
-
-      <section className="orders-detail-payment">
-        <div><span className="orders-detail-icon"><Icon name="money" size={17}/></span><span><small>Pagamento</small><strong>{paymentLabel(order.paymentMethod)}</strong></span></div>
-        <b className={order.paymentStatus === 'paid' ? 'paid' : ''}>{paymentStatusLabel(order.paymentStatus)}</b>
-      </section>
-
-      {delivery ? (
-        <section className="orders-detail-delivery">
-          <span><Icon name="truck" size={16}/>Entrega vinculada</span>
-          <strong>#{shortId(delivery.id)}</strong>
-          <small>{statusMeta[effectiveStatus(order,delivery)].label}{delivery.estimatedMinutes ? ` · ~${delivery.estimatedMinutes} min` : ''}</small>
-          {delivery.assignedCourierId ? (
-            <div className="orders-detail-courier">
-              <span className="orders-detail-courier-avatar">
-                {delivery.assignedCourierAvatarUrl
-                  ? <img src={delivery.assignedCourierAvatarUrl} alt="" />
-                  : <Icon name="user" size={17}/>}
-              </span>
-              <div>
-                <b>{delivery.assignedCourierName || 'Entregador alocado'}</b>
-                <small>{vehicleLabel(delivery.assignedCourierVehicle)} · taxa {currency(delivery.deliveryFee)}</small>
-              </div>
+          {totalPages > 1 ? (
+            <div className="orders-pagination">
+              <button type="button" disabled={safePage <= 1} onClick={() => setPage(value => Math.max(1,value - 1))}>Anterior</button>
+              <span>{safePage} / {totalPages}</span>
+              <button type="button" disabled={safePage >= totalPages} onClick={() => setPage(value => Math.min(totalPages,value + 1))}>Próxima</button>
             </div>
           ) : null}
-        </section>
-      ) : null}
+        </div>
 
-      <div className="orders-detail-total"><span>Total do pedido</span><strong>{currency(order.orderTotal)}</strong></div>
+        <aside className="order-detail-panel">
+          {selected ? (
+            <>
+              <div className="order-detail-head">
+                <div>
+                  <span>{sourceMeta[selected.order.source].label}</span>
+                  <h2>#{selected.order.externalOrderId ?? shortId(selected.order.id)}</h2>
+                  <small>{fullDate(selected.order.receivedAt)} · {onlyTime(selected.order.receivedAt)}</small>
+                </div>
+                <span className={`order-status ${statusMeta[selected.status].className}`}>{statusMeta[selected.status].label}</span>
+              </div>
 
-      <div className="orders-detail-actions">
-        {!['completed','cancelled'].includes(status) ? (
-          <form action="/api/orders/status" method="post">
-            <input type="hidden" name="storeId" value={storeId}/>
-            <input type="hidden" name="orderId" value={order.id}/>
-            <input type="hidden" name="deliveryId" value={delivery?.id ?? order.deliveryId ?? ''}/>
-            <input type="hidden" name="standalone" value={standalone ? '1' : '0'}/>
-            <input type="hidden" name="status" value="cancelled"/>
-            <button type="submit" className="secondary">Cancelar pedido</button>
-          </form>
-        ) : null}
-        {primary ? <div className="primary">{primary}</div> : null}
-      </div>
-    </>
+              <div className="order-detail-section">
+                <small>CLIENTE</small>
+                <strong>{selected.order.customerName ?? 'Cliente'}</strong>
+                <span>{phone(selected.order.customerPhone)}</span>
+                <p>{selected.order.deliveryAddress ?? 'Retirada no local'}</p>
+              </div>
+
+              <div className="order-detail-section">
+                <small>ITENS</small>
+                {selected.order.items.length ? selected.order.items.map((item,index) => (
+                  <div className="order-item-row" key={`${item.name ?? 'item'}-${index}`}>
+                    <span>{itemLabel(item)}</span>
+                    <b>{itemPrice(item) == null ? '—' : currency(itemPrice(item)!)}</b>
+                  </div>
+                )) : <span className="order-empty-items">Itens não informados nesta origem.</span>}
+              </div>
+
+              {selected.delivery ? (
+                <div className="order-detail-section">
+                  <small>ENTREGA</small>
+                  <strong>{selected.delivery.assignedCourierName ?? 'Buscando entregador'}</strong>
+                  <span>{vehicleLabel(selected.delivery.assignedCourierVehicle)}</span>
+                  <div className="order-detail-actions">
+                    {selected.delivery.assignedCourierId ? <Link href={`/chat?delivery=${selected.delivery.id}`}><Icon name="chat" size={15}/> Chat</Link> : null}
+                    <Link href={selected.delivery.assignedCourierId ? `/mapa?delivery=${selected.delivery.id}` : `/despacho?delivery=${selected.delivery.id}`}>
+                      <Icon name={selected.delivery.assignedCourierId ? 'map' : 'route'} size={15}/>
+                      {selected.delivery.assignedCourierId ? 'Mapa' : 'Despachar'}
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="order-total-box">
+                <span>Total do pedido</span>
+                <strong>{currency(selected.order.orderTotal)}</strong>
+              </div>
+            </>
+          ) : <div className="empty premium-empty">Selecione um pedido para ver os detalhes.</div>}
+        </aside>
+      </section>
+    </div>
   )
-}
-
-function paymentLabel(value:string) {
-  const labels:Record<string,string> = {
-    pix:'Pix',
-    cash:'Dinheiro',
-    card:'Cartão',
-    card_on_delivery:'Cartão na entrega',
-    already_paid:'Já pago',
-    unknown:'Não informado',
-  }
-  return labels[value] ?? value
-}
-
-function paymentStatusLabel(value:string) {
-  const labels:Record<string,string> = {
-    paid:'Pago',
-    pending:'Pendente',
-    failed:'Falhou',
-    refunded:'Estornado',
-    unknown:'Não informado',
-  }
-  return labels[value] ?? value
 }
