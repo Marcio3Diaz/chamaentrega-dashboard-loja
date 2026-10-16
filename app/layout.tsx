@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import { getSiteUrl } from '@/lib/site-url'
 
 const siteUrl = getSiteUrl()
@@ -62,16 +61,11 @@ export const metadata: Metadata = {
 
 const globalBaseStyles = `:root{--bg:#08090b;--surface:#111317;--surface-2:#171a1f;--surface-3:#20242a;--text:#f8f9fb;--muted:#9097a3;--line:rgba(255,255,255,.08);--gold:#ffb800;--gold-2:#ff8a00;--green:#20d27a;--red:#ff5f66;--blue:#4eb7ff;--radius:18px}*{box-sizing:border-box}html{min-height:100%;scroll-behavior:smooth}body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}button{cursor:pointer}img,svg{max-width:100%}:focus-visible{outline:2px solid #ffbd12;outline-offset:3px}`
 
-const themeBootstrap = `(function(){try{var saved=localStorage.getItem('chamaentrega-theme');var theme=saved==='light'?'light':'dark';document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;}catch(e){document.documentElement.dataset.theme='dark';document.documentElement.style.colorScheme='dark';}})();`
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" data-theme="dark" style={{ colorScheme:'dark' }} suppressHydrationWarning>
       <head>
         <style id="global-base-styles" dangerouslySetInnerHTML={{ __html: globalBaseStyles }} />
-        <Script id="theme-bootstrap" strategy="beforeInteractive">
-          {themeBootstrap}
-        </Script>
       </head>
       <body>{children}</body>
     </html>
