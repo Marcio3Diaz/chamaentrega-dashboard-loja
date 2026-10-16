@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,7 +12,6 @@ type Enrollment = {
 
 export function AdminMfaSetup() {
   const router = useRouter()
-  const started = useRef(false)
   const [enrollment,setEnrollment] = useState<Enrollment | null>(null)
   const [code,setCode] = useState('')
   const [loading,setLoading] = useState(true)
@@ -20,9 +19,6 @@ export function AdminMfaSetup() {
   const [error,setError] = useState('')
 
   useEffect(() => {
-    if (started.current) return
-    started.current = true
-
     let cancelled = false
 
     async function enroll() {
@@ -79,8 +75,14 @@ export function AdminMfaSetup() {
       setLoading(false)
     }
 
-    void enroll()
-    return () => { cancelled = true }
+    const timer = window.setTimeout(() => {
+      void enroll()
+    }, 0)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
   }, [router])
 
   async function confirm(event: FormEvent<HTMLFormElement>) {
