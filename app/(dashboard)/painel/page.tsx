@@ -9,17 +9,21 @@ import { DashboardLiveMap } from '@/components/dashboard-live-map'
 import { Icon } from '@/components/icon'
 import { migrationStoreDeliveriesWithFallback, migrationStoreWalletWithFallback } from '@/lib/migration-api'
 
-function minutesBetween(start: string, end: string | null) {
+function minutesBetween(start:string,end:string | null) {
   if (!end) return null
   const value = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000)
   return Number.isFinite(value) && value >= 0 ? value : null
 }
 
-function dayLabel(date: Date) {
-  return new Intl.DateTimeFormat('pt-BR', { weekday:'short' })
+function dayLabel(date:Date) {
+  return new Intl.DateTimeFormat('pt-BR',{ weekday:'short' })
     .format(date)
     .replace('.','')
-    .replace(/^./, value => value.toUpperCase())
+    .replace(/^./,value => value.toUpperCase())
+}
+
+function onlyTime(value:string) {
+  return new Intl.DateTimeFormat('pt-BR',{ hour:'2-digit',minute:'2-digit' }).format(new Date(value))
 }
 
 export default async function OverviewPage() {
@@ -33,71 +37,67 @@ export default async function OverviewPage() {
   const startWeek = new Date(startToday)
   startWeek.setDate(startWeek.getDate() - 6)
 
-  const [todayResult, weekResult] = await Promise.all([
+  const [todayResult,weekResult] = await Promise.all([
     migrationStoreDeliveriesWithFallback(
       store.id,
       async () => {
-        const { data, error } = await supabase
+        const { data,error } = await supabase
           .from('deliveries')
           .select('*')
-          .eq('store_id', store.id)
-          .gte('created_at', startToday.toISOString())
-          .order('created_at', { ascending:false })
+          .eq('store_id',store.id)
+          .gte('created_at',startToday.toISOString())
+          .order('created_at',{ ascending:false })
 
         if (error) throw error
         return (data ?? []) as Delivery[]
       },
-      {
-        since:startToday.toISOString(),
-        limit:250,
-        label:'dashboard-today',
-      },
+      { since:startToday.toISOString(),limit:250,label:'dashboard-today-v2' },
     ),
     migrationStoreDeliveriesWithFallback(
       store.id,
       async () => {
-        const { data, error } = await supabase
+        const { data,error } = await supabase
           .from('deliveries')
           .select('*')
-          .eq('store_id', store.id)
-          .gte('created_at', startWeek.toISOString())
-          .order('created_at', { ascending:false })
+          .eq('store_id',store.id)
+          .gte('created_at',startWeek.toISOString())
+          .order('created_at',{ ascending:false })
 
         if (error) throw error
         return (data ?? []) as Delivery[]
       },
-      {
-        since:startWeek.toISOString(),
-        limit:1000,
-        label:'dashboard-week',
-      },
+      { since:startWeek.toISOString(),limit:1000,label:'dashboard-week-v2' },
     ),
   ])
 
   const deliveries = todayResult.deliveries
   const weekDeliveries = weekResult.deliveries
 
+  const waitingStatuses = ['draft','available','negotiating']
   const active = deliveries.filter(item => activeStatuses.includes(item.status)).length
-  const waiting = deliveries.filter(item => ['available','negotiating'].includes(item.status)).length
+  const waiting = deliveries.filter(item => waitingStatuses.includes(item.status)).length
   const completed = deliveries.filter(item => item.status === 'completed').length
   const cancelled = deliveries.filter(item => item.status === 'cancelled').length
-
   const billed = deliveries.filter(item => !['draft','cancelled','expired'].includes(item.status))
   const gross = billed.reduce((sum,item) => sum + Number(item.delivery_fee ?? 0),0)
 
   const completedTimes = deliveries
     .filter(item => item.status === 'completed')
     .map(item => minutesBetween(item.accepted_at ?? item.created_at,item.completed_at))
-    .filter((value): value is number => value != null)
+    .filter((value):value is number => value != null)
 
   const averageMinutes = completedTimes.length
     ? Math.round(completedTimes.reduce((sum,value) => sum + value,0) / completedTimes.length)
     : 0
 
+  const completionRate = deliveries.length
+    ? Math.round((completed / deliveries.length) * 100)
+    : 0
+
   const { wallet } = await migrationStoreWalletWithFallback(
     store.id,
     async () => {
-      const { data:walletRows, error } = await supabase.rpc(
+      const { data:walletRows,error } = await supabase.rpc(
         'get_my_store_wallet',
         { p_store_id:store.id },
       )
@@ -111,41 +111,61 @@ export default async function OverviewPage() {
         walletId:row?.wallet_id ?? row?.id ?? null,
         balance,
         reservedBalance,
-        availableBalance:Number(
-          row?.available_balance ?? Math.max(balance - reservedBalance, 0),
-        ),
+        availableBalance:Number(row?.available_balance ?? Math.max(balance - reservedBalance,0)),
         updatedAt:row?.updated_at ?? null,
       }
     },
-    { label:'dashboard-wallet' },
+    { label:'dashboard-wallet-v2' },
   )
 
-  const walletBalance = wallet.balance
-  const walletReserved = wallet.reservedBalance
   const walletAvailable = wallet.availableBalance
+  const walletReserved = wallet.reservedBalance
 
-  const { data: couriersData } = await supabase
+  const { data:couriersData } = await supabase
     .from('couriers')
     .select('id,is_online,is_available')
+
   const couriers = couriersData ?? []
   const couriersOnline = couriers.filter(item => item.is_online).length
+  const couriersAvailable = couriers.filter(item => item.is_online && item.is_available).length
 
-  const metrics = [
-    { icon:'box', label:'Pedidos hoje', value:String(deliveries.length), note:`${completed} concluída${completed === 1 ? '' : 's'}`, tone:'gold' },
-    { icon:'truck', label:'Entregas em andamento', value:String(active), note:`${waiting} buscando entregador`, tone:'blue' },
-    { icon:'check', label:'Entregas concluídas', value:String(completed), note: deliveries.length ? `Taxa de sucesso ${Math.round((completed / deliveries.length) * 100)}%` : 'Sem pedidos hoje', tone:'green' },
-    { icon:'clock', label:'Tempo médio de entrega', value: averageMinutes ? `${averageMinutes} min` : '—', note:'Com base nas concluídas hoje', tone:'red' },
-    { icon:'users', label:'Entregadores ativos', value:`${couriersOnline} / ${couriers.length}`, note:`${Math.max(couriers.length - couriersOnline,0)} indisponíveis`, tone:'purple' },
-    { icon:'money', label:'Faturamento hoje', value:currency(gross), note:`${currency(walletAvailable)} na carteira`, tone:'gold' },
+  const kpis = [
+    {
+      icon:'box',
+      label:'Pedidos hoje',
+      value:String(deliveries.length),
+      note:`${completed} concluído${completed === 1 ? '' : 's'} · ${cancelled} cancelado${cancelled === 1 ? '' : 's'}`,
+      tone:'gold',
+    },
+    {
+      icon:'clock',
+      label:'Aguardando entregador',
+      value:String(waiting),
+      note:waiting ? 'Requer atenção da operação' : 'Nenhuma entrega aguardando',
+      tone:'gold',
+    },
+    {
+      icon:'truck',
+      label:'Em rota',
+      value:String(active),
+      note:averageMinutes ? `Tempo médio hoje: ${averageMinutes} min` : 'Sem tempo médio calculado',
+      tone:'blue',
+    },
+    {
+      icon:'check',
+      label:'Concluídos',
+      value:String(completed),
+      note:deliveries.length ? `Taxa de conclusão: ${completionRate}%` : 'Sem pedidos hoje',
+      tone:'green',
+    },
+    {
+      icon:'users',
+      label:'Entregadores online',
+      value:`${couriersOnline}`,
+      note:`${couriersAvailable} disponível${couriersAvailable === 1 ? '' : 'is'} agora`,
+      tone:'purple',
+    },
   ]
-
-  const filterCounts = {
-    all: deliveries.length,
-    waiting: deliveries.filter(item => ['draft','available','negotiating'].includes(item.status)).length,
-    active,
-    completed,
-    cancelled,
-  }
 
   const activeMapDeliveries = deliveries
     .filter(item => activeStatuses.includes(item.status) || ['available','negotiating'].includes(item.status))
@@ -172,147 +192,213 @@ export default async function OverviewPage() {
       value:rows.reduce((sum,item) => sum + Number(item.delivery_fee ?? 0),0),
     }
   })
+
   const maxDayValue = Math.max(...days.map(item => item.value),1)
   const weekGross = days.reduce((sum,item) => sum + item.value,0)
 
-  const hourBuckets = Array.from({ length:8 },(_,index) => {
-    const startHour = index * 3
-    const count = deliveries.filter(item => {
-      const hour = new Date(item.created_at).getHours()
-      return hour >= startHour && hour < startHour + 3
-    }).length
-    return { label:String(startHour).padStart(2,'0') + 'h', count }
-  })
-  const maxHourCount = Math.max(...hourBuckets.map(item => item.count),1)
-  const linePoints = hourBuckets.map((item,index) => {
-    const x = 8 + (index * 84 / Math.max(hourBuckets.length - 1,1))
-    const y = 88 - (item.count / maxHourCount) * 64
-    return `${x},${y}`
-  }).join(' ')
-
   return (
-    <div className="reference-dashboard">
-      <section
-        className="reference-hero generic-hero-banner official-png-banner"
-        aria-label="Sua loja no ChamaEntrega"
-      >
-        <img
-          className="official-png-banner-image"
-          src="/images/chamaentrega-dashboard-banner-generic.png?v=20260924-3"
-          alt="Sua loja no ChamaEntrega — entregador em uma avenida iluminada à noite"
+    <div className="store-dashboard-v2">
+      <section className="ops-hero">
+        <div className="ops-hero-copy">
+          <span className="ops-kicker"><i /> Central de operação</span>
+          <h1>{store.name}</h1>
+          <p>
+            Acompanhe pedidos, entregadores e entregas em tempo real. O que exige ação fica no topo; relatórios ficam em segundo plano.
+          </p>
+          <div className="ops-hero-actions">
+            <Link href="/entregas/nova" className="ops-primary-action">
+              <Icon name="plus" size={17}/>
+              Nova entrega
+            </Link>
+            <Link href="/pedidos" className="ops-secondary-action">
+              <Icon name="box" size={16}/>
+              Abrir pedidos
+            </Link>
+            <Link href="/mapa" className="ops-secondary-action">
+              <Icon name="map" size={16}/>
+              Ver mapa
+            </Link>
+          </div>
+        </div>
+
+        <DashboardClock
+          location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'}
         />
-        <DashboardClock location={store.city && store.state ? `${store.city} - ${store.state}` : 'Rio de Janeiro - RJ'} />
       </section>
 
-      <section className="reference-metrics">
-        {metrics.map(metric => (
-          <article className={`reference-metric ${metric.tone}`} key={metric.label}>
-            <span className="reference-metric-icon"><Icon name={metric.icon} size={25}/></span>
-            <div>
+      {waiting > 0 ? (
+        <section className="ops-alert">
+          <span><Icon name="lightning" size={18}/></span>
+          <div>
+            <strong>{waiting} entrega{waiting === 1 ? '' : 's'} aguardando entregador</strong>
+            <small>Priorize os pedidos que já estão prontos para evitar aumento do tempo de entrega.</small>
+          </div>
+          <Link href="/pedidos">ABRIR FILA</Link>
+        </section>
+      ) : null}
+
+      {walletAvailable < 30 ? (
+        <section className="ops-alert wallet">
+          <span><Icon name="money" size={18}/></span>
+          <div>
+            <strong>Saldo disponível baixo</strong>
+            <small>Você tem {currency(walletAvailable)} disponível para novas entregas.</small>
+          </div>
+          <Link href="/financeiro">VER CARTEIRA</Link>
+        </section>
+      ) : null}
+
+      <section className="ops-kpis">
+        {kpis.map(metric => (
+          <article className={`ops-kpi ${metric.tone}`} key={metric.label}>
+            <div className="ops-kpi-top">
+              <span className="ops-kpi-icon"><Icon name={metric.icon} size={18}/></span>
               <small>{metric.label}</small>
-              <strong>{metric.value}</strong>
-              <span>{metric.note}</span>
             </div>
+            <strong>{metric.value}</strong>
+            <p>{metric.note}</p>
           </article>
         ))}
       </section>
 
-      <section className="reference-live-grid">
-        <article className="reference-panel reference-orders-panel">
-          <div className="reference-panel-head">
-            <div className="reference-title-with-icon">
-              <span><Icon name="box" size={20}/></span>
-              <div><h2>Pedidos em tempo real</h2><p>Acompanhe todos os pedidos da sua loja</p></div>
+      <section className="ops-main-grid">
+        <article className="ops-panel">
+          <div className="ops-panel-head">
+            <div className="ops-panel-title">
+              <span><Icon name="box" size={18}/></span>
+              <div>
+                <h2>Fila operacional</h2>
+                <p>Pedidos e entregas mais recentes da loja</p>
+              </div>
             </div>
-            <Link href="/entregas" className="reference-outline-button">Ver todos</Link>
+            <Link href="/pedidos" className="ops-panel-link">Ver todos</Link>
           </div>
 
-          <div className="reference-order-filters">
-            <span className="active">Todos <b>{filterCounts.all}</b></span>
-            <span>Aguardando <b>{filterCounts.waiting}</b></span>
-            <span>Em andamento <b>{filterCounts.active}</b></span>
-            <span>Concluídos <b>{filterCounts.completed}</b></span>
-            <span>Cancelados <b>{filterCounts.cancelled}</b></span>
+          <div className="ops-count-chips">
+            <span className="ops-count-chip">Hoje <b>{deliveries.length}</b></span>
+            <span className="ops-count-chip attention">Aguardando <b>{waiting}</b></span>
+            <span className="ops-count-chip live">Em rota <b>{active}</b></span>
+            <span className="ops-count-chip">Concluídos <b>{completed}</b></span>
+            <span className="ops-count-chip">Cancelados <b>{cancelled}</b></span>
           </div>
 
-          <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} limit={6}/>
+          <LiveDeliveries storeId={store.id} initialDeliveries={deliveries} limit={8}/>
         </article>
 
-        <article className="reference-panel reference-map-panel">
-          <div className="reference-panel-head">
-            <div className="reference-title-with-icon">
-              <span><Icon name="map" size={20}/></span>
-              <div><h2>Mapa de entregas ao vivo</h2><p>Rotas e destinos da operação</p></div>
+        <aside className="ops-side-stack">
+          <article className="ops-side-card">
+            <h3>Ações rápidas</h3>
+            <p>Atalhos para as tarefas mais usadas durante a operação.</p>
+            <div className="ops-quick-grid">
+              <Link href="/entregas/nova" className="ops-quick-link">
+                <span><Icon name="plus" size={16}/></span>
+                <strong>Nova entrega</strong>
+              </Link>
+              <Link href="/pedidos" className="ops-quick-link">
+                <span><Icon name="box" size={16}/></span>
+                <strong>Pedidos</strong>
+              </Link>
+              <Link href="/entregadores" className="ops-quick-link">
+                <span><Icon name="users" size={16}/></span>
+                <strong>Entregadores</strong>
+              </Link>
+              <Link href="/mapa" className="ops-quick-link">
+                <span><Icon name="map" size={16}/></span>
+                <strong>Mapa ao vivo</strong>
+              </Link>
             </div>
-            <Link href="/mapa" className="reference-outline-button">Ver todas</Link>
-          </div>
+          </article>
 
+          <article className="ops-side-card">
+            <h3>Carteira da loja</h3>
+            <p>Saldo usado para financiar a operação de entregas.</p>
+            <div className="ops-wallet-balance">{currency(walletAvailable)}</div>
+            <div className="ops-wallet-meta">
+              <div>
+                <small>Reservado</small>
+                <strong>{currency(walletReserved)}</strong>
+              </div>
+              <div>
+                <small>Taxas hoje</small>
+                <strong>{currency(gross)}</strong>
+              </div>
+            </div>
+            <div className="ops-hero-actions">
+              <Link href="/financeiro" className="ops-secondary-action">Abrir financeiro</Link>
+            </div>
+          </article>
+        </aside>
+      </section>
+
+      <section className="ops-panel ops-map-panel">
+        <div className="ops-panel-head">
+          <div className="ops-panel-title">
+            <span><Icon name="map" size={18}/></span>
+            <div>
+              <h2>Operação no mapa</h2>
+              <p>Entregas em andamento, aguardando e destinos ativos</p>
+            </div>
+          </div>
+          <Link href="/mapa" className="ops-panel-link">Abrir mapa completo</Link>
+        </div>
+        <div className="ops-map-body">
           <DashboardLiveMap
             storeLatitude={store.latitude}
             storeLongitude={store.longitude}
             deliveries={activeMapDeliveries}
           />
-        </article>
+        </div>
       </section>
 
-      <section className="reference-analytics-grid">
-        <article className="reference-panel reference-analytics-card">
-          <div className="reference-analytics-head">
-            <div><Icon name="chart" size={19}/><span><strong>Faturamento</strong><small>Últimos 7 dias</small></span></div>
-            <span>7 dias</span>
+      <section className="ops-bottom-grid">
+        <article className="ops-panel ops-analytics">
+          <div className="ops-analytics-head">
+            <div>
+              <strong>Custos de entrega</strong>
+              <small>Últimos 7 dias</small>
+            </div>
+            <Link href="/financeiro" className="ops-panel-link">Financeiro</Link>
           </div>
-          <div className="reference-analytics-total">{currency(weekGross)}</div>
-          <div className="reference-bars">
+          <div className="ops-week-total">{currency(weekGross)}</div>
+          <div className="ops-bars">
             {days.map(item => (
-              <div key={item.label}>
-                <i style={{ height:`${Math.max(10,(item.value / maxDayValue) * 72)}px` }} />
+              <div className="ops-bar-col" key={item.label}>
+                <i style={{ height:`${Math.max(7,(item.value / maxDayValue) * 78)}px` }}/>
                 <small>{item.label}</small>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="reference-panel reference-analytics-card">
-          <div className="reference-analytics-head">
-            <div><Icon name="clock" size={19}/><span><strong>Pedidos por horário</strong><small>Hoje</small></span></div>
-            <span>Hoje</span>
+        <article className="ops-panel ops-analytics">
+          <div className="ops-analytics-head">
+            <div>
+              <strong>Atividade recente</strong>
+              <small>Últimas movimentações da operação</small>
+            </div>
+            <Link href="/entregas" className="ops-panel-link">Entregas</Link>
           </div>
-          <div className="reference-analytics-total">{deliveries.length} pedidos</div>
-          <div className="reference-line-chart">
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <polyline points={linePoints} />
-            </svg>
-            <div>{hourBuckets.map(item => <small key={item.label}>{item.label}</small>)}</div>
-          </div>
-        </article>
 
-        <article className="reference-panel reference-analytics-card">
-          <div className="reference-analytics-head">
-            <div><Icon name="box" size={19}/><span><strong>Produtos mais pedidos</strong><small>Cardápio</small></span></div>
-          </div>
-          <div className="reference-products-empty">
-            <Icon name="store" size={28}/>
-            <strong>Integração com cardápio</strong>
-            <small>Os produtos mais vendidos aparecerão aqui quando os itens dos pedidos estiverem integrados.</small>
-          </div>
-        </article>
-
-        <article className="reference-panel reference-analytics-card">
-          <div className="reference-analytics-head">
-            <div><Icon name="activity" size={19}/><span><strong>Últimas atividades</strong><small>Operação recente</small></span></div>
-            <Link href="/entregas">Ver todas</Link>
-          </div>
-          <div className="reference-activity-list">
-            {deliveries.slice(0,5).map(item => (
-              <div key={item.id}>
-                <span className={item.status === 'completed' ? 'done' : activeStatuses.includes(item.status) ? 'live' : 'wait'}>
-                  <Icon name={item.status === 'completed' ? 'check' : activeStatuses.includes(item.status) ? 'truck' : 'clock'} size={13}/>
-                </span>
-                <strong>Pedido #{shortId(item.id)}</strong>
-                <small>{statusLabel[item.status] ?? item.status}</small>
-              </div>
-            ))}
-            {!deliveries.length ? <div className="reference-activity-empty">Nenhuma atividade hoje.</div> : null}
+          <div className="ops-activity-list">
+            {deliveries.slice(0,6).map(item => {
+              const done = item.status === 'completed'
+              const live = activeStatuses.includes(item.status)
+              return (
+                <div className="ops-activity-item" key={item.id}>
+                  <span className={`ops-activity-icon ${done ? 'done' : live ? 'live' : ''}`}>
+                    <Icon name={done ? 'check' : live ? 'truck' : 'clock'} size={14}/>
+                  </span>
+                  <span className="ops-activity-copy">
+                    <strong>Pedido #{shortId(item.id)}</strong>
+                    <small>{statusLabel[item.status] ?? item.status}</small>
+                  </span>
+                  <span className="ops-activity-time">{onlyTime(item.updated_at)}</span>
+                </div>
+              )
+            })}
+            {!deliveries.length ? (
+              <div className="empty premium-empty">Nenhuma atividade registrada hoje.</div>
+            ) : null}
           </div>
         </article>
       </section>
