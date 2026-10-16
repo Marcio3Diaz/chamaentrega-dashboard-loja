@@ -2,6 +2,8 @@ import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { StoreIntegrationsPanel, type StoreIntegrationRow } from '@/components/store-integrations-panel'
 
+export const dynamic = 'force-dynamic'
+
 export default async function IntegrationsPage() {
   const { store } = await requireStore()
   const supabase = await createClient()
