@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import '../../../private.css'
 import { AdminLoginForm } from './admin-login-form'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Central Administrativa',
   description: 'Acesso restrito à administração do ChamaEntrega.',
