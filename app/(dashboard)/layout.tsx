@@ -1,4 +1,5 @@
 import '../private.css'
+import '../dashboard-v2.css'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
