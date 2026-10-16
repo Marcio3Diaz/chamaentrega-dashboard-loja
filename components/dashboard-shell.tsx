@@ -1,25 +1,34 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { setActiveStoreAction, signOutAction } from '@/app/actions'
 import { Icon } from '@/components/icon'
 import { StoreLogoUpload } from '@/components/store-logo-upload'
 import { CHAMAENTREGA_LOGO_CREME } from '@/lib/brand-logo-creme'
 
-const nav = [
-  ['/painel', 'Início', 'home'],
-  ['/pedidos', 'Pedidos', 'box'],
-  ['/entregas/nova', 'Criar entrega', 'route'],
-  ['/entregadores', 'Entregadores', 'user'],
-  ['/financeiro', 'Financeiro', 'chart'],
-  ['/entregas', 'Entregas', 'box'],
-  ['/integracoes', 'Cardápio', 'store'],
-  ['/integracoes', 'Integrações', 'link'],
-  ['/despacho', 'Promoções', 'activity'],
-  ['/configuracoes', 'Configurações', 'gear'],
-]
+const navSections = [
+  {
+    label:'Operação',
+    items:[
+      ['/painel','Visão geral','home'],
+      ['/pedidos','Pedidos','box'],
+      ['/entregas','Entregas','truck'],
+      ['/mapa','Mapa ao vivo','map'],
+      ['/entregadores','Entregadores','users'],
+      ['/chat','Conversas','chat'],
+    ],
+  },
+  {
+    label:'Gestão',
+    items:[
+      ['/financeiro','Financeiro','money'],
+      ['/integracoes','Integrações','link'],
+      ['/configuracoes','Configurações','gear'],
+    ],
+  },
+] as const
 
 type StoreOption = {
   id: string
@@ -44,6 +53,11 @@ type Props = {
   children: React.ReactNode
 }
 
+function isActivePath(pathname:string,href:string) {
+  if (href === '/painel') return pathname === href
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
 export function DashboardShell({
   storeId,
   userId,
@@ -58,6 +72,7 @@ export function DashboardShell({
 }: Props) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchRef = useRef<HTMLInputElement>(null)
   const [storeMenuOpen,setStoreMenuOpen] = useState(false)
   const [searchValue,setSearchValue] = useState('')
   const [switchingStore,startStoreTransition] = useTransition()
@@ -77,6 +92,18 @@ export function DashboardShell({
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
   }, [])
+
+  useEffect(() => {
+    const handleShortcut = (event:KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown',handleShortcut)
+    return () => window.removeEventListener('keydown',handleShortcut)
+  },[])
 
   const moderationLabel = {
     pending:'Aguardando aprovação',
@@ -101,12 +128,17 @@ export function DashboardShell({
     })
   }
 
+  function submitSearch() {
+    const query = searchValue.trim()
+    router.push(query ? `/pedidos?busca=${encodeURIComponent(query)}` : '/pedidos')
+  }
+
   return (
     <div className="shell premium-shell">
       <aside className="sidebar premium-sidebar">
         <Link href="/painel" className="brand premium-brand official-brand-link" aria-label="ChamaEntrega — Chamou, Chegou">
           <img
-            src={(pathname.startsWith('/pedidos') || pathname.startsWith('/entregadores') || pathname === '/entregas' || pathname === '/painel' || pathname.startsWith('/configuracoes') || pathname.startsWith('/financeiro')) ? CHAMAENTREGA_LOGO_CREME : '/brand/chamaentrega-logo-official.webp'}
+            src={CHAMAENTREGA_LOGO_CREME}
             width={420}
             height={140}
             alt="ChamaEntrega — Chamou, Chegou"
@@ -189,12 +221,17 @@ export function DashboardShell({
           ) : null}
         </div>
 
-        <nav className="nav premium-nav">
-          {nav.map(([href,label,icon]) => (
-            <Link key={href} href={href} className={pathname===href ? 'primary' : ''}>
-              <span className="nav-icon"><Icon name={icon} size={19}/></span>
-              <span>{label}</span>
-            </Link>
+        <nav className="nav premium-nav" aria-label="Navegação principal">
+          {navSections.map(section => (
+            <div className="dashboard-nav-section" key={section.label}>
+              <div className="dashboard-nav-label">{section.label}</div>
+              {section.items.map(([href,label,icon]) => (
+                <Link key={href} href={href} className={isActivePath(pathname,href) ? 'primary' : ''}>
+                  <span className="nav-icon"><Icon name={icon} size={18}/></span>
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
 
@@ -212,31 +249,30 @@ export function DashboardShell({
           <div className="reference-search">
             <Icon name="search" size={18}/>
             <input
+              ref={searchRef}
               value={searchValue}
               onChange={event => setSearchValue(event.target.value)}
               onKeyDown={event => {
-                if (event.key === 'Enter' && searchValue.trim()) {
-                  router.push('/pedidos')
-                }
+                if (event.key === 'Enter') submitSearch()
               }}
-              placeholder="Buscar pedidos, clientes, entregadores..."
-              aria-label="Buscar no painel"
+              placeholder="Buscar pedido, cliente, telefone ou endereço..."
+              aria-label="Buscar pedidos"
             />
             <kbd>Ctrl + K</kbd>
           </div>
 
           <div className="topbar-actions reference-topbar-actions">
             <Link href="/pedidos" className="icon-button notification-button reference-bell" aria-label="Abrir pedidos">
-              <Icon name="bell" size={21}/><i />
+              <Icon name="bell" size={20}/><i />
             </Link>
 
             <Link href="/financeiro" className="reference-wallet-chip">
               <span className="reference-wallet-icon"><Icon name="money" size={18}/></span>
-              <span><strong>{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(walletAvailable)}</strong><small>Saldo na carteira</small></span>
+              <span><strong>{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(walletAvailable)}</strong><small>Saldo disponível</small></span>
             </Link>
 
             <Link href="/entregas/nova" className="reference-new-delivery">
-              <Icon name="plus" size={20}/>
+              <Icon name="plus" size={19}/>
               <span>Nova entrega</span>
             </Link>
 
@@ -258,6 +294,7 @@ export function DashboardShell({
             </button>
           </div>
         </header>
+
         <div className="content premium-content">
           {moderationStatus !== 'active' ? (
             <div className={`store-moderation-banner ${moderationStatus}`}>
@@ -277,12 +314,12 @@ export function DashboardShell({
         </div>
       </section>
 
-      <nav className="mobile-nav">
+      <nav className="mobile-nav" aria-label="Navegação móvel">
         <Link href="/painel"><Icon name="home" size={18}/>Início</Link>
         <Link href="/pedidos"><Icon name="box" size={18}/>Pedidos</Link>
-        <Link href="/entregas"><Icon name="box" size={18}/>Entregas</Link>
+        <Link href="/entregas/nova"><Icon name="plus" size={18}/>Nova</Link>
         <Link href="/mapa"><Icon name="map" size={18}/>Mapa</Link>
-        <Link href="/financeiro"><Icon name="chart" size={18}/>Financeiro</Link>
+        <Link href="/financeiro"><Icon name="money" size={18}/>Financeiro</Link>
       </nav>
     </div>
   )
