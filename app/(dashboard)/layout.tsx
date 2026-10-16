@@ -4,6 +4,8 @@ import { DashboardShell } from '@/components/dashboard-shell'
 import { requireStore } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { store, stores, userId } = await requireStore()
   const supabase = await createClient()
