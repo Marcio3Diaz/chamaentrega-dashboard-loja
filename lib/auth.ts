@@ -138,29 +138,7 @@ export async function requireAdmin(): Promise<{
   userId:string
   fullName:string
 }> {
-  const identity = await requireAdminIdentity()
-  const supabase = await createClient()
-
-  const { data:assurance,error:assuranceError } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-
-  if (assuranceError) {
-    redirect('/admin/login?error=mfa')
-  }
-
-  if (assurance?.currentLevel !== 'aal2') {
-    const { data:factors,error:factorsError } = await supabase.auth.mfa.listFactors()
-
-    if (factorsError) {
-      redirect('/admin/login?error=mfa')
-    }
-
-    const verifiedTotp = factors?.totp?.some(
-      factor => factor.status === 'verified',
-    )
-
-    redirect(verifiedTotp ? '/admin/mfa' : '/admin/mfa/setup')
-  }
-
-  return identity
+  // MFA temporariamente desativado no admin.
+  // O código das telas MFA foi mantido para reativação futura.
+  return requireAdminIdentity()
 }
